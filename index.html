@@ -8,7 +8,7 @@
     <style>
         :root {
             --bg-black: #050505;
-            --gold-main: #D4AF37; /* اللون الذهبي الملكي */
+            --gold-main: #D4AF37;
             --gold-glow: #FFD700;
             --dark-card: #121212;
             --text-white: #ffffff;
@@ -29,7 +29,7 @@
         #login-screen {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.98);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -41,10 +41,11 @@
             border-radius: 15px;
             border: 2px solid var(--gold-main);
             text-align: center;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            width: 90%;
+            max-width: 400px;
         }
 
-        /* الهيدر */
         header {
             background: var(--dark-card);
             padding: 15px 25px;
@@ -61,10 +62,9 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background-image: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
         }
 
-        /* تصميم الرسائل */
         .message {
             background: #1a1a1a;
             padding: 12px 18px;
@@ -73,7 +73,11 @@
             align-self: flex-start;
             border: 1px solid #333;
             border-right: 4px solid var(--gold-main);
+            animation: fadeIn 0.3s ease;
         }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .msg-info {
             font-size: 0.8rem;
             margin-bottom: 5px;
@@ -83,11 +87,8 @@
             color: var(--gold-main);
         }
 
-        /* الرتب */
-        .rank-legend { color: var(--gold-glow); text-shadow: 0 0 10px var(--gold-main); animation: goldPulse 1.5s infinite alternate; }
-        @keyframes goldPulse { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 20px var(--gold-glow); } }
+        .rank-legend { color: var(--gold-glow); text-shadow: 0 0 10px var(--gold-main); }
 
-        /* منطقة الإدخال */
         .input-box {
             background: var(--dark-card);
             padding: 20px;
@@ -95,15 +96,18 @@
             gap: 10px;
             border-top: 2px solid var(--gold-main);
         }
+
         input {
             flex: 1;
             background: #000;
             border: 1px solid var(--gold-main);
             padding: 12px;
             border-radius: 8px;
-            color: gold;
+            color: #fff;
             outline: none;
+            font-family: 'Cairo';
         }
+
         button {
             background: var(--gold-main);
             color: black;
@@ -114,6 +118,7 @@
             cursor: pointer;
             transition: 0.3s;
         }
+
         button:hover { background: var(--gold-glow); transform: scale(1.05); }
     </style>
 </head>
@@ -121,23 +126,23 @@
 
 <div id="login-screen">
     <div class="login-box">
-        <h1 style="color: var(--gold-main); font-weight: 900;">GAME ZONE VIP</h1>
-        <p style="color: #aaa;">أهلاً بك في مجلس الأساطير الذهبي</p>
-        <input type="text" id="username" placeholder="اكتب اسمك هنا..." style="width: 85%; margin-bottom: 20px;">
+        <h1 style="color: var(--gold-main); font-weight: 900; margin-bottom: 10px;">GAME ZONE VIP</h1>
+        <p style="color: #aaa; margin-bottom: 25px;">مجلس الأساطير بانتظارك</p>
+        <input type="text" id="username" placeholder="اكتب اسمك هنا..." style="width: 85%; margin-bottom: 20px; text-align: center;">
         <br>
-        <button onclick="joinChat()">دخول المجلس</button>
+        <button onclick="joinChat()" style="width: 95%; height: 45px;">دخول المجلس</button>
     </div>
 </div>
 
 <header>
     <div style="font-size: 1.5rem; font-weight: 900; color: var(--gold-main);">GAME ZONE <span style="color: white;">CHAT</span></div>
-    <div id="user-badge" style="color: var(--gold-main); font-weight: bold;">جاري التحميل...</div>
+    <div id="user-badge" style="color: var(--gold-main); font-weight: bold;"></div>
 </header>
 
 <div id="chat-container"></div>
 
 <div class="input-box">
-    <input type="text" id="msg-input" placeholder="اكتب رسالة ذهبية...">
+    <input type="text" id="msg-input" placeholder="اكتب رسالة ذهبية..." onkeypress="if(event.key==='Enter') sendMessage()">
     <button onclick="sendMessage()">إرسال</button>
 </div>
 
@@ -146,7 +151,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-    // بياناتك الخاصة من مشروعك
     const firebaseConfig = {
         apiKey: "AIzaSyBqu1IE24FhA-govU_swQ4IcynOj4AB-ao",
         authDomain: "game-zone-chat1.firebaseapp.com",
@@ -160,15 +164,10 @@
     const db = firebase.firestore();
     let myProfile = null;
 
-    // دالة الرتب بناءً على الولاء
-    function getRank(joinDate, lastActive) {
-        const now = Date.now();
-        const daysRegistered = (now - joinDate) / (1000 * 60 * 60 * 24);
-        const daysSinceLastActive = (now - lastActive) / (1000 * 60 * 60 * 24);
-
-        if (daysSinceLastActive > 5) return { name: "منقطع 😴", class: "rank-new" };
-        if (daysRegistered >= 90) return { name: "أسطورة GZ 👑", class: "rank-legend" };
-        if (daysRegistered >= 30) return { name: "عضو ملكي 🥇", class: "rank-royal" };
+    function getRank(joinDate) {
+        const days = (Date.now() - joinDate) / (1000 * 60 * 60 * 24);
+        if (days >= 90) return { name: "أسطورة GZ 👑", class: "rank-legend" };
+        if (days >= 30) return { name: "عضو ملكي 🥇", class: "rank-royal" };
         return { name: "لاعب جديد 🥚", class: "rank-new" };
     }
 
@@ -182,45 +181,45 @@
             const userRef = db.collection('users').doc(uid);
             const doc = await userRef.get();
 
-            // حل مشكلة doc.exists is not a function بناءً على صورتك
+            // الحل النهائي لخطأ doc.exists is not a function
             if (!doc.exists) { 
-                myProfile = { uid, name, joinDate: Date.now(), lastActive: Date.now() };
+                myProfile = { uid, name, joinDate: Date.now() };
                 await userRef.set(myProfile);
             } else {
                 myProfile = doc.data();
-                myProfile.lastActive = Date.now();
-                await userRef.update({ lastActive: Date.now() });
             }
 
             document.getElementById('login-screen').style.display = 'none';
             displayBadge();
             listenToMessages();
         } catch (e) {
-            console.error(e);
-            alert("خطأ: تأكد من تفعيل Anonymous Auth وتوفير الإنترنت.");
+            console.error("خطأ:", e);
+            alert("فشل الدخول! يرجى إغلاق مانع الإعلانات (AdBlock) والمحاولة مجدداً.");
         }
     }
 
     function displayBadge() {
-        const rank = getRank(myProfile.joinDate, myProfile.lastActive);
+        const rank = getRank(myProfile.joinDate);
         document.getElementById('user-badge').innerHTML = `<span class="${rank.class}">${rank.name} | ${myProfile.name}</span>`;
     }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
-        if (!input.value) return;
+        if (!input.value.trim()) return;
 
-        const currentRank = getRank(myProfile.joinDate, Date.now());
-
-        await db.collection('messages').add({
-            name: myProfile.name,
-            text: input.value,
-            rankName: currentRank.name,
-            rankClass: currentRank.class,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        input.value = "";
+        const currentRank = getRank(myProfile.joinDate);
+        try {
+            await db.collection('messages').add({
+                name: myProfile.name,
+                text: input.value,
+                rankName: currentRank.name,
+                rankClass: currentRank.class,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = "";
+        } catch (e) {
+            console.error("خطأ إرسال:", e);
+        }
     }
 
     function listenToMessages() {
@@ -234,16 +233,18 @@
                     div.className = 'message';
                     div.innerHTML = `
                         <div class="msg-info">
-                            <span class="${m.rankClass}">${m.name}</span>
-                            <span style="color: #666;">[${m.rankName}]</span>
+                            <span class="${m.rankClass}">${m.name}</span> 
+                            <span style="color:#666; font-size:0.7rem;">[${m.rankName}]</span>
                         </div>
-                        <div style="color: white;">${m.text}</div>
-                    `;
+                        <div style="color: white; word-break: break-word;">${m.text}</div>`;
                     container.appendChild(div);
                 });
                 container.scrollTop = container.scrollHeight;
+            }, (err) => {
+                console.error("خطأ تحديث:", err);
             });
     }
 </script>
 </body>
 </html>
+
