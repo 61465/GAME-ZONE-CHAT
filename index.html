@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Game Zone Ultimate | التحكم الكامل</title>
+    <title>Game Zone Ultimate | المؤسس</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
         /* ==========================================
-           1. الأساسيات والتحكم في التمرير
+           1. نظام الألوان والأساسيات (الاحترافية)
            ========================================== */
         :root { 
             --bg-black: #050505; 
             --gold-main: #D4AF37; 
+            --gold-dark: #aa8c2c;
             --dark-card: #121212; 
             --founder-red: #ff3333;
             --text-gray: #b3b3b3;
-            --radius: 15px;
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         * { 
@@ -26,236 +27,278 @@
 
         html, body {
             height: 100%;
-            overflow: hidden; /* لمنع اهتزاز الصفحة كاملة */
+            width: 100%;
+            overflow: hidden; /* لمنع اهتزاز الصفحة الخارجية */
             background-color: var(--bg-black);
             font-family: 'Cairo', sans-serif;
             color: white;
+            display: flex;
+            flex-direction: column; /* تقسيم الصفحة رأسياً */
         }
 
         /* ==========================================
-           2. الهيدر (Header)
+           2. الهيدر (Header) - ثابت في الأعلى
            ========================================== */
         header { 
-            height: 70px;
-            background: rgba(18, 18, 18, 0.98);
+            height: 75px;
+            background: linear-gradient(to bottom, #111, #050505);
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 0 20px;
+            padding: 0 25px;
             border-bottom: 2px solid var(--gold-main);
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            z-index: 2000;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.9);
+            flex-shrink: 0;
         }
 
-        .logo { font-weight: 900; color: var(--gold-main); font-size: 1.3rem; }
+        .logo-area { display: flex; flex-direction: column; }
+        .logo-main { font-weight: 900; color: var(--gold-main); font-size: 1.4rem; letter-spacing: 1px; }
+        .logo-sub { font-size: 0.6rem; color: var(--text-gray); text-transform: uppercase; }
 
         /* ==========================================
-           3. منطقة الشات (Scrollable Area)
+           3. منطقة الشات (التي تحتوي على السكرول)
            ========================================== */
         #chat-container { 
-            position: absolute;
-            top: 70px;
-            bottom: 85px; /* يترك مساحة لصندوق الكتابة */
-            width: 100%;
-            overflow-y: scroll; /* تفعيل التمرير الإجباري */
-            -webkit-overflow-scrolling: touch; /* تمرير ناعم لنظام iOS */
-            padding: 20px 15px;
+            flex: 1; /* تأخذ كل مساحة الشاشة الوسطى */
+            overflow-y: scroll; /* تمكين التمرير */
+            overflow-x: hidden;
+            padding: 25px 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+            gap: 18px;
+            background: 
+                radial-gradient(circle at top, #151515 0%, #050505 100%),
+                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            -webkit-overflow-scrolling: touch; /* سلاسة فائقة للايفون */
         }
 
-        /* تنسيق شريط التمرير ليظهر بوضوح عند الحركة */
+        /* تنسيق شريط التمرير الذهبي */
         #chat-container::-webkit-scrollbar { width: 5px; }
+        #chat-container::-webkit-scrollbar-track { background: transparent; }
         #chat-container::-webkit-scrollbar-thumb { 
-            background: var(--gold-main); 
+            background: linear-gradient(var(--gold-main), var(--gold-dark)); 
             border-radius: 10px; 
         }
 
         /* ==========================================
-           4. فقاعات الرسائل (Messages)
+           4. تصميم الرسائل (Message Bubbles)
            ========================================== */
+        .message-row {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+
         .message { 
-            background: rgba(255, 255, 255, 0.05); 
-            padding: 12px 15px; 
-            border-radius: 15px 15px 0 15px; 
-            max-width: 85%; 
+            background: var(--glass); 
+            padding: 14px 18px; 
+            border-radius: 18px 18px 0 18px; 
+            max-width: 88%; 
             border-right: 3px solid var(--gold-main);
             position: relative;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+            align-self: flex-start;
         }
 
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .my-message {
+            align-self: flex-end;
+            border-radius: 18px 18px 18px 0;
+            border-right: none;
+            border-left: 3px solid var(--gold-main);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        @keyframes slideIn { 
+            from { opacity: 0; transform: translateY(15px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
         .msg-founder { 
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
             border-right: 5px solid var(--founder-red);
-            background: rgba(255, 0, 0, 0.02);
+            background: rgba(255, 0, 0, 0.03);
         }
 
-        .user-header {
+        .user-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 5px;
-            font-size: 0.75rem;
+            margin-bottom: 6px;
         }
 
-        .rank-tag { cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .rank-tag:hover { text-decoration: underline; color: var(--gold-main); }
+        .username { 
+            font-weight: 800; 
+            color: var(--gold-main); 
+            font-size: 0.8rem; 
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .username:hover { color: white; text-shadow: 0 0 10px var(--gold-main); }
 
-        .reply-box-in-msg {
-            background: rgba(0,0,0,0.3);
-            padding: 5px 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border-right: 2px solid #555;
-            font-size: 0.7rem;
-            color: #aaa;
+        .reply-btn { font-size: 0.65rem; color: var(--text-gray); cursor: pointer; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+
+        .reply-content {
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-right: 2px solid #444;
+            font-size: 0.75rem;
+            color: #999;
         }
 
         /* ==========================================
-           5. منطقة التحكم السفلية (Controls)
+           5. الفوتر وصندوق الكتابة (Fixed Footer)
            ========================================== */
-        .footer-fixed {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+        .footer-area {
+            flex-shrink: 0;
             background: var(--dark-card);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
             z-index: 2000;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        #reply-bar {
-            background: #1a1a1a;
-            padding: 8px 20px;
-            border-top: 1px solid var(--gold-main);
+        #reply-preview {
             display: none;
+            background: #1a1a1a;
+            padding: 10px 20px;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            border-bottom: 1px solid #333;
         }
 
-        .input-group {
+        .input-container {
             display: flex;
-            padding: 15px;
-            gap: 10px;
+            padding: 15px 20px;
+            gap: 12px;
             align-items: center;
-            padding-bottom: calc(15px + env(safe-area-inset-bottom));
         }
 
-        input#user-msg {
+        #user-msg {
             flex: 1;
             background: #000;
             border: 1px solid #333;
-            padding: 12px 18px;
-            border-radius: 25px;
+            padding: 14px 20px;
+            border-radius: 30px;
             color: white;
-            outline: none;
             font-size: 16px;
+            outline: none;
+            transition: 0.3s;
         }
-
-        input#user-msg:focus { border-color: var(--gold-main); }
+        #user-msg:focus { border-color: var(--gold-main); box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
 
         .send-btn {
-            background: var(--gold-main);
-            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--gold-main), var(--gold-dark));
+            width: 50px; height: 50px;
             border-radius: 50%;
             border: none;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: 0.3s;
         }
+        .send-btn:active { transform: scale(0.9); }
 
         /* ==========================================
-           6. لوحة التحكم (Admin Menu)
+           6. لوحة تحكم المؤسس (Admin Panel)
            ========================================== */
-        #admin-menu {
+        #admin-panel {
             position: fixed;
-            background: #181818;
+            background: rgba(20, 20, 20, 0.98);
             border: 1px solid var(--gold-main);
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 20px;
+            padding: 15px;
             display: none;
             z-index: 9999;
-            width: 200px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            width: 220px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
         }
 
-        #admin-menu button {
+        .admin-option {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin: 5px 0;
-            background: #252525;
+            background: rgba(255,255,255,0.03);
             color: white;
-            border: none;
-            border-radius: 8px;
+            border: 1px solid #333;
+            border-radius: 12px;
             cursor: pointer;
             text-align: right;
             font-family: 'Cairo';
-            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        .admin-option:hover { background: rgba(212, 175, 55, 0.1); border-color: var(--gold-main); }
+        .opt-delete { color: var(--founder-red); border-color: rgba(255, 0, 0, 0.2); }
 
-        #admin-menu button.delete-btn { color: var(--founder-red); font-weight: bold; }
-        #admin-menu button:hover { background: #333; }
-
-        /* نظام التنبيهات */
-        #alert-box {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: var(--gold-main); color: black; padding: 10px 25px;
-            border-radius: 50px; font-weight: bold; z-index: 10000; display: none;
-        }
-
-        /* شاشة الدخول */
-        #login-screen {
+        /* شاشات النظام */
+        #loading-screen {
             position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .login-box {
-            background: var(--dark-card); padding: 40px; border-radius: 20px;
-            border: 1px solid var(--gold-main); width: 90%; max-width: 350px; text-align: center;
+        .loader { border: 4px solid #111; border-top: 4px solid var(--gold-main); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #alert-popup {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: var(--gold-main); color: black; padding: 10px 30px;
+            border-radius: 50px; font-weight: 900; z-index: 10001; display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
-<div id="alert-box"></div>
-
-<div id="admin-menu">
-    <div id="menu-title" style="font-size: 0.7rem; color: #888; text-align: center; margin-bottom: 8px;"></div>
-    <button onclick="handleAdmin('mute')">🔇 كتم العضو</button>
-    <button onclick="handleAdmin('unmute')">🔊 فك الكتم</button>
-    <button class="delete-btn" id="del-btn-ui" style="display:none;" onclick="handleAdmin('delete')">🗑️ حذف الرسالة</button>
-    <button onclick="closeMenu()" style="color: #666; margin-top: 5px;">إغلاق</button>
+<div id="loading-screen">
+    <div class="loader"></div>
+    <p style="margin-top:20px; color:var(--gold-main); font-weight:900; letter-spacing:2px;">جاري تأمين الاتصال...</p>
 </div>
 
-<div id="login-screen">
-    <div class="login-box">
-        <h2 style="color:var(--gold-main); margin-bottom: 20px;">GAME ZONE CHAT</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#000; color:white;"><br>
-        <input type="password" id="pass" placeholder="كلمة السر" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #333; background:#000; color:white;"><br>
-        <button onclick="login()" style="width:100%; padding:12px; background:var(--gold-main); border:none; border-radius:8px; font-weight:bold; cursor:pointer;">دخول</button>
-    </div>
+<div id="alert-popup"></div>
+
+<div id="admin-panel">
+    <p id="target-name" style="text-align:center; color:var(--gold-main); margin-bottom:10px; font-weight:900; border-bottom:1px solid #333; padding-bottom:10px;"></p>
+    <button class="admin-option" onclick="execAdmin('mute')">🔇 كتم العضو</button>
+    <button class="admin-option" onclick="execAdmin('unmute')">🔊 فك الكتم</button>
+    <button class="admin-option opt-delete" id="founder-delete-btn" style="display:none;" onclick="execAdmin('delete')">🗑️ حذف الرسالة نهائياً</button>
+    <button onclick="closeAdmin()" style="width:100%; background:none; border:none; color:#555; margin-top:10px; cursor:pointer;">إغلاق القائمة</button>
 </div>
 
 <header>
-    <div class="logo">Game Zone <small style="font-size:0.6rem; vertical-align:middle; opacity:0.7;">PRO</small></div>
-    <div id="user-rank-display" style="font-size: 0.8rem;"></div>
+    <div class="logo-area">
+        <span class="logo-main">GAME ZONE</span>
+        <span class="logo-sub">Ultimate Founder Edition</span>
+    </div>
+    <div id="rank-badge"></div>
 </header>
 
 <div id="chat-container"></div>
 
-<div class="footer-fixed">
-    <div id="reply-bar">
-        <div id="reply-text" style="color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;"></div>
-        <div onclick="cancelReply()" style="color: var(--founder-red); cursor: pointer; padding: 0 10px; font-weight: bold;">✕</div>
+<div class="footer-area">
+    <div id="reply-preview">
+        <div id="reply-info" style="font-size: 0.75rem; color: #888;"></div>
+        <div onclick="cancelReply()" style="color: var(--founder-red); font-weight: bold; cursor: pointer;">✕</div>
     </div>
-    
-    <div class="input-group">
-        <input type="text" id="user-msg" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+    <div class="input-container">
+        <input type="text" id="user-msg" placeholder="اكتب رسالتك الملكية..." autocomplete="off">
         <button class="send-btn" onclick="sendMessage()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="black"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="black"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
         </button>
+    </div>
+</div>
+
+<div id="login-overlay" style="position:fixed; inset:0; background:#000; z-index:9000; display:none; justify-content:center; align-items:center;">
+    <div style="background:var(--dark-card); padding:40px; border-radius:25px; border:1px solid var(--gold-main); width:90%; max-width:380px; text-align:center;">
+        <h2 style="color:var(--gold-main); margin-bottom:30px; font-weight:900;">تسجيل الدخول</h2>
+        <input type="email" id="login-email" placeholder="البريد الإلكتروني" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #333; background:#000; color:#fff; outline:none;">
+        <input type="password" id="login-pass" placeholder="كلمة السر" style="width:100%; padding:15px; margin-bottom:25px; border-radius:12px; border:1px solid #333; background:#000; color:#fff; outline:none;">
+        <button onclick="handleLogin()" style="width:100%; padding:15px; background:var(--gold-main); border:none; border-radius:12px; font-weight:900; cursor:pointer; font-size:1.1rem;">دخول</button>
     </div>
 </div>
 
@@ -265,7 +308,7 @@
 
 <script>
 // ==========================================
-// 1. الإعدادات والتحقق
+// 1. الإعدادات المتقدمة
 // ==========================================
 const FOUNDER_EMAIL = "abdarahman10555@gmail.com";
 const firebaseConfig = {
@@ -281,110 +324,115 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-let myProfile = null;
-let replyData = null;
-let targetUID = null;
-let targetMsgID = null;
+let myData = null;
+let currentReply = null;
+let selectedUID = null;
+let selectedMID = null;
 
 // ==========================================
-// 2. وظائف النظام الأساسية
+// 2. وظائف الواجهة
 // ==========================================
-function showAlert(m) {
-    const b = document.getElementById('alert-box');
-    b.innerText = m; b.style.display = 'block';
-    setTimeout(() => b.style.display = 'none', 3000);
+function showPopup(msg) {
+    const p = document.getElementById('alert-popup');
+    p.innerText = msg; p.style.display = 'block';
+    setTimeout(() => p.style.display = 'none', 3000);
 }
 
-function closeMenu() { document.getElementById('admin-menu').style.display = 'none'; }
+function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
-async function login() {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
+// ==========================================
+// 3. التحكم والمزامنة
+// ==========================================
+async function handleLogin() {
+    const e = document.getElementById('login-email').value;
+    const p = document.getElementById('login-pass').value;
     try {
         await auth.signInWithEmailAndPassword(e, p);
     } catch {
         const r = await auth.createUserWithEmailAndPassword(e, p);
         await db.collection('users').doc(r.user.uid).set({
-            uid: r.user.uid, email: e, name: e.split('@')[0],
-            isMuted: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            uid: r.user.uid, email: e, name: e.split('@')[0], isMuted: false
         });
     }
     location.reload();
 }
 
 auth.onAuthStateChanged(async user => {
-    if (user) {
-        const d = await db.collection('users').doc(user.uid).get();
-        myProfile = d.data();
-        document.getElementById('login-screen').style.display = 'none';
+    if(user) {
+        document.getElementById('login-overlay').style.display = 'none';
+        const doc = await db.collection('users').doc(user.uid).get();
+        myData = doc.data();
         
-        // عرض رتبة المستخدم في الهيدر
         const isF = user.email === FOUNDER_EMAIL;
-        document.getElementById('user-rank-display').innerHTML = isF ? 
-            '<span style="color:red; font-weight:900;">المؤسس ⚡</span>' : 
-            '<span style="color:#888;">عضو النشط 🔥</span>';
-            
+        document.getElementById('rank-badge').innerHTML = isF ? 
+            '<span style="background:var(--founder-red); color:white; padding:5px 12px; border-radius:8px; font-weight:900; font-size:0.7rem; box-shadow:0 0 15px rgba(255,0,0,0.4);">المؤسس ⚡</span>' :
+            '<span style="background:#333; color:#aaa; padding:5px 12px; border-radius:8px; font-weight:900; font-size:0.7rem;">محارب 🛡️</span>';
+        
         loadMessages();
+        setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 1000);
+    } else {
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('loading-screen').style.display = 'none';
     }
 });
 
-// ==========================================
-// 3. إدارة الرسائل والتحكم
-// ==========================================
-function openMenu(uid, msgId, name, e) {
+function openAdminMenu(uid, mid, name, e) {
     e.preventDefault();
-    targetUID = uid;
-    targetMsgID = msgId;
-    const menu = document.getElementById('admin-menu');
-    document.getElementById('menu-title').innerText = "العضو: " + name;
+    selectedUID = uid;
+    selectedMID = mid;
+    const panel = document.getElementById('admin-panel');
+    document.getElementById('target-name').innerText = "التحكم في " + name;
     
-    // إظهار زر الحذف فقط للمؤسس
+    // إظهار ميزة الحذف فقط للمؤسس
     if(auth.currentUser.email === FOUNDER_EMAIL) {
-        document.getElementById('del-btn-ui').style.display = 'block';
+        document.getElementById('founder-delete-btn').style.display = 'flex';
     }
 
-    menu.style.display = 'block';
-    menu.style.left = "20px";
-    menu.style.top = e.clientY > window.innerHeight - 200 ? (e.clientY - 150) + "px" : e.clientY + "px";
+    panel.style.display = 'block';
+    panel.style.left = "20px";
+    panel.style.top = e.clientY > (window.innerHeight - 250) ? (e.clientY - 220) + "px" : e.clientY + "px";
 }
 
-async function handleAdmin(action) {
-    if(action === 'delete') {
-        if(confirm("هل تريد حذف هذه الرسالة نهائياً؟")) {
-            await db.collection('messages').doc(targetMsgID).delete();
-            showAlert("تم حذف الرسالة");
+async function execAdmin(type) {
+    if(type === 'delete') {
+        if(confirm("يا مؤسس، هل أنت متأكد من مسح هذه الرسالة؟")) {
+            await db.collection('messages').doc(selectedMID).delete();
+            showPopup("تم سحق الرسالة بنجاح 🗑️");
         }
-    } else if (action === 'mute' || action === 'unmute') {
-        if(auth.currentUser.email !== FOUNDER_EMAIL) return showAlert("صلاحية للمؤسس فقط");
-        await db.collection('users').doc(targetUID).update({ isMuted: action === 'mute' });
-        showAlert(action === 'mute' ? "تم الكتم" : "تم فك الكتم");
+    } else {
+        if(auth.currentUser.email !== FOUNDER_EMAIL) return showPopup("هذه القوة للمؤسس فقط!");
+        await db.collection('users').doc(selectedUID).update({ isMuted: (type === 'mute') });
+        showPopup(type === 'mute' ? "تم إخراس العضو 🤐" : "تم إعادة صوته 🗣️");
     }
-    closeMenu();
+    closeAdmin();
 }
 
-function setReply(name, text) {
-    replyData = { name, text };
-    document.getElementById('reply-text').innerText = "رداً على " + name + ": " + text;
-    document.getElementById('reply-bar').style.display = 'flex';
+function startReply(name, text) {
+    currentReply = { name, text };
+    document.getElementById('reply-info').innerText = "رداً على " + name + ": " + text.substring(0,25) + "...";
+    document.getElementById('reply-preview').style.display = 'flex';
     document.getElementById('user-msg').focus();
 }
 
 function cancelReply() {
-    replyData = null;
-    document.getElementById('reply-bar').style.display = 'none';
+    currentReply = null;
+    document.getElementById('reply-preview').style.display = 'none';
 }
 
 async function sendMessage() {
     const input = document.getElementById('user-msg');
-    const text = input.value.trim();
-    if(!text || myProfile.isMuted) return;
+    const txt = input.value.trim();
+    if(!txt || myData.isMuted) {
+        if(myData.isMuted) showPopup("أنت مكتوم بأمر الإدارة!");
+        return;
+    }
 
     await db.collection('messages').add({
         uid: auth.currentUser.uid,
-        name: myProfile.name,
+        name: myData.name,
         email: auth.currentUser.email,
-        text: text,
-        reply: replyData,
+        text: txt,
+        reply: currentReply,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -393,43 +441,45 @@ async function sendMessage() {
 }
 
 function loadMessages() {
-    db.collection('messages').orderBy('createdAt', 'asc').limitToLast(50).onSnapshot(snap => {
-        const container = document.getElementById('chat-container');
-        container.innerHTML = "";
+    db.collection('messages').orderBy('createdAt', 'asc').limitToLast(60).onSnapshot(snap => {
+        const box = document.getElementById('chat-container');
+        box.innerHTML = "";
         
         snap.forEach(doc => {
             const m = doc.data();
-            const isF = m.email === FOUNDER_EMAIL;
             const isMe = m.uid === auth.currentUser.uid;
+            const isFounder = m.email === FOUNDER_EMAIL;
             
-            const div = document.createElement('div');
-            div.className = `message ${isF ? 'msg-founder' : ''}`;
-            if(isMe) div.style.alignSelf = "flex-end";
-            if(isMe) div.style.borderRadius = "15px 15px 15px 0";
+            const row = document.createElement('div');
+            row.className = "message-row";
+            
+            const msg = document.createElement('div');
+            msg.className = `message ${isMe ? 'my-message' : ''} ${isFounder ? 'msg-founder' : ''}`;
+            
+            let replyHtml = m.reply ? `<div class="reply-content">↩ ${m.reply.name}: ${m.reply.text}</div>` : '';
 
-            let replyHTML = m.reply ? `<div class="reply-box-in-msg">↩ ${m.reply.name}: ${m.reply.text.substring(0,25)}</div>` : '';
-
-            div.innerHTML = `
-                ${replyHTML}
-                <div class="user-header">
-                    <span class="rank-tag" onclick="openMenu('${m.uid}', '${doc.id}', '${m.name}', event)">${m.name}</span>
-                    <span style="opacity:0.5; font-size:0.6rem;" onclick="setReply('${m.name}', '${m.text}')">رد</span>
+            msg.innerHTML = `
+                ${replyHtml}
+                <div class="user-info">
+                    <span class="username" onclick="openAdminMenu('${m.uid}', '${doc.id}', '${m.name}', event)">${m.name}</span>
+                    <span class="reply-btn" onclick="startReply('${m.name}', '${m.text}')">رد</span>
                 </div>
-                <div style="word-break:break-word;">${m.text}</div>
+                <div style="word-wrap: break-word; line-height: 1.6; font-size:0.95rem;">${m.text}</div>
             `;
-            container.appendChild(div);
+            
+            row.appendChild(msg);
+            box.appendChild(row);
         });
-        // التمرير التلقائي لأسفل عند وصول رسالة جديدة
-        container.scrollTop = container.scrollHeight;
+        // السكرول التلقائي لأسفل مع كل رسالة جديدة
+        box.scrollTop = box.scrollHeight;
     });
 }
 
-// إغلاق القوائم عند لمس الشاشة
-document.getElementById('chat-container').addEventListener('click', closeMenu);
+// إغلاق القوائم عند لمس منطقة الرسائل
+document.getElementById('chat-container').addEventListener('click', closeAdmin);
 </script>
 </body>
 </html>
-
 
 
 
