@@ -2,18 +2,29 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Zone | Game Zone Chat</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Zone Premium | المجلس الملكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* ==========================================
+           1. الإعدادات العامة والمتغيرات
+           ========================================== */
         :root { 
             --bg-black: #050505; 
             --gold-main: #D4AF37; 
+            --gold-hover: #f1c40f;
             --dark-card: #121212; 
             --founder-red: #ff0000;
             --text-gray: #b3b3b3;
+            --msg-bg: rgba(255, 255, 255, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
         body { 
             font-family: 'Cairo', sans-serif; 
             background-color: var(--bg-black); 
@@ -22,11 +33,19 @@
             display: flex; 
             flex-direction: column; 
             height: 100vh; 
+            height: -webkit-fill-available;
             overflow: hidden; 
         }
 
-        /* --- تصميم الرتب الملكية --- */
-        .rank-founder { color: var(--founder-red) !important; text-shadow: 0 0 12px red; font-weight: 900; cursor: pointer; }
+        /* تخصيص السكرول بار */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--gold-main); border-radius: 10px; }
+
+        /* ==========================================
+           2. نظام الرتب (تصميم فاخر)
+           ========================================== */
+        .rank-founder { color: var(--founder-red) !important; text-shadow: 0 0 15px rgba(255,0,0,0.6); font-weight: 900; cursor: pointer; border: 1px solid rgba(255,0,0,0.3); padding: 0 5px; border-radius: 4px; }
         .rank-wise { color: #9c27b0; text-shadow: 0 0 8px #9c27b0; font-weight: 900; }
         .rank-legend { color: #e91e63; font-weight: 900; }
         .rank-warrior { color: #ff5722; font-weight: bold; }
@@ -34,180 +53,273 @@
         .rank-gold { color: #ffd700; text-shadow: 0 0 5px #ffd700; }
         .rank-active { color: #4caf50; }
         .rank-new { color: #888; }
-        .rank-clickable { cursor: pointer; transition: 0.3s; }
-        .rank-clickable:hover { text-decoration: underline; }
+        .rank-clickable { cursor: pointer; transition: var(--transition); border-bottom: 1px dashed transparent; }
+        .rank-clickable:hover { border-bottom: 1px dashed var(--gold-main); opacity: 0.8; }
 
+        /* ==========================================
+           3. الهيكل الرئيسي
+           ========================================== */
         header { 
-            background: var(--dark-card); 
-            padding: 15px 25px; 
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-bottom: 2px solid var(--gold-main);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .brand-logo {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--gold-main);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         #chat-container { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 20px; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+            padding: 20px 15px; 
+            background: 
+                linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
+            padding-bottom: 140px; /* مساحة للأدوات السفلية */
         }
 
+        /* ==========================================
+           4. فقاعات الرسائل
+           ========================================== */
         .message { 
-            background: rgba(255, 255, 255, 0.05); 
-            padding: 12px 18px; 
-            border-radius: 15px; 
-            max-width: 80%; 
-            border-right: 4px solid var(--gold-main);
+            background: var(--msg-bg); 
+            padding: 12px 16px; 
+            border-radius: 18px 18px 0 18px; 
+            max-width: 85%; 
+            border-right: 3px solid var(--gold-main);
             position: relative;
-            animation: fadeIn 0.3s ease;
+            align-self: flex-start;
+            transition: var(--transition);
+            animation: msgSlide 0.4s ease-out;
         }
+
+        @keyframes msgSlide {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .message:hover { background: rgba(255, 255, 255, 0.08); }
 
         .msg-founder { 
-            border: 1px solid var(--gold-main);
-            border-right: 6px solid var(--founder-red);
-            background: rgba(255, 0, 0, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-right: 5px solid var(--founder-red);
+            background: rgba(255, 0, 0, 0.03);
         }
 
-        /* ميزة الرد */
-        .reply-container {
-            background: rgba(255, 255, 255, 0.1);
-            border-right: 3px solid var(--gold-main);
-            padding: 5px 10px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            color: #ddd;
-        }
-        
-        .reply-box-active {
-            background: #1a1a1a;
-            padding: 10px 20px;
-            border-top: 1px solid var(--gold-main);
-            display: none;
+        .message-info {
+            display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 6px;
+            gap: 20px;
         }
 
         .btn-reply-action {
             font-size: 0.65rem;
             color: var(--gold-main);
             cursor: pointer;
-            margin-right: 15px;
             font-weight: bold;
+            opacity: 0.6;
+            transition: 0.2s;
         }
 
-        /* لوحة المؤسس */
-        #founder-menu {
+        .btn-reply-action:hover { opacity: 1; }
+
+        /* ==========================================
+           5. نظام الرد والمدخلات السفلية
+           ========================================== */
+        .bottom-controls {
             position: fixed;
-            background: #181818;
-            border: 1px solid var(--gold-main);
-            border-radius: 10px;
-            padding: 10px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+            background: var(--dark-card);
+            padding-bottom: env(safe-area-inset-bottom); /* لدعم آيفون X وأحدث */
+        }
+
+        #reply-preview-bar {
+            background: #1a1a1a;
+            padding: 10px 20px;
+            border-top: 1px solid var(--gold-main);
             display: none;
-            z-index: 10000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            min-width: 150px;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 15px 15px 0 0;
+            animation: slideUp 0.3s ease;
         }
 
-        #founder-menu button {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            background: #252525;
-            color: white;
-            border: 1px solid #333;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Cairo';
-            text-align: right;
-        }
-
-        #founder-menu button:hover {
-            background: var(--gold-main);
-            color: black;
-        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         .input-area { 
-            padding: 20px; 
-            background: var(--dark-card); 
+            padding: 15px; 
             display: flex; 
-            gap: 10px; 
-            border-top: 1px solid #333;
+            gap: 12px; 
+            align-items: center;
+            background: var(--dark-card);
         }
 
-        input { 
-            flex: 1; 
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        input#user-msg { 
+            width: 100%;
             background: #000; 
-            border: 1px solid var(--gold-main); 
-            padding: 12px; 
-            border-radius: 10px; 
+            border: 1.5px solid #333; 
+            padding: 14px 18px; 
+            border-radius: 30px; 
             color: #fff; 
             outline: none;
+            font-size: 16px; 
+            transition: var(--transition);
         }
+
+        input#user-msg:focus { border-color: var(--gold-main); box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
 
         button#main-send-btn { 
             background: var(--gold-main); 
             color: black; 
             border: none; 
-            padding: 10px 25px; 
-            border-radius: 10px; 
+            width: 50px;
+            height: 50px;
+            border-radius: 50%; 
             font-weight: 900; 
             cursor: pointer;
-            transition: 0.3s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
+        button#main-send-btn:active { transform: scale(0.9); }
+
+        /* ==========================================
+           6. القوائم المنبثقة واللوحات
+           ========================================== */
+        #founder-menu {
+            position: fixed;
+            background: #181818;
+            border: 1px solid var(--gold-main);
+            border-radius: 12px;
+            padding: 8px;
+            display: none;
+            z-index: 10000;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+            min-width: 180px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        #founder-menu button {
+            width: 100%;
+            padding: 12px;
+            margin: 4px 0;
+            background: #252525;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cairo';
+            text-align: right;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        #founder-menu button:hover { background: var(--gold-main); color: black; }
+
+        /* لوحة الدخول */
         #login-overlay { 
             position: fixed; inset: 0; background: #000; 
-            z-index: 9999; display: flex; justify-content: center; align-items: center; 
+            z-index: 99999; display: flex; justify-content: center; align-items: center; 
         }
 
         .login-card {
-            background: var(--dark-card); padding: 40px; border-radius: 20px;
-            border: 2px solid var(--gold-main); text-align: center; width: 350px;
+            background: var(--dark-card); padding: 40px; border-radius: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3); text-align: center; width: 90%; max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,1);
         }
+
+        .login-card input {
+            width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid #333; border-radius: 12px; color: white; outline: none;
+        }
+
+        /* نظام التنبيهات */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--gold-main); color: black; padding: 10px 25px;
+            border-radius: 50px; font-weight: bold; z-index: 10000;
+            display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
+<div id="toast"></div>
+
 <div id="founder-menu">
-    <div id="target-info" style="font-size: 0.75rem; color: var(--gold-main); margin-bottom: 8px; text-align: center; font-weight: bold;"></div>
-    <button onclick="adminAction('mute')">كتم المستخدم (Mute)</button>
-    <button onclick="adminAction('unmute')">إلغاء الكتم (Unmute)</button>
-    <button onclick="document.getElementById('founder-menu').style.display='none'" style="color: #ff4444;">إغلاق</button>
+    <div id="target-info" style="font-size: 0.75rem; color: var(--gold-main); margin: 5px 0 10px; text-align: center; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px;"></div>
+    <button onclick="adminAction('mute')">🔇 كتم المستخدم</button>
+    <button onclick="adminAction('unmute')">🔊 إلغاء الكتم</button>
+    <button onclick="closeMenu()" style="background: transparent; color: #666;">إغلاق القائمة</button>
 </div>
 
 <div id="login-overlay">
     <div class="login-card">
-        <h1 style="color: var(--gold-main); margin-bottom: 30px;">GAME ZONE CHAT</h1>
-        <input type="email" id="auth-email" placeholder="البريد الإلكتروني"><br><br>
-        <input type="password" id="auth-pass" placeholder="كلمة السر"><br><br>
-        <button onclick="accessSystem()" style="width: 100%; height: 45px; background: var(--gold-main); border-radius: 10px; font-weight: 900; cursor: pointer;">دخول المجلس</button>
+        <div style="font-size: 2.5rem; margin-bottom: 10px;">🛡️</div>
+        <h2 style="color: var(--gold-main); margin-bottom: 5px; font-weight: 900;">GAME ZONE</h2>
+        <p style="color: #666; font-size: 0.8rem; margin-bottom: 25px;">دخول المجلس الملكي الموحد</p>
+        <input type="email" id="auth-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="auth-pass" placeholder="كلمة السر">
+        <button onclick="accessSystem()" style="width: 100%; height: 50px; background: var(--gold-main); border: none; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 1rem;">دخول الآن</button>
     </div>
 </div>
 
 <header>
-    <div style="font-size: 1.4rem; font-weight: 900; color: var(--gold-main);">Game Zone Chat ⚡</div>
-    <div style="display: flex; gap: 15px; align-items: center;">
-        <button id="muted-list-btn" onclick="showMutedUsers()" style="display:none; font-size: 0.65rem; background: #222; color: var(--gold-main); border: 1px solid var(--gold-main); padding: 5px 10px;">المكتومين</button>
-        <div id="my-status" style="text-align: left; font-size: 0.8rem;"></div>
+    <div class="brand-logo">Game Zone <span style="font-weight: 300;">Chat</span></div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="muted-list-btn" onclick="showMutedUsers()" style="display:none; font-size: 0.6rem; background: #222; color: var(--gold-main); border: 1px solid var(--gold-main); padding: 5px 12px; border-radius: 20px; cursor: pointer;">المكتومين</button>
+        <div id="my-status"></div>
     </div>
 </header>
 
-<div id="chat-container"></div>
+<div id="chat-container">
+    </div>
 
-<div id="reply-preview-bar" class="reply-box-active">
-    <div id="reply-target-text" style="font-size: 0.75rem; color: #aaa;"></div>
-    <span onclick="cancelReply()" style="color: var(--founder-red); cursor: pointer; font-weight: bold;">✖</span>
-</div>
-
-<div class="input-area">
-    <input type="text" id="user-msg" placeholder="تحدث برقي..." onkeypress="if(event.key==='Enter') processAndSend()">
-    <button id="main-send-btn" onclick="processAndSend()">إرسال</button>
+<div class="bottom-controls">
+    <div id="reply-preview-bar">
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 0.65rem; color: var(--gold-main); font-weight: bold;">الرد على:</span>
+            <span id="reply-target-text" style="font-size: 0.75rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;"></span>
+        </div>
+        <span onclick="cancelReply()" style="color: var(--founder-red); cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 5px;">×</span>
+    </div>
+    
+    <div class="input-area">
+        <div class="input-wrapper">
+            <input type="text" id="user-msg" placeholder="تحدث بما يليق بالمجلس..." autocomplete="off">
+        </div>
+        <button id="main-send-btn" onclick="processAndSend()">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+        </button>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -216,37 +328,28 @@
 
 <script>
 // ==========================================
-// 1. نظام الحماية الملكي المتقدم (الأصلي كاملاً)
+// 1. نظام الحماية الذكي
 // ==========================================
-class RoyalProtectionSystem {
+class SafetyCore {
     constructor() {
-        this.bannedCategories = {
-            sexual: ["sex", "porn", "سكس", "نيك", "عري", "قحبة", "شرموطة"],
-            violence: ["kill", "قتل", "ذبح", "ارهاب", "مجزرة"],
-            drugs: ["مخدرات", "حشيش", "هيروين", "خمر"],
-            hate: ["fuck", "shit", "وسخ", "حقير", "كلب"],
-            racism: ["عنصري", "طائفي", "كافر", "مرتد"]
-        };
+        this.banned = ["سكس", "نيك", "قحبة", "شرموطة", "fuck", "porn", "قتل", "ذبح"];
     }
-
-    scanAndSanitize(message) {
-        let sanitized = message;
-        let riskScore = 0;
-        for (const [cat, words] of Object.entries(this.bannedCategories)) {
-            words.forEach(word => {
-                if (message.includes(word)) {
-                    sanitized = sanitized.split(word).join("⚠️");
-                    riskScore += 2;
-                }
-            });
-        }
-        return { safe: riskScore < 4, sanitized, riskScore };
+    clean(text) {
+        let isSafe = true;
+        let processed = text;
+        this.banned.forEach(word => {
+            if (processed.includes(word)) {
+                processed = processed.split(word).join("✨");
+                isSafe = false;
+            }
+        });
+        return { isSafe, processed };
     }
 }
-const royalGuard = new RoyalProtectionSystem();
+const guard = new SafetyCore();
 
 // ==========================================
-// 2. إعدادات Firebase والبيانات
+// 2. إعدادات Firebase
 // ==========================================
 const FOUNDER_EMAIL = "abdarahman10555@gmail.com";
 const firebaseConfig = {
@@ -261,153 +364,180 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-let currentUserProfile = null;
-let currentReplyData = null;
-let selectedAdminUserId = null;
+
+let currentUserData = null;
+let replyRef = null;
+let selectedUID = null;
 
 // ==========================================
-// 3. نظام الرتب الزمني المطور (3 أيام)
+// 3. نظام الرتب المتقدم
 // ==========================================
-function getRank(joinedAt, email) {
+function calculateRank(joinedAt, email) {
     if (email === FOUNDER_EMAIL) return { title: "المؤسس ⚡", class: "rank-founder" };
-    if (!joinedAt) return { title: "عضو جديد 🥚", class: "rank-new", next: "3 أيام للترقية" };
+    if (!joinedAt) return { title: "عضو جديد 🥚", class: "rank-new" };
 
-    const diffDays = (Date.now() - joinedAt.toMillis()) / 86400000;
-
-    if (diffDays >= 180) return { title: "شيخ الحكمة ⚜️", class: "rank-wise", next: "رتبة قصوى" };
-    if (diffDays >= 90) return { title: "أسطورة الزون 👑", class: "rank-legend", next: (180 - diffDays).toFixed(1) + " يوم" };
-    if (diffDays >= 30) return { title: "محارب الزون ⚔️", class: "rank-warrior", next: (90 - diffDays).toFixed(1) + " يوم" };
-    if (diffDays >= 20) return { title: "عضو ماسي 💎", class: "rank-diamond", next: (30 - diffDays).toFixed(1) + " يوم" };
-    if (diffDays >= 10) return { title: "عضو ذهبي 🏆", class: "rank-gold", next: (20 - diffDays).toFixed(1) + " يوم" };
-    if (diffDays >= 3) return { title: "عضو نشط 🔥", class: "rank-active", next: (10 - diffDays).toFixed(1) + " يوم" };
-
-    return { title: "عضو جديد 🥚", class: "rank-new", next: (3 - diffDays).toFixed(1) + " يوم" };
+    const days = (Date.now() - joinedAt.toMillis()) / 86400000;
+    if (days >= 180) return { title: "شيخ الحكمة ⚜️", class: "rank-wise" };
+    if (days >= 90) return { title: "أسطورة الزون 👑", class: "rank-legend" };
+    if (days >= 30) return { title: "محارب الزون ⚔️", class: "rank-warrior" };
+    if (days >= 3) return { title: "عضو نشط 🔥", class: "rank-active" };
+    return { title: "عضو جديد 🥚", class: "rank-new" };
 }
 
 // ==========================================
-// 4. ميزات المؤسس والرد
+// 4. الوظائف التفاعلية (UI Actions)
 // ==========================================
-function openAdminPanel(uid, name, event) {
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function openFounderMenu(uid, name, e) {
     if (auth.currentUser.email !== FOUNDER_EMAIL) return;
-    event.preventDefault();
-    selectedAdminUserId = uid;
-    document.getElementById('target-info').innerText = "التحكم بـ: " + name;
+    e.preventDefault();
+    selectedUID = uid;
     const menu = document.getElementById('founder-menu');
+    document.getElementById('target-info').innerText = "إدارة: " + name;
+    
+    // تحديد موقع القائمة بذكاء لتعمل على الموبايل
+    let x = e.clientX > window.innerWidth - 200 ? window.innerWidth - 200 : e.clientX;
+    let y = e.clientY > window.innerHeight - 200 ? window.innerHeight - 200 : e.clientY;
+    
     menu.style.display = 'block';
-    menu.style.top = event.pageY + "px";
-    menu.style.left = event.pageX + "px";
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
 }
+
+function closeMenu() { document.getElementById('founder-menu').style.display = 'none'; }
 
 async function adminAction(type) {
-    if (!selectedAdminUserId) return;
+    if (!selectedUID) return;
     const isMuted = type === 'mute';
-    await db.collection('users').doc(selectedAdminUserId).update({ isMuted: isMuted });
-    alert(isMuted ? "تم كتم المستخدم بنجاح" : "تم فك الكتم بنجاح");
-    document.getElementById('founder-menu').style.display = 'none';
-}
-
-async function showMutedUsers() {
-    const snap = await db.collection('users').where('isMuted', '==', true).get();
-    let names = "قائمة المكتومين:\n";
-    snap.forEach(d => names += "- " + d.data().name + "\n");
-    alert(snap.empty ? "لا يوجد أحد في الكتم حالياً" : names);
+    await db.collection('users').doc(selectedUID).update({ isMuted });
+    showToast(isMuted ? "تم الكتم بنجاح" : "تم فك الكتم");
+    closeMenu();
 }
 
 function prepareReply(name, text) {
-    currentReplyData = { name, text };
-    document.getElementById('reply-target-text').innerText = "الرد على " + name + ": " + text.substring(0, 30) + "...";
+    replyRef = { name, text };
+    document.getElementById('reply-target-text').innerText = name + ": " + text;
     document.getElementById('reply-preview-bar').style.display = 'flex';
     document.getElementById('user-msg').focus();
 }
 
 function cancelReply() {
-    currentReplyData = null;
+    replyRef = null;
     document.getElementById('reply-preview-bar').style.display = 'none';
 }
 
 // ==========================================
-// 5. إدارة الجلسة والرسائل
+// 5. إدارة البيانات (Core Logic)
 // ==========================================
 async function accessSystem() {
-    const email = document.getElementById('auth-email').value;
-    const pass = document.getElementById('auth-pass').value;
-    if(!email || !pass) return;
+    const email = document.getElementById('auth-email').value.trim();
+    const pass = document.getElementById('auth-pass').value.trim();
+    if (!email || !pass) return showToast("أكمل البيانات أولاً");
+
     try {
         await auth.signInWithEmailAndPassword(email, pass);
-    } catch (e) {
-        const res = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.collection('users').doc(res.user.uid).set({
-            uid: res.user.uid, email, name: email.split('@')[0],
-            isMuted: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+    } catch (err) {
+        try {
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.collection('users').doc(res.user.uid).set({
+                uid: res.user.uid, email, name: email.split('@')[0],
+                isMuted: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) { showToast("خطأ في الدخول/التسجيل"); }
     }
-    location.reload();
 }
 
 auth.onAuthStateChanged(async user => {
     if (user) {
         const doc = await db.collection('users').doc(user.uid).get();
-        currentUserProfile = doc.data();
+        currentUserData = doc.data();
         document.getElementById('login-overlay').style.display = 'none';
-        if (user.email === FOUNDER_EMAIL) document.getElementById('muted-list-btn').style.display = 'block';
         
-        const r = getRank(currentUserProfile.joinedAt, user.email);
-        document.getElementById('my-status').innerHTML = `<span class="${r.class}">${r.title}</span><br><span style="color:var(--text-gray); font-size:0.65rem;">الترقية: ${r.next}</span>`;
-        startListening();
+        if (user.email === FOUNDER_EMAIL) {
+            document.getElementById('muted-list-btn').style.display = 'block';
+        }
+
+        const rank = calculateRank(currentUserData.joinedAt, user.email);
+        document.getElementById('my-status').innerHTML = `<span class="${rank.class}">${rank.title}</span>`;
+        
+        loadMessages();
     }
 });
 
 async function processAndSend() {
     const input = document.getElementById('user-msg');
     const text = input.value.trim();
-    if (!text || !currentUserProfile) return;
-    if (currentUserProfile.isMuted) { alert("أنت ممنوع من الكتابة حالياً (Mute)"); return; }
+    if (!text || !currentUserData) return;
+    if (currentUserData.isMuted) return showToast("عذراً، أنت في وضع الكتم");
 
-    const safety = royalGuard.scanAndSanitize(text);
-    await db.collection('messages').add({
-        uid: auth.currentUser.uid,
-        name: currentUserProfile.name,
-        email: auth.currentUser.email,
-        text: safety.sanitized,
-        replyData: currentReplyData,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    input.value = "";
-    cancelReply();
+    const check = guard.clean(text);
+    
+    try {
+        await db.collection('messages').add({
+            uid: auth.currentUser.uid,
+            name: currentUserData.name,
+            email: auth.currentUser.email,
+            text: check.processed,
+            reply: replyRef,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = "";
+        cancelReply();
+        const container = document.getElementById('chat-container');
+        container.scrollTop = container.scrollHeight;
+    } catch (e) { showToast("فشل الإرسال"); }
 }
 
-function startListening() {
-    db.collection('messages').orderBy('createdAt', 'asc').limitToLast(50).onSnapshot(snap => {
+function loadMessages() {
+    db.collection('messages').orderBy('createdAt', 'asc').limitToLast(60).onSnapshot(snap => {
         const chat = document.getElementById('chat-container');
         chat.innerHTML = "";
-        snap.forEach(async d => {
-            const m = d.data();
-            const isF = m.email === FOUNDER_EMAIL;
+        
+        snap.forEach(doc => {
+            const m = doc.data();
+            const isMe = m.uid === auth.currentUser.uid;
+            const isFounder = m.email === FOUNDER_EMAIL;
             
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isF ? 'msg-founder' : ''}`;
-            
-            let replyBlock = m.replyData ? `<div class="reply-container">↩ رداً على ${m.replyData.name}: ${m.replyData.text.substring(0, 20)}...</div>` : '';
-            
+            msgDiv.className = `message ${isFounder ? 'msg-founder' : ''}`;
+            if(isMe) msgDiv.style.alignSelf = "flex-end";
+            if(isMe) msgDiv.style.borderRadius = "18px 18px 18px 0";
+            if(isMe) msgDiv.style.borderRight = "none";
+            if(isMe) msgDiv.style.borderLeft = "3px solid var(--gold-main)";
+
+            let replyHTML = m.reply ? `
+                <div style="background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 8px; border-right: 2px solid var(--gold-main); font-size: 0.7rem;">
+                    <b style="color: var(--gold-main);">${m.reply.name}</b>: ${m.reply.text.substring(0,30)}...
+                </div>
+            ` : '';
+
             msgDiv.innerHTML = `
-                ${replyBlock}
-                <div style="font-size:0.7rem; margin-bottom:5px; display: flex; justify-content: space-between;">
-                    <span class="${isF?'rank-founder':'rank-clickable'}" onclick="openAdminPanel('${m.uid}', '${m.name}', event)">${m.name}</span>
+                ${replyHTML}
+                <div class="message-info">
+                    <span class="${isFounder ? 'rank-founder' : 'rank-clickable'}" 
+                          onclick="openFounderMenu('${m.uid}', '${m.name}', event)">${m.name}</span>
                     <span class="btn-reply-action" onclick="prepareReply('${m.name}', '${m.text}')">رد</span>
                 </div>
-                <div style="word-break: break-word;">${m.text}</div>
+                <div style="word-break: break-word; line-height: 1.5;">${m.text}</div>
             `;
             chat.appendChild(msgDiv);
-            chat.scrollTop = chat.scrollHeight;
         });
+        chat.scrollTop = chat.scrollHeight;
     });
 }
-// إغلاق القائمة عند الضغط في أي مكان
-window.onclick = function(event) { if (!event.target.matches('.rank-clickable')) document.getElementById('founder-menu').style.display = 'none'; }
+
+// منع الزووم عند التركيز في الموبايل
+document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+window.onclick = (e) => { if (!e.target.closest('#founder-menu') && !e.target.closest('.rank-clickable')) closeMenu(); };
 </script>
 </body>
 </html>
-
 
 
 
