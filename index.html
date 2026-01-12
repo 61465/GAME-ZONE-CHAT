@@ -26,7 +26,7 @@
         }
 
         /* --- تصميم الرتب الملكية --- */
-        .rank-founder { color: var(--founder-red) !important; text-shadow: 0 0 12px red; font-weight: 900; }
+        .rank-founder { color: var(--founder-red) !important; text-shadow: 0 0 12px red; font-weight: 900; cursor: pointer; }
         .rank-wise { color: #9c27b0; text-shadow: 0 0 8px #9c27b0; font-weight: 900; }
         .rank-legend { color: #e91e63; font-weight: 900; }
         .rank-warrior { color: #ff5722; font-weight: bold; }
@@ -34,6 +34,8 @@
         .rank-gold { color: #ffd700; text-shadow: 0 0 5px #ffd700; }
         .rank-active { color: #4caf50; }
         .rank-new { color: #888; }
+        .rank-clickable { cursor: pointer; transition: 0.3s; }
+        .rank-clickable:hover { text-decoration: underline; }
 
         header { 
             background: var(--dark-card); 
@@ -71,6 +73,65 @@
             background: rgba(255, 0, 0, 0.05);
         }
 
+        /* ميزة الرد */
+        .reply-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 3px solid var(--gold-main);
+            padding: 5px 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            color: #ddd;
+        }
+        
+        .reply-box-active {
+            background: #1a1a1a;
+            padding: 10px 20px;
+            border-top: 1px solid var(--gold-main);
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-reply-action {
+            font-size: 0.65rem;
+            color: var(--gold-main);
+            cursor: pointer;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        /* لوحة المؤسس */
+        #founder-menu {
+            position: fixed;
+            background: #181818;
+            border: 1px solid var(--gold-main);
+            border-radius: 10px;
+            padding: 10px;
+            display: none;
+            z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            min-width: 150px;
+        }
+
+        #founder-menu button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #252525;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cairo';
+            text-align: right;
+        }
+
+        #founder-menu button:hover {
+            background: var(--gold-main);
+            color: black;
+        }
+
         .input-area { 
             padding: 20px; 
             background: var(--dark-card); 
@@ -89,7 +150,7 @@
             outline: none;
         }
 
-        button { 
+        button#main-send-btn { 
             background: var(--gold-main); 
             color: black; 
             border: none; 
@@ -100,8 +161,6 @@
             transition: 0.3s;
         }
 
-        button:hover { transform: scale(1.05); filter: brightness(1.2); }
-
         #login-overlay { 
             position: fixed; inset: 0; background: #000; 
             z-index: 9999; display: flex; justify-content: center; align-items: center; 
@@ -111,32 +170,44 @@
             background: var(--dark-card); padding: 40px; border-radius: 20px;
             border: 2px solid var(--gold-main); text-align: center; width: 350px;
         }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
+<div id="founder-menu">
+    <div id="target-info" style="font-size: 0.75rem; color: var(--gold-main); margin-bottom: 8px; text-align: center; font-weight: bold;"></div>
+    <button onclick="adminAction('mute')">كتم المستخدم (Mute)</button>
+    <button onclick="adminAction('unmute')">إلغاء الكتم (Unmute)</button>
+    <button onclick="document.getElementById('founder-menu').style.display='none'" style="color: #ff4444;">إغلاق</button>
+</div>
+
 <div id="login-overlay">
     <div class="login-card">
-        <h1 style="color: var(--gold-main); margin-bottom: 30px;">GAME ZONE</h1>
+        <h1 style="color: var(--gold-main); margin-bottom: 30px;">GAME ZONE CHAT</h1>
         <input type="email" id="auth-email" placeholder="البريد الإلكتروني"><br><br>
         <input type="password" id="auth-pass" placeholder="كلمة السر"><br><br>
-        <button onclick="accessSystem()">دخول المجلس</button>
-        <p style="font-size: 0.8rem; color: var(--text-gray); margin-top: 15px;">ادخل بياناتك وسيتم إنشاء حسابك تلقائياً</p>
+        <button onclick="accessSystem()" style="width: 100%; height: 45px; background: var(--gold-main); border-radius: 10px; font-weight: 900; cursor: pointer;">دخول المجلس</button>
     </div>
 </div>
 
 <header>
     <div style="font-size: 1.4rem; font-weight: 900; color: var(--gold-main);">Game Zone Chat ⚡</div>
-    <div id="my-status" style="text-align: left; font-size: 0.8rem;"></div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <button id="muted-list-btn" onclick="showMutedUsers()" style="display:none; font-size: 0.65rem; background: #222; color: var(--gold-main); border: 1px solid var(--gold-main); padding: 5px 10px;">المكتومين</button>
+        <div id="my-status" style="text-align: left; font-size: 0.8rem;"></div>
+    </div>
 </header>
 
 <div id="chat-container"></div>
 
+<div id="reply-preview-bar" class="reply-box-active">
+    <div id="reply-target-text" style="font-size: 0.75rem; color: #aaa;"></div>
+    <span onclick="cancelReply()" style="color: var(--founder-red); cursor: pointer; font-weight: bold;">✖</span>
+</div>
+
 <div class="input-area">
     <input type="text" id="user-msg" placeholder="تحدث برقي..." onkeypress="if(event.key==='Enter') processAndSend()">
-    <button onclick="processAndSend()">إرسال</button>
+    <button id="main-send-btn" onclick="processAndSend()">إرسال</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -145,7 +216,7 @@
 
 <script>
 // ==========================================
-// 1. نظام الحماية الملكي المتقدم (الخاص بك كاملاً)
+// 1. نظام الحماية الملكي المتقدم (الأصلي كاملاً)
 // ==========================================
 class RoyalProtectionSystem {
     constructor() {
@@ -156,34 +227,26 @@ class RoyalProtectionSystem {
             hate: ["fuck", "shit", "وسخ", "حقير", "كلب"],
             racism: ["عنصري", "طائفي", "كافر", "مرتد"]
         };
-        this.violationHistory = new Map();
-        this.bannedUsers = new Map();
     }
 
-    scanAndSanitize(message, userId, userName) {
+    scanAndSanitize(message) {
         let sanitized = message;
         let riskScore = 0;
-        let violations = [];
-
         for (const [cat, words] of Object.entries(this.bannedCategories)) {
             words.forEach(word => {
                 if (message.includes(word)) {
                     sanitized = sanitized.split(word).join("⚠️");
-                    violations.push(cat);
                     riskScore += 2;
                 }
             });
         }
-
-        const safe = riskScore < 4;
-        return { safe, sanitized, riskScore, violations };
+        return { safe: riskScore < 4, sanitized, riskScore };
     }
 }
-
 const royalGuard = new RoyalProtectionSystem();
 
 // ==========================================
-// 2. إعدادات وقاعدة بيانات Firebase
+// 2. إعدادات Firebase والبيانات
 // ==========================================
 const FOUNDER_EMAIL = "abdarahman10555@gmail.com";
 const firebaseConfig = {
@@ -199,15 +262,17 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 let currentUserProfile = null;
+let currentReplyData = null;
+let selectedAdminUserId = null;
 
 // ==========================================
-// 3. نظام الرتب الزمني الصارم (3 أيام)
+// 3. نظام الرتب الزمني المطور (3 أيام)
 // ==========================================
 function getRank(joinedAt, email) {
-    if (email === FOUNDER_EMAIL) return { title: "المؤسس ⚡", class: "rank-founder", next: "ما شاء الله" };
+    if (email === FOUNDER_EMAIL) return { title: "المؤسس ⚡", class: "rank-founder" };
     if (!joinedAt) return { title: "عضو جديد 🥚", class: "rank-new", next: "3 أيام للترقية" };
 
-    const diffDays = (Date.now() - joinedAt.toMillis()) / (1000 * 60 * 60 * 24);
+    const diffDays = (Date.now() - joinedAt.toMillis()) / 86400000;
 
     if (diffDays >= 180) return { title: "شيخ الحكمة ⚜️", class: "rank-wise", next: "رتبة قصوى" };
     if (diffDays >= 90) return { title: "أسطورة الزون 👑", class: "rank-legend", next: (180 - diffDays).toFixed(1) + " يوم" };
@@ -220,22 +285,60 @@ function getRank(joinedAt, email) {
 }
 
 // ==========================================
-// 4. منطق الدخول والرسائل
+// 4. ميزات المؤسس والرد
+// ==========================================
+function openAdminPanel(uid, name, event) {
+    if (auth.currentUser.email !== FOUNDER_EMAIL) return;
+    event.preventDefault();
+    selectedAdminUserId = uid;
+    document.getElementById('target-info').innerText = "التحكم بـ: " + name;
+    const menu = document.getElementById('founder-menu');
+    menu.style.display = 'block';
+    menu.style.top = event.pageY + "px";
+    menu.style.left = event.pageX + "px";
+}
+
+async function adminAction(type) {
+    if (!selectedAdminUserId) return;
+    const isMuted = type === 'mute';
+    await db.collection('users').doc(selectedAdminUserId).update({ isMuted: isMuted });
+    alert(isMuted ? "تم كتم المستخدم بنجاح" : "تم فك الكتم بنجاح");
+    document.getElementById('founder-menu').style.display = 'none';
+}
+
+async function showMutedUsers() {
+    const snap = await db.collection('users').where('isMuted', '==', true).get();
+    let names = "قائمة المكتومين:\n";
+    snap.forEach(d => names += "- " + d.data().name + "\n");
+    alert(snap.empty ? "لا يوجد أحد في الكتم حالياً" : names);
+}
+
+function prepareReply(name, text) {
+    currentReplyData = { name, text };
+    document.getElementById('reply-target-text').innerText = "الرد على " + name + ": " + text.substring(0, 30) + "...";
+    document.getElementById('reply-preview-bar').style.display = 'flex';
+    document.getElementById('user-msg').focus();
+}
+
+function cancelReply() {
+    currentReplyData = null;
+    document.getElementById('reply-preview-bar').style.display = 'none';
+}
+
+// ==========================================
+// 5. إدارة الجلسة والرسائل
 // ==========================================
 async function accessSystem() {
     const email = document.getElementById('auth-email').value;
     const pass = document.getElementById('auth-pass').value;
     if(!email || !pass) return;
-
     try {
-        const res = await auth.signInWithEmailAndPassword(email, pass);
+        await auth.signInWithEmailAndPassword(email, pass);
     } catch (e) {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
         await db.collection('users').doc(res.user.uid).set({
-            uid: res.user.uid,
-            email: email,
-            name: email.split('@')[0],
-            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            uid: res.user.uid, email, name: email.split('@')[0],
+            isMuted: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
     }
     location.reload();
@@ -243,15 +346,13 @@ async function accessSystem() {
 
 auth.onAuthStateChanged(async user => {
     if (user) {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        currentUserProfile = userDoc.data();
+        const doc = await db.collection('users').doc(user.uid).get();
+        currentUserProfile = doc.data();
         document.getElementById('login-overlay').style.display = 'none';
+        if (user.email === FOUNDER_EMAIL) document.getElementById('muted-list-btn').style.display = 'block';
         
         const r = getRank(currentUserProfile.joinedAt, user.email);
-        document.getElementById('my-status').innerHTML = `
-            <span class="${r.class}">${r.title}</span><br>
-            <span style="color:var(--text-gray); font-size:0.7rem;">الترقية القادمة: ${r.next}</span>`;
-        
+        document.getElementById('my-status').innerHTML = `<span class="${r.class}">${r.title}</span><br><span style="color:var(--text-gray); font-size:0.65rem;">الترقية: ${r.next}</span>`;
         startListening();
     }
 });
@@ -260,44 +361,39 @@ async function processAndSend() {
     const input = document.getElementById('user-msg');
     const text = input.value.trim();
     if (!text || !currentUserProfile) return;
+    if (currentUserProfile.isMuted) { alert("أنت ممنوع من الكتابة حالياً (Mute)"); return; }
 
-    // فحص الحماية الملكي
-    const check = royalGuard.scanAndSanitize(text, auth.currentUser.uid, currentUserProfile.name);
-    
-    if (!check.safe && check.riskScore > 5) {
-        alert("🛑 رسالتك تحتوي على محتوى مرفوض تماماً حسب قوانين الإمبراطورية!");
-        input.value = "";
-        return;
-    }
-
+    const safety = royalGuard.scanAndSanitize(text);
     await db.collection('messages').add({
         uid: auth.currentUser.uid,
         name: currentUserProfile.name,
         email: auth.currentUser.email,
-        text: check.sanitized,
+        text: safety.sanitized,
+        replyData: currentReplyData,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     input.value = "";
+    cancelReply();
 }
 
 function startListening() {
     db.collection('messages').orderBy('createdAt', 'asc').limitToLast(50).onSnapshot(snap => {
         const chat = document.getElementById('chat-container');
         chat.innerHTML = "";
-        snap.forEach(async doc => {
-            const m = doc.data();
+        snap.forEach(async d => {
+            const m = d.data();
             const isF = m.email === FOUNDER_EMAIL;
             
-            // جلب رتبة المرسل حية
-            const senderDoc = await db.collection('users').doc(m.uid).get();
-            const sRank = getRank(senderDoc.data()?.joinedAt, m.email);
-
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isF ? 'msg-founder' : ''}`;
+            
+            let replyBlock = m.replyData ? `<div class="reply-container">↩ رداً على ${m.replyData.name}: ${m.replyData.text.substring(0, 20)}...</div>` : '';
+            
             msgDiv.innerHTML = `
-                <div style="font-size:0.7rem; margin-bottom:5px;">
-                    <span class="${sRank.class}" style="font-weight:900">${m.name}</span>
-                    <span style="color:#666"> [${sRank.title}]</span>
+                ${replyBlock}
+                <div style="font-size:0.7rem; margin-bottom:5px; display: flex; justify-content: space-between;">
+                    <span class="${isF?'rank-founder':'rank-clickable'}" onclick="openAdminPanel('${m.uid}', '${m.name}', event)">${m.name}</span>
+                    <span class="btn-reply-action" onclick="prepareReply('${m.name}', '${m.text}')">رد</span>
                 </div>
                 <div style="word-break: break-word;">${m.text}</div>
             `;
@@ -306,9 +402,12 @@ function startListening() {
         });
     });
 }
+// إغلاق القائمة عند الضغط في أي مكان
+window.onclick = function(event) { if (!event.target.matches('.rank-clickable')) document.getElementById('founder-menu').style.display = 'none'; }
 </script>
 </body>
 </html>
+
 
 
 
