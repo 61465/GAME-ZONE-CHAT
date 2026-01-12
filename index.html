@@ -76,11 +76,11 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* ستايل المؤسس الخاص */
+        /* ستايل المؤسس (أنت) */
         .msg-founder {
             border: 2px solid var(--gold-main) !important;
             border-right: 8px solid var(--founder-red) !important;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
             background: #000 !important;
         }
 
@@ -106,8 +106,6 @@
             font-weight: bold;
             color: var(--gold-main);
         }
-
-        .rank-legend { color: var(--gold-glow); text-shadow: 0 0 10px var(--gold-main); }
 
         .input-box {
             background: var(--dark-card);
@@ -136,19 +134,16 @@
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
         }
-
-        button:hover { background: var(--gold-glow); transform: scale(1.05); }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-box">
-        <h1 style="color: var(--gold-main); font-weight: 900; margin-bottom: 10px;">GAME ZONE VIP</h1>
-        <p style="color: #aaa; margin-bottom: 25px;">مرحباً بك يا مؤسس</p>
-        <input type="text" id="username" placeholder="اكتب اسمك هنا..." style="width: 85%; margin-bottom: 20px; text-align: center;">
+        <h1 style="color: var(--gold-main); font-weight: 900;">GAME ZONE VIP</h1>
+        <p style="color: #aaa;">مرحباً بك في غرفة المؤسس</p>
+        <input type="text" id="username" placeholder="اكتب اسمك (LUFFY)..." style="width: 85%; margin-bottom: 20px; text-align: center;">
         <br>
         <button onclick="joinChat()" style="width: 95%; height: 45px;">دخول المجلس</button>
     </div>
@@ -156,7 +151,7 @@
 
 <header>
     <div style="font-size: 1.5rem; font-weight: 900; color: var(--gold-main);">GAME ZONE <span style="color: white;">CHAT</span></div>
-    <div id="user-badge" style="color: var(--gold-main); font-weight: bold;"></div>
+    <div id="user-badge"></div>
 </header>
 
 <div id="chat-container"></div>
@@ -184,21 +179,19 @@
     const db = firebase.firestore();
     let myProfile = null;
 
-    // --- السطر الأهم للمؤسس ---
-    const FOUNDER_UID = "IYM6ZZoyp6ZVmOVK6OqX1F..."; // تأكد من وضع الـ UID الكامل هنا
+    // تم وضع الـ UID الخاص بك هنا ليتعرف عليك الكود فوراً
+    const FOUNDER_UID = "IYM6ZZoyp6ZVmOVK6OqX1FlmN2S2";
 
     function getRank(joinDate, uid) {
         if (uid === FOUNDER_UID) return { name: "المؤسس ⚡", class: "rank-founder" };
         const days = (Date.now() - joinDate) / (1000 * 60 * 60 * 24);
         if (days >= 90) return { name: "أسطورة GZ 👑", class: "rank-legend" };
-        if (days >= 30) return { name: "عضو ملكي 🥇", class: "rank-royal" };
         return { name: "لاعب جديد 🥚", class: "rank-new" };
     }
 
     async function joinChat() {
         const name = document.getElementById('username').value;
-        if (!name) return alert("الرجاء إدخال اسمك!");
-
+        if (!name) return;
         try {
             const userCred = await firebase.auth().signInAnonymously();
             const uid = userCred.user.uid;
@@ -215,10 +208,7 @@
             document.getElementById('login-screen').style.display = 'none';
             displayBadge();
             listenToMessages();
-        } catch (e) {
-            console.error(e);
-            alert("حدث خطأ في الدخول.");
-        }
+        } catch (e) { alert("تأكد من إغلاق AdBlock"); }
     }
 
     function displayBadge() {
@@ -229,19 +219,16 @@
     async function sendMessage() {
         const input = document.getElementById('msg-input');
         if (!input.value.trim()) return;
-
         const currentRank = getRank(myProfile.joinDate, myProfile.uid);
-        try {
-            await db.collection('messages').add({
-                uid: myProfile.uid,
-                name: myProfile.name,
-                text: input.value,
-                rankName: currentRank.name,
-                rankClass: currentRank.class,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            input.value = "";
-        } catch (e) { console.error(e); }
+        await db.collection('messages').add({
+            uid: myProfile.uid,
+            name: myProfile.name,
+            text: input.value,
+            rankName: currentRank.name,
+            rankClass: currentRank.class,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = "";
     }
 
     function listenToMessages() {
@@ -268,4 +255,5 @@
 </script>
 </body>
 </html>
+
 
