@@ -76,7 +76,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* ستايل المؤسس (أنت) */
         .msg-founder {
             border: 2px solid var(--gold-main) !important;
             border-right: 8px solid var(--founder-red) !important;
@@ -135,6 +134,15 @@
             font-weight: bold;
             cursor: pointer;
         }
+
+        /* نافذة التحكم الصريحة للمؤسس */
+        #admin-modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #1a1a1a; border: 2px solid var(--gold-main);
+            padding: 20px; z-index: 2000; border-radius: 12px; text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -147,6 +155,12 @@
         <br>
         <button onclick="joinChat()" style="width: 95%; height: 45px;">دخول المجلس</button>
     </div>
+</div>
+
+<div id="admin-modal">
+    <h3 id="target-name" style="color: var(--gold-main);"></h3>
+    <button id="mute-action-btn" style="background: red; color: white; padding: 10px; border-radius: 5px; border: none; cursor: pointer;">ميوت / فك ميوت</button>
+    <button onclick="document.getElementById('admin-modal').style.display='none'" style="margin-top: 10px;">إغلاق</button>
 </div>
 
 <header>
@@ -178,28 +192,29 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     let myProfile = null;
+    let amIMuted = false;
 
-    // تم وضع الـ UID الخاص بك هنا ليتعرف عليك الكود فوراً
     const FOUNDER_UID = "IYM6ZZoyp6ZVmOVK6OqX1FlmN2S2";
 
     function getRank(joinDate, uid) {
         if (uid === FOUNDER_UID) return { name: "المؤسس ⚡", class: "rank-founder" };
-        const days = (Date.now() - joinDate) / (1000 * 60 * 60 * 24);
-        if (days >= 90) return { name: "أسطورة GZ 👑", class: "rank-legend" };
-        return { name: "لاعب جديد 🥚", class: "rank-new" };
+        return { name: "لاعب جديد 🥚", class: "" };
     }
 
     async function joinChat() {
-        const name = document.getElementById('username').value;
+        const name = document.getElementById('username').value.trim();
         if (!name) return;
         try {
             const userCred = await firebase.auth().signInAnonymously();
             const uid = userCred.user.uid;
+            
+            if (name.toUpperCase() === "LUFFY" && uid !== FOUNDER_UID) return alert("الاسم محجوز للمؤسس!");
+
             const userRef = db.collection('users').doc(uid);
             const doc = await userRef.get();
 
             if (!doc.exists) { 
-                myProfile = { uid, name, joinDate: Date.now() };
+                myProfile = { uid, name, joinDate: Date.now(), isMuted: false };
                 await userRef.set(myProfile);
             } else {
                 myProfile = doc.data();
@@ -208,17 +223,44 @@
             document.getElementById('login-screen').style.display = 'none';
             displayBadge();
             listenToMessages();
-        } catch (e) { alert("تأكد من إغلاق AdBlock"); }
+            listenToMyStatus();
+        } catch (e) { alert("خطأ في الاتصال"); }
     }
 
     function displayBadge() {
         const rank = getRank(myProfile.joinDate, myProfile.uid);
-        document.getElementById('user-badge').innerHTML = `<span class="${rank.class}">${rank.name} | ${myProfile.name}</span>`;
+        // التعديل: إذا كنت أنت المؤسس، لا تظهر كلمة "لاعب جديد"
+        const badgeContent = myProfile.uid === FOUNDER_UID ? 
+            `<span class="${rank.class}">${rank.name} | ${myProfile.name}</span>` : 
+            `<span class="">${rank.name} | ${myProfile.name}</span>`;
+        document.getElementById('user-badge').innerHTML = badgeContent;
+    }
+
+    function listenToMyStatus() {
+        db.collection('users').doc(myProfile.uid).onSnapshot(doc => {
+            if(doc.exists) amIMuted = doc.data().isMuted || false;
+        });
+    }
+
+    function openControl(tUid, tName) {
+        if (myProfile.uid !== FOUNDER_UID || tUid === FOUNDER_UID) return;
+        const modal = document.getElementById('admin-modal');
+        document.getElementById('target-name').innerText = tName;
+        modal.style.display = 'block';
+        document.getElementById('mute-action-btn').onclick = async () => {
+            const ref = db.collection('users').doc(tUid);
+            const d = await ref.get();
+            const status = d.data().isMuted || false;
+            await ref.update({ isMuted: !status });
+            modal.style.display = 'none';
+        };
     }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
         if (!input.value.trim()) return;
+        if (amIMuted) return alert("لقد تم وضعك في الميوت.");
+
         const currentRank = getRank(myProfile.joinDate, myProfile.uid);
         await db.collection('messages').add({
             uid: myProfile.uid,
@@ -232,25 +274,29 @@
     }
 
     function listenToMessages() {
-        db.collection('messages').orderBy('createdAt', 'asc').limitToLast(50)
-            .onSnapshot(snap => {
-                const container = document.getElementById('chat-container');
-                container.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isFounder = m.uid === FOUNDER_UID ? "msg-founder" : "";
-                    const div = document.createElement('div');
-                    div.className = `message ${isFounder}`;
-                    div.innerHTML = `
-                        <div class="msg-info">
-                            <span class="${m.rankClass}">${m.name}</span> 
-                            <span style="color:#666; font-size:0.7rem;">[${m.rankName}]</span>
-                        </div>
-                        <div style="color: white; word-break: break-word;">${m.text}</div>`;
-                    container.appendChild(div);
-                });
-                container.scrollTop = container.scrollHeight;
+        db.collection('messages').orderBy('createdAt', 'asc').limitToLast(50).onSnapshot(snap => {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = "";
+            snap.forEach(doc => {
+                const m = doc.data();
+                const isF = m.uid === FOUNDER_UID ? "msg-founder" : "";
+                const clickAction = myProfile.uid === FOUNDER_UID ? `onclick="openControl('${m.uid}', '${m.name}')" style="cursor:pointer;"` : "";
+                
+                // التعديل هنا أيضاً لعرض رتبة المؤسس فقط أو رتبة لاعب جديد للبقية
+                const displayRank = m.uid === FOUNDER_UID ? m.rankName : "لاعب جديد 🥚";
+
+                const div = document.createElement('div');
+                div.className = `message ${isF}`;
+                div.innerHTML = `
+                    <div class="msg-info">
+                        <span ${clickAction} class="${m.rankClass}">${m.name}</span> 
+                        <span style="color:#666; font-size:0.7rem;">[${displayRank}]</span>
+                    </div>
+                    <div style="color: white; word-break: break-word;">${m.text}</div>`;
+                container.appendChild(div);
             });
+            container.scrollTop = container.scrollHeight;
+        });
     }
 </script>
 </body>
