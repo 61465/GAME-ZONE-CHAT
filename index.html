@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Zone Chat | VIP Gold</title>
+    <title>Game Zone Chat | Founder Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,6 +12,7 @@
             --gold-glow: #FFD700;
             --dark-card: #121212;
             --text-white: #ffffff;
+            --founder-red: #ff0000;
         }
 
         body {
@@ -25,7 +26,6 @@
             overflow: hidden;
         }
 
-        /* شاشة الدخول */
         #login-screen {
             position: fixed;
             inset: 0;
@@ -74,6 +74,26 @@
             border: 1px solid #333;
             border-right: 4px solid var(--gold-main);
             animation: fadeIn 0.3s ease;
+        }
+
+        /* ستايل المؤسس الخاص */
+        .msg-founder {
+            border: 2px solid var(--gold-main) !important;
+            border-right: 8px solid var(--founder-red) !important;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            background: #000 !important;
+        }
+
+        .rank-founder {
+            color: var(--founder-red) !important;
+            text-shadow: 0 0 10px var(--founder-red), 0 0 20px var(--gold-main);
+            font-weight: 900;
+            animation: founderPulse 1.5s infinite alternate;
+        }
+
+        @keyframes founderPulse {
+            from { opacity: 0.8; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.02); }
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -127,7 +147,7 @@
 <div id="login-screen">
     <div class="login-box">
         <h1 style="color: var(--gold-main); font-weight: 900; margin-bottom: 10px;">GAME ZONE VIP</h1>
-        <p style="color: #aaa; margin-bottom: 25px;">مجلس الأساطير بانتظارك</p>
+        <p style="color: #aaa; margin-bottom: 25px;">مرحباً بك يا مؤسس</p>
         <input type="text" id="username" placeholder="اكتب اسمك هنا..." style="width: 85%; margin-bottom: 20px; text-align: center;">
         <br>
         <button onclick="joinChat()" style="width: 95%; height: 45px;">دخول المجلس</button>
@@ -142,7 +162,7 @@
 <div id="chat-container"></div>
 
 <div class="input-box">
-    <input type="text" id="msg-input" placeholder="اكتب رسالة ذهبية..." onkeypress="if(event.key==='Enter') sendMessage()">
+    <input type="text" id="msg-input" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') sendMessage()">
     <button onclick="sendMessage()">إرسال</button>
 </div>
 
@@ -164,7 +184,11 @@
     const db = firebase.firestore();
     let myProfile = null;
 
-    function getRank(joinDate) {
+    // --- السطر الأهم للمؤسس ---
+    const FOUNDER_UID = "IYM6ZZoyp6ZVmOVK6OqX1F..."; // تأكد من وضع الـ UID الكامل هنا
+
+    function getRank(joinDate, uid) {
+        if (uid === FOUNDER_UID) return { name: "المؤسس ⚡", class: "rank-founder" };
         const days = (Date.now() - joinDate) / (1000 * 60 * 60 * 24);
         if (days >= 90) return { name: "أسطورة GZ 👑", class: "rank-legend" };
         if (days >= 30) return { name: "عضو ملكي 🥇", class: "rank-royal" };
@@ -181,7 +205,6 @@
             const userRef = db.collection('users').doc(uid);
             const doc = await userRef.get();
 
-            // الحل النهائي لخطأ doc.exists is not a function
             if (!doc.exists) { 
                 myProfile = { uid, name, joinDate: Date.now() };
                 await userRef.set(myProfile);
@@ -193,13 +216,13 @@
             displayBadge();
             listenToMessages();
         } catch (e) {
-            console.error("خطأ:", e);
-            alert("فشل الدخول! يرجى إغلاق مانع الإعلانات (AdBlock) والمحاولة مجدداً.");
+            console.error(e);
+            alert("حدث خطأ في الدخول.");
         }
     }
 
     function displayBadge() {
-        const rank = getRank(myProfile.joinDate);
+        const rank = getRank(myProfile.joinDate, myProfile.uid);
         document.getElementById('user-badge').innerHTML = `<span class="${rank.class}">${rank.name} | ${myProfile.name}</span>`;
     }
 
@@ -207,9 +230,10 @@
         const input = document.getElementById('msg-input');
         if (!input.value.trim()) return;
 
-        const currentRank = getRank(myProfile.joinDate);
+        const currentRank = getRank(myProfile.joinDate, myProfile.uid);
         try {
             await db.collection('messages').add({
+                uid: myProfile.uid,
                 name: myProfile.name,
                 text: input.value,
                 rankName: currentRank.name,
@@ -217,9 +241,7 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             input.value = "";
-        } catch (e) {
-            console.error("خطأ إرسال:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function listenToMessages() {
@@ -229,8 +251,9 @@
                 container.innerHTML = "";
                 snap.forEach(doc => {
                     const m = doc.data();
+                    const isFounder = m.uid === FOUNDER_UID ? "msg-founder" : "";
                     const div = document.createElement('div');
-                    div.className = 'message';
+                    div.className = `message ${isFounder}`;
                     div.innerHTML = `
                         <div class="msg-info">
                             <span class="${m.rankClass}">${m.name}</span> 
@@ -240,8 +263,6 @@
                     container.appendChild(div);
                 });
                 container.scrollTop = container.scrollHeight;
-            }, (err) => {
-                console.error("خطأ تحديث:", err);
             });
     }
 </script>
