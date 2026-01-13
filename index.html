@@ -3,100 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | OS v3.5</title>
+    <title>GAME ZONE | PRO v4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #D4AF37; --dark-bg: #050505; --panel-bg: #0a0a0a; --founder-red: #ff3e3e; --reply-bg: rgba(212, 175, 55, 0.15); }
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--dark-bg); color: #e0e0e0; font-family: 'Cairo', sans-serif; height: 100vh; overflow: hidden; display: flex; }
-        
+        :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; --founder-red: #ff3e3e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--dark-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; }
+
         /* شاشات الدخول */
-        #login-overlay, #setup-overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .login-box { width: 100%; max-width: 350px; padding: 30px; background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 15px; text-align: center; }
-        input { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; }
+        .overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .win-box { background: var(--panel); border: 2px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
 
-        /* الهيكل الرئيسي */
-        .main-wrapper { display: none; width: 100%; height: 100vh; position: relative; }
-        
-        /* القائمة الجانبية للمؤسس */
-        .members-sidebar { width: 300px; background: #000; border-left: 2px solid var(--gold); display: none; flex-direction: column; z-index: 999; transition: 0.3s; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; color: var(--gold); text-align: center; font-weight: 900; }
-        .member-item { padding: 15px; border-bottom: 1px solid #111; display: flex; flex-direction: column; gap: 8px; }
-        .member-actions { display: flex; gap: 5px; }
-        .btn-small { flex: 1; padding: 5px; border: none; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        /* الشات */
+        #app { display: none; width: 100%; height: 100vh; flex-direction: row-reverse; }
+        .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; }
 
-        /* منطقة الشات */
-        .chat-section { flex: 1; display: flex; flex-direction: column; background: var(--panel-bg); position: relative; }
-        .chat-header { background: #000; padding: 10px 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; height: 60px; }
-        .messages-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
-        
-        /* الرسالة والرتب */
-        .message { max-width: 85%; padding: 10px 14px; border-radius: 18px; background: #1a1a1a; border: 1px solid #222; position: relative; }
-        .message.me { align-self: flex-end; border-left: 3px solid #555; }
-        .message.user { align-self: flex-start; border-right: 3px solid var(--gold); }
-        .msg-founder { border: 1px solid var(--gold) !important; background: rgba(212, 175, 55, 0.05) !important; }
-        
-        .rank-tag { font-size: 0.55rem; padding: 1px 4px; border-radius: 3px; margin-left: 4px; font-weight: 900; color: white; }
-        .r-founder { background: red; }
+        /* الرتب */
+        .rank { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; }
+        .r-founder { background: red; box-shadow: 0 0 5px red; }
         .r-legend { background: purple; }
         .r-active { background: blue; }
-        .r-new { background: #555; }
+        .r-new { background: #666; }
 
-        .input-area { padding: 10px; background: #000; border-top: 1px solid #222; }
-        .send-btn { background: var(--gold); border: none; min-width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        /* الرسائل */
+        .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; }
+        .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
+        .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
 
-        @media (max-width: 768px) {
-            .members-sidebar { position: absolute; right: -100%; height: 100%; width: 260px; }
-            .members-sidebar.open { right: 0; box-shadow: -10px 0 20px rgba(0,0,0,0.8); }
-        }
+        /* التحكم */
+        .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+        .input-bar { padding: 10px; background: #000; display: flex; gap: 10px; }
+        .btn-gold { background: var(--gold); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        @media (max-width: 768px) { .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } .sidebar.open { right: 0; } }
     </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-box">
-        <h2 style="color: var(--gold); margin-bottom: 20px; font-weight: 900;">GAME ZONE</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
+<div id="auth-screen" class="overlay">
+    <div class="win-box">
+        <h2 style="color:var(--gold)">GAME ZONE</h2><br>
+        <input type="email" id="email" placeholder="الإيميل">
         <input type="password" id="pass" placeholder="كلمة السر">
-        <button onclick="authSystem()" class="send-btn" style="width:100%; border-radius:10px; color:black;">دخول</button>
+        <button class="btn-gold" style="width:100%" onclick="login()">دخول</button>
     </div>
 </div>
 
-<div id="setup-overlay" style="display:none">
-    <div class="login-box">
-        <h2 style="color: var(--gold); margin-bottom: 10px;">إعداد الاسم</h2>
-        <input type="text" id="nickInput" placeholder="اكتب اسمك المستعار هنا...">
-        <button onclick="saveProfile()" class="send-btn" style="width:100%; border-radius:10px; color:black;">حفظ والبدء</button>
+<div id="nick-screen" class="overlay" style="display:none">
+    <div class="win-box">
+        <h3 style="color:var(--gold)">اختر اسمك المستعار</h3><br>
+        <input type="text" id="nickInput" placeholder="اكتب اسمك هنا...">
+        <button class="btn-gold" style="width:100%" onclick="updateNickname()">حفظ والبدء</button>
     </div>
 </div>
 
-<div class="main-wrapper" id="app">
-    <aside class="members-sidebar" id="founderSidebar">
-        <div class="sidebar-header">لوحة تحكم المؤسس</div>
-        <div id="membersList" style="overflow-y: auto; flex: 1;"></div>
-        <button onclick="clearZone()" style="background: var(--founder-red); color: white; border: none; padding: 15px; cursor: pointer; font-weight: bold;">تطهير الشات بالكامل</button>
+<div id="app">
+    <aside class="sidebar" id="adminSidebar">
+        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold)">إدارة الأعضاء</div>
+        <div id="userList" style="flex:1; overflow-y:auto"></div>
+        <button onclick="clearChat()" style="background:red; color:white; border:none; padding:10px; cursor:pointer">تطهير الشات</button>
     </aside>
 
-    <section class="chat-section">
-        <header class="chat-header">
-            <button onclick="toggleSidebar()" id="adminBtn" style="background:none; border:none; color:var(--gold); font-size:1.2rem; display:none"><i class="fas fa-user-shield"></i></button>
+    <main class="chat-main">
+        <header class="header">
+            <button onclick="document.getElementById('adminSidebar').classList.toggle('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none"><i class="fas fa-user-shield fa-lg"></i></button>
             <div style="text-align:center">
-                <h2 style="color: var(--gold); font-size: 1rem;">GAME ZONE</h2>
-                <span id="myNameDisplay" style="font-size:0.7rem; color:#888; cursor:pointer" onclick="document.getElementById('setup-overlay').style.display='flex'">تغيير الاسم <i class="fas fa-edit"></i></span>
+                <div id="displayNick" style="font-weight:bold">جاري التحميل...</div>
+                <div onclick="document.getElementById('nick-screen').style.display='flex'" style="font-size:0.6rem; color:var(--gold); cursor:pointer">تغيير الاسم <i class="fas fa-edit"></i></div>
             </div>
-            <div onclick="auth.signOut(); location.reload();" style="cursor:pointer; color: #666;"><i class="fas fa-sign-out-alt"></i></div>
+            <i class="fas fa-sign-out-alt" onclick="auth.signOut(); location.reload()" style="cursor:pointer"></i>
         </header>
 
-        <main class="messages-container" id="msgBox"></main>
+        <div class="msg-area" id="msgBox"></div>
 
-        <footer class="input-area">
-            <div style="display:flex; gap:8px">
-                <input type="text" id="messageInput" placeholder="اكتب رسالتك..." style="margin-bottom:0">
-                <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-            </div>
+        <footer class="input-bar">
+            <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0">
+            <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
         </footer>
-    </section>
+    </main>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -117,101 +105,94 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-let currentUserData = null;
 
-// حساب الرتبة
+let myData = null;
+
+// حساب الرتب
 function getRank(joinDate, email) {
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
     if (!joinDate) return { n: "جديد", c: "r-new" };
     const days = Math.floor((new Date() - joinDate.toDate()) / (1000 * 60 * 60 * 24));
-    if (days >= 30) return { n: "أساطير", c: "r-legend" };
+    if (days >= 30) return { n: "أسطورة", c: "r-legend" };
     if (days >= 3) return { n: "نشط", c: "r-active" };
     return { n: "جديد", c: "r-new" };
 }
 
-async function authSystem() {
+async function login() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
-    if(!e || !p) return;
-    try { await auth.signInWithEmailAndPassword(e, p); } 
+    try { await auth.signInWithEmailAndPassword(e, p); }
     catch { await auth.createUserWithEmailAndPassword(e, p); }
 }
 
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(async user => {
     if(user) {
-        const banDoc = await db.collection('bans').doc(user.email).get();
-        if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
-
-        const userDoc = await db.collection('users').doc(user.email).get();
-        if(!userDoc.exists) {
-            document.getElementById('setup-overlay').style.display = 'flex';
+        document.getElementById('auth-screen').style.display = 'none';
+        const doc = await db.collection('users').doc(user.email).get();
+        if(!doc.exists) {
+            document.getElementById('nick-screen').style.display = 'flex';
         } else {
-            currentUserData = userDoc.data();
-            enterApp();
+            myData = doc.data();
+            showApp();
         }
     }
 });
 
-async function saveProfile() {
-    const name = document.getElementById('nickInput').value.trim();
-    if(!name) return;
+async function updateNickname() {
+    const n = document.getElementById('nickInput').value.trim();
+    if(!n) return;
     const user = auth.currentUser;
-    const userDoc = await db.collection('users').doc(user.email).get();
-    
+    const doc = await db.collection('users').doc(user.email).get();
     const data = {
-        name: name,
+        name: n,
         email: user.email,
-        joinDate: userDoc.exists ? userDoc.data().joinDate : firebase.firestore.FieldValue.serverTimestamp()
+        joinDate: doc.exists ? doc.data().joinDate : firebase.firestore.FieldValue.serverTimestamp()
     };
-    
     await db.collection('users').doc(user.email).set(data, {merge: true});
-    currentUserData = data;
-    document.getElementById('setup-overlay').style.display = 'none';
-    enterApp();
+    myData = data;
+    document.getElementById('nick-screen').style.display = 'none';
+    showApp();
 }
 
-function enterApp() {
-    document.getElementById('login-overlay').style.display = 'none';
+function showApp() {
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('myNameDisplay').innerHTML = `${currentUserData.name} <i class="fas fa-edit"></i>`;
-    
+    document.getElementById('displayNick').innerText = myData.name;
     if(auth.currentUser.email === FOUNDER_ID) {
-        document.getElementById('adminBtn').style.display = 'block';
-        document.getElementById('founderSidebar').style.display = 'flex';
-        loadMembersList();
+        document.getElementById('adminIcon').style.display = 'block';
+        loadAdminPanel();
     }
-    listenMessages();
+    loadMessages();
 }
 
-async function sendMessage() {
-    const inp = document.getElementById('messageInput');
+async function send() {
+    const inp = document.getElementById('msgInput');
     if(!inp.value.trim()) return;
-    
     await db.collection('messages').add({
         text: inp.value,
-        sender: currentUserData.email,
-        name: currentUserData.name,
-        joinDate: currentUserData.joinDate,
+        sender: myData.email,
+        name: myData.name,
+        joinDate: myData.joinDate,
         time: firebase.firestore.FieldValue.serverTimestamp()
     });
     inp.value = "";
 }
 
-function listenMessages() {
+function loadMessages() {
     db.collection('messages').orderBy('time').onSnapshot(snap => {
         const box = document.getElementById('msgBox');
         box.innerHTML = "";
         snap.forEach(doc => {
             const m = doc.data();
-            const rank = getRank(m.joinDate, m.sender);
+            const r = getRank(m.joinDate, m.sender);
             const isMe = m.sender === auth.currentUser.email;
             const div = document.createElement('div');
-            div.className = `message ${isMe ? 'me' : 'user'} ${m.sender === FOUNDER_ID ? 'msg-founder' : ''}`;
+            div.className = `bubble ${isMe ? 'me' : 'user'}`;
             div.innerHTML = `
-                <div style="font-size:0.65rem; color:var(--gold); margin-bottom:4px;">
-                    <span class="rank-tag ${rank.c}">${rank.n}</span> ${m.name}
+                <div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold">
+                    <span class="rank ${r.c}">${r.n}</span> ${m.name}
                 </div>
-                <div style="font-size:0.9rem">${m.text}</div>
+                <div>${m.text}</div>
+                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer" onclick="deleteM('${doc.id}')"></i>` : ''}
             `;
             box.appendChild(div);
         });
@@ -219,33 +200,29 @@ function listenMessages() {
     });
 }
 
-// وظائف المؤسس المفقودة (ميوت وبان)
-function loadMembersList() {
+function loadAdminPanel() {
     db.collection('users').onSnapshot(snap => {
-        const list = document.getElementById('membersList');
+        const list = document.getElementById('userList');
         list.innerHTML = "";
         snap.forEach(doc => {
             const u = doc.data();
             if(u.email === FOUNDER_ID) return;
-            const div = document.createElement('div');
-            div.className = "member-item";
-            div.innerHTML = `
-                <div style="font-size:0.8rem">${u.name} (${u.email})</div>
-                <div class="member-actions">
-                    <button class="btn-small" style="background:orange" onclick="toggleMute('${u.email}')">ميوت</button>
-                    <button class="btn-small" style="background:red; color:white" onclick="setBan('${u.email}')">بان</button>
-                </div>
-            `;
-            list.appendChild(div);
+            const d = document.createElement('div');
+            d.style = "padding:10px; border-bottom:1px solid #111; font-size:0.8rem";
+            d.innerHTML = `${u.name} <br> 
+                <button onclick="ban('${u.email}')" style="color:red; background:none; border:1px solid red; font-size:0.6rem">بان</button>
+                <button onclick="mute('${u.email}')" style="color:orange; background:none; border:1px solid orange; font-size:0.6rem">ميوت</button>`;
+            list.appendChild(d);
         });
     });
 }
 
-async function setBan(email) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(email).set({banned: true}); }
-async function toggleMute(email) { alert("تم كتم: " + email); /* هنا يمكن إضافة منطق الميوت برمجياً */ }
-async function clearZone() { if(confirm("مسح الشات؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
-function toggleSidebar() { document.getElementById('founderSidebar').classList.toggle('open'); }
-document.getElementById('messageInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
+async function clearChat() { if(confirm("مسح الكل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
+async function ban(e) { if(confirm("حظر؟")) await db.collection('bans').doc(e).set({b:true}); }
+function mute(e) { alert("تم كتم " + e); }
+
+document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key==='Enter') send(); });
 </script>
 </body>
 </html>
