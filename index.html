@@ -3,76 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | OS v2.0</title>
+    <title>GAME ZONE OS v2.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        :root { --win-bg: #008080; --gray: #c0c0c0; --win-blue: #000080; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
+        :root {
+            --win-bg: #008080; 
+            --gray: #c0c0c0;
+            --win-blue: #000080;
+            --white: #ffffff;
+            --black: #000000;
+            --dark-gray: #808080;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        
         body { background: var(--win-bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* نوافذ ويندوز كلاسيك */
-        .win-window { background: var(--gray); border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000; padding: 3px; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
-        .win-title { background: var(--win-blue); color: white; padding: 4px 8px; font-weight: bold; font-size: 0.85rem; display: flex; justify-content: space-between; }
-        .win-body { padding: 15px; }
+        /* تأثير الشاشة القديمة */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 9999; background-size: 100% 3px, 3px 100%; pointer-events: none;
+        }
 
-        /* الشات */
-        #main-app { display: none; flex-direction: column; height: 100vh; }
-        .msg-area { flex: 1; background: #fff; border: 2px solid #000; border-right-color: #fff; border-bottom-color: #fff; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-        
-        /* الرسائل */
-        .msg-row { margin-bottom: 8px; max-width: 90%; }
-        .nickname { font-size: 0.8rem; font-weight: bold; cursor: pointer; display: block; margin-bottom: 2px; }
-        .bubble { padding: 8px; background: #eee; border: 1px solid #999; font-size: 0.9rem; word-break: break-all; display: inline-block; }
-        .me .bubble { background: #e2f0ff; border-color: #7aa3cc; }
+        /* تصميم النوافذ */
+        .window { background: var(--gray); border: 2px solid var(--white); border-right-color: var(--black); border-bottom-color: var(--black); padding: 2px; position: relative; }
+        .window-title { background: var(--win-blue); color: var(--white); padding: 3px 6px; font-weight: bold; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+        .window-body { padding: 10px; background: var(--gray); }
+
+        /* تسجيل الدخول */
+        #auth-overlay { position: fixed; inset: 0; background: var(--win-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .input-classic { width: 100%; padding: 8px; border: 2px solid var(--black); border-right-color: var(--white); border-bottom-color: var(--white); background: #fff; margin-bottom: 10px; }
+        .btn-classic { padding: 5px 15px; background: var(--gray); border: 2px solid var(--white); border-right-color: var(--black); border-bottom-color: var(--black); cursor: pointer; font-weight: bold; }
+        .btn-classic:active { border: 2px solid var(--black); border-right-color: var(--white); border-bottom-color: var(--white); }
+
+        /* منطقة العمل */
+        #desktop { display: none; flex-direction: column; height: 100vh; }
+        #chat-window { flex: 1; margin: 10px; display: flex; flex-direction: column; }
+        .msg-display { flex: 1; background: #fff; border: 2px solid var(--dark-gray); overflow-y: auto; padding: 10px; }
+
+        /* الرسائل والرتب */
+        .msg { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .msg-info { font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-bottom: 3px; }
+        .bubble { display: inline-block; padding: 6px 10px; border: 1px solid var(--dark-gray); background: #f0f0f0; max-width: 85%; word-break: break-all; }
         .me { align-self: flex-end; text-align: left; }
+        .me .bubble { background: #ffffca; border-color: var(--win-blue); }
+
+        .rank-tag { color: #fff; padding: 1px 4px; font-size: 0.6rem; margin-left: 5px; text-transform: uppercase; }
+        .founder { background: #ff0000; }
+        .legend { background: #800080; }
+        .active { background: #0000ff; }
+        .newbie { background: #808080; }
 
         /* شريط المهام السفلي */
-        .taskbar { background: var(--gray); border-top: 2px solid #fff; padding: 5px; display: flex; gap: 5px; }
-        input { flex: 1; padding: 8px; border: 2px solid #000; border-right-color: #fff; border-bottom-color: #fff; }
-        button { padding: 5px 15px; background: var(--gray); border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000; cursor: pointer; font-weight: bold; }
+        .taskbar { height: 40px; background: var(--gray); border-top: 2px solid var(--white); display: flex; align-items: center; padding: 2px 5px; gap: 5px; z-index: 1000; }
+        .start-btn { background: var(--gray); border: 2px solid var(--white); border-right-color: var(--black); border-bottom-color: var(--black); padding: 2px 8px; font-weight: 900; display: flex; align-items: center; gap: 5px; }
+        #messageInput { flex: 1; height: 28px; border: 2px solid var(--black); border-right-color: var(--white); border-bottom-color: var(--white); padding: 0 10px; }
 
-        /* الرتب */
-        .rank-badge { font-size: 0.65rem; padding: 1px 4px; border-radius: 3px; margin-right: 5px; color: white; vertical-align: middle; }
-        .rank-legend { background: #ff00ff; } /* أسطورة */
-        .rank-trusted { background: #008000; } /* موثوق */
-        .rank-active { background: #0000ff; } /* نشط */
-        .rank-new { background: #808080; } /* جديد */
-        .rank-founder { background: #ff0000; font-weight: 900; } /* مؤسس */
+        /* نافذة التحكم (ابدأ) */
+        #start-menu { position: absolute; bottom: 42px; right: 5px; width: 200px; display: none; }
+        .menu-item { padding: 8px; cursor: pointer; border-bottom: 1px solid var(--dark-gray); font-size: 0.8rem; }
+        .menu-item:hover { background: var(--win-blue); color: #fff; }
 
-        #auth-screen { position: fixed; inset: 0; background: var(--win-bg); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        @media (max-width: 600px) { .window { width: 95%; } .bubble { max-width: 90%; } }
     </style>
 </head>
 <body>
 
-<div id="auth-screen">
-    <div class="win-window" id="login-form">
-        <div class="win-title"><span>System_Login.exe</span></div>
-        <div class="win-body">
-            <input type="email" id="email" placeholder="البريد الإلكتروني" style="width: 100%; margin-bottom: 10px;">
-            <input type="password" id="pass" placeholder="كلمة السر" style="width: 100%; margin-bottom: 10px;">
-            <button onclick="authSystem()">دخول</button>
+<div id="auth-overlay">
+    <div class="window" id="login-window" style="width: 320px;">
+        <div class="window-title"><span>Login_Manager.exe</span></div>
+        <div class="window-body">
+            <input type="email" id="email" class="input-classic" placeholder="البريد الإلكتروني">
+            <input type="password" id="pass" class="input-classic" placeholder="كلمة السر">
+            <button class="btn-classic" onclick="authSystem()">دخول</button>
         </div>
     </div>
 
-    <div class="win-window" id="nick-form" style="display: none; width: 300px;">
-        <div class="win-title"><span>Profile_Setup.exe</span></div>
-        <div class="win-body">
-            <p style="font-size: 0.8rem; margin-bottom: 10px;">أهلاً بك! اختر اسمك المستعار:</p>
-            <input type="text" id="nicknameInput" placeholder="الاسم المستعار...">
-            <button onclick="saveProfile()">حفظ والبدء</button>
+    <div class="window" id="nick-window" style="display: none; width: 300px;">
+        <div class="window-title"><span>User_Profile.sys</span></div>
+        <div class="window-body">
+            <p style="font-size: 0.8rem; margin-bottom: 10px;">أهلاً بك في GAME ZONE! اختر لقبك:</p>
+            <input type="text" id="nickInput" class="input-classic" placeholder="الاسم المستعار...">
+            <button class="btn-classic" onclick="saveNick()">ابدأ النظام</button>
         </div>
     </div>
 </div>
 
-<div id="main-app">
-    <div class="win-window" style="flex:1; margin: 10px; display:flex; flex-direction:column;">
-        <div class="win-title"><span><i class="fas fa-terminal"></i> GAME_ZONE_MAIN_FRAME</span></div>
-        <div class="msg-area" id="msgBox"></div>
+<div id="desktop">
+    <div class="window" id="chat-window">
+        <div class="window-title">
+            <span><i class="fas fa-comment"></i> GAME_ZONE_CHAT.exe</span>
+            <span onclick="location.reload()" style="cursor:pointer">[X]</span>
+        </div>
+        <div class="msg-display" id="msgBox"></div>
     </div>
+
     <div class="taskbar">
-        <input type="text" id="messageInput" placeholder="اكتب رسالة...">
-        <button onclick="sendMessage()">إرسال</button>
+        <button class="start-btn" onclick="toggleStart()"><i class="fas fa-user-shield"></i> ابدأ</button>
+        <input type="text" id="messageInput" placeholder="اكتب رسالة هنا...">
+        <button class="btn-classic" onclick="sendMessage()">إرسال</button>
+    </div>
+
+    <div id="start-menu" class="window">
+        <div class="window-title"><span>Admin_Tools</span></div>
+        <div class="window-body" id="adminList" style="padding:0">
+            <div class="menu-item" onclick="clearZone()">تطهير الشات</div>
+            <div id="userLinks"></div>
+        </div>
     </div>
 </div>
 
@@ -95,18 +135,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// دالة لحساب الرتبة بناءً على تاريخ الانضمام
-function calculateRank(joinDate, email) {
-    if (email === FOUNDER_ID) return { name: "مؤسس", class: "rank-founder" };
-    
-    const now = new Date();
-    const joined = joinDate.toDate();
-    const diffDays = Math.floor((now - joined) / (1000 * 60 * 60 * 24));
-
-    if (diffDays >= 30) return { name: "أسطورة", class: "rank-legend" };
-    if (diffDays >= 7) return { name: "موثوق", class: "rank-trusted" };
-    if (diffDays >= 3) return { name: "عضو نشط", class: "rank-active" };
-    return { name: "عضو جديد", class: "rank-new" };
+// حساب الرتبة بالوقت
+function getRank(joinDate, email) {
+    if (email === FOUNDER_ID) return { n: "مؤسس", c: "founder" };
+    if (!joinDate) return { n: "جديد", c: "newbie" };
+    const days = Math.floor((new Date() - joinDate.toDate()) / (1000 * 60 * 60 * 24));
+    if (days >= 30) return { n: "أسطورة", c: "legend" };
+    if (days >= 3) return { n: "نشط", c: "active" };
+    return { n: "جديد", c: "newbie" };
 }
 
 async function authSystem() {
@@ -118,45 +154,42 @@ async function authSystem() {
 
 auth.onAuthStateChanged(async user => {
     if(user) {
-        document.getElementById('login-form').style.display = 'none';
-        const userDoc = await db.collection('users').doc(user.email).get();
-        if(!userDoc.exists) {
-            document.getElementById('nick-form').style.display = 'block';
-        } else {
-            enterApp();
-        }
+        document.getElementById('login-window').style.display = 'none';
+        const doc = await db.collection('users').doc(user.email).get();
+        if(!doc.exists) document.getElementById('nick-window').style.display = 'block';
+        else startSystem();
     }
 });
 
-async function saveProfile() {
-    const nick = document.getElementById('nicknameInput').value;
-    if(!nick) return;
+async function saveNick() {
+    const n = document.getElementById('nickInput').value;
+    if(!n) return;
     await db.collection('users').doc(auth.currentUser.email).set({
-        nickname: nick,
-        joinDate: firebase.firestore.FieldValue.serverTimestamp(),
-        email: auth.currentUser.email
+        nickname: n, joinDate: firebase.firestore.FieldValue.serverTimestamp(), email: auth.currentUser.email
     });
-    enterApp();
+    startSystem();
 }
 
-function enterApp() {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'flex';
+function startSystem() {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('desktop').style.display = 'flex';
     listenMessages();
+    if(auth.currentUser.email === FOUNDER_ID) loadAdmin();
+}
+
+function toggleStart() {
+    const menu = document.getElementById('start-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
 async function sendMessage() {
     const inp = document.getElementById('messageInput');
     if(!inp.value.trim()) return;
-    const userSnap = await db.collection('users').doc(auth.currentUser.email).get();
-    const userData = userSnap.data();
-    
+    const userDoc = await db.collection('users').doc(auth.currentUser.email).get();
+    const u = userDoc.data();
     await db.collection('messages').add({
-        text: inp.value,
-        sender: auth.currentUser.email,
-        nickname: userData.nickname,
-        joinDate: userData.joinDate,
-        time: firebase.firestore.FieldValue.serverTimestamp()
+        text: inp.value, sender: u.email, nickname: u.nickname,
+        joinDate: u.joinDate, time: firebase.firestore.FieldValue.serverTimestamp()
     });
     inp.value = "";
 }
@@ -168,14 +201,13 @@ function listenMessages() {
         snap.forEach(doc => {
             const m = doc.data();
             const isMe = m.sender === auth.currentUser.email;
-            const rank = calculateRank(m.joinDate, m.sender);
-            
+            const rank = getRank(m.joinDate, m.sender);
             const div = document.createElement('div');
-            div.className = `msg-row ${isMe ? 'me' : ''}`;
+            div.className = `msg ${isMe ? 'me' : ''}`;
             div.innerHTML = `
-                <span class="nickname" onclick="alert('الاسم: ${m.nickname}\\nالرتبة: ${rank.name}')">
-                    <span class="rank-badge ${rank.class}">${rank.name}</span> ${m.nickname}
-                </span>
+                <div class="msg-info" onclick="alert('الاسم: ${m.nickname}\\nالرتبة: ${rank.n}')">
+                    <span class="rank-tag ${rank.c}">${rank.n}</span> ${m.nickname}
+                </div>
                 <div class="bubble">${m.text}</div>
             `;
             box.appendChild(div);
@@ -184,6 +216,22 @@ function listenMessages() {
     });
 }
 
+function loadAdmin() {
+    db.collection('users').onSnapshot(snap => {
+        const list = document.getElementById('userLinks');
+        list.innerHTML = "<p style='padding:5px; font-size:0.7rem; color:blue'>إدارة الأعضاء:</p>";
+        snap.forEach(doc => {
+            if(doc.id === FOUNDER_ID) return;
+            const d = document.createElement('div');
+            d.className = "menu-item";
+            d.innerText = `🚫 ${doc.data().nickname}`;
+            d.onclick = () => { if(confirm("كتم الشخص؟")) db.collection('mutes').doc(doc.id).set({m:true}); };
+            list.appendChild(d);
+        });
+    });
+}
+
+async function clearZone() { if(confirm("مسح الكل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
 document.getElementById('messageInput').addEventListener('keypress', e => { if(e.key==='Enter') sendMessage(); });
 </script>
 </body>
