@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | PRO v5</title>
+    <title>GAME ZONE | PRO v5.1</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; }
-        body { background: var(--dark-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; }
+        
+        /* التعديل 1: استخدام dvh لضمان استجابة الطول مع الكيبورد */
+        body { 
+            background: var(--dark-bg); 
+            color: #fff; 
+            height: 100dvh; 
+            overflow: hidden; 
+            display: flex; 
+        }
 
         /* شاشات الدخول */
         .overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -17,9 +25,25 @@
         input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
 
         /* الشات */
-        #app { display: none; width: 100%; height: 100vh; flex-direction: row-reverse; }
+        /* التعديل 2: ضبط نظام احتواء التطبيق */
+        #app { 
+            display: none; 
+            width: 100%; 
+            height: 100%; 
+            flex-direction: row-reverse; 
+        }
+        
         .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
+        
+        /* التعديل 3: جعل الحاوية مرنة مع min-height */
+        .chat-main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: #080808; 
+            position: relative; 
+            min-height: 0; 
+        }
 
         /* الرتب */
         .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
@@ -27,14 +51,37 @@
         .r-system { background: var(--gold); color: black; }
 
         /* الرسائل */
-        .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        /* التعديل 4: التمرير الذكي ومنع ضغط الفوتر */
+        .msg-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            min-height: 0;
+            -webkit-overflow-scrolling: touch; /* تمرير ناعم لـ iOS */
+        }
+        
         .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; word-wrap: break-word; }
         .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
         .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
         .bubble.system { align-self: center; background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); color: var(--gold); font-size: 0.75rem; text-align: center; }
 
         .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-        .input-bar { padding: 10px; background: #000; display: flex; flex-direction: column; border-top: 1px solid #222; }
+        
+        /* التعديل 5: شريط إدخال ملتصق (Sticky) وذكي */
+        .input-bar { 
+            padding: 10px; 
+            background: #000; 
+            display: flex; 
+            flex-direction: column; 
+            border-top: 1px solid #222; 
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        
         .input-row { display: flex; gap: 10px; width: 100%; }
         .btn-gold { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; }
         
@@ -42,7 +89,10 @@
         #reply-preview { background: #222; padding: 8px; border-right: 3px solid var(--gold); display: none; justify-content: space-between; align-items: center; margin-bottom: 5px; border-radius: 4px; }
         .reply-box { background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 5px; border-right: 2px solid #555; }
 
-        @media (max-width: 768px) { .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } .sidebar.open { right: 0; } }
+        @media (max-width: 768px) { 
+            .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } 
+            .sidebar.open { right: 0; } 
+        }
     </style>
 </head>
 <body>
@@ -102,6 +152,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
+// (تم الإبقاء على كود السكريبت الأصلي لضمان عمل الاتصال بـ Firebase بشكل صحيح)
 const FOUNDER_ID = "abdarahman10555@gmail.com";
 const firebaseConfig = {
     apiKey: "AIzaSyBqu1IE24FhA-govU_swQ4IcynOj4AB-ao",
@@ -119,6 +170,7 @@ let myData = null;
 let isMuted = false;
 let replyData = null;
 
+// [بقية الدوال كما هي في النسخة السابقة: getRank, login, authChangeListener, updateNickname, showApp, setReply, sendPhoto, send, loadMessages, loadAdminPanel, toggleMute, ban, deleteM, clearChat]
 function getRank(joinDate, email) {
     if (email === "SYSTEM") return { n: "نظام", c: "r-system" };
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
@@ -166,7 +218,6 @@ async function updateNickname() {
     const data = { name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp() };
     await db.collection('users').doc(user.email).set(data, {merge: true});
     
-    // إرسال رسالة ترحيبية للنظام (تحديث 5)
     await db.collection('messages').add({
         text: `انضم المحارب الجديد ${n} إلى GAME ZONE! ⚔️`,
         sender: "SYSTEM",
@@ -191,7 +242,6 @@ function showApp() {
     loadMessages();
 }
 
-// نظام الرد (تحديث 3)
 function setReply(name, text) {
     replyData = { name, text };
     document.getElementById('reply-text').innerText = `الرد على ${name}: ${text.substring(0, 20)}...`;
@@ -203,7 +253,6 @@ function cancelReply() {
     document.getElementById('reply-preview').style.display = 'none';
 }
 
-// إرسال الصور (تحديث 4 - رابط مباشر)
 async function sendPhoto() {
     const url = prompt("أدخل رابط الصورة المباشر:");
     if(!url || isMuted) return;
@@ -301,6 +350,7 @@ async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const
 </script>
 </body>
 </html>
+
 
 
 
