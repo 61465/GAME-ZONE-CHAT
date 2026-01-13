@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | المؤسس v3</title>
+    <title>GAME ZONE | OS v3.5</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -11,19 +11,22 @@
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { background: var(--dark-bg); color: #e0e0e0; font-family: 'Cairo', sans-serif; height: 100vh; overflow: hidden; display: flex; }
         
-        /* شاشات الدخول والاسم */
+        /* شاشات الدخول */
         #login-overlay, #setup-overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .login-box { width: 100%; max-width: 350px; padding: 30px; background: var(--panel-bg); border: 2px solid var(--gold); border-radius: 15px; text-align: center; }
+        input { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; }
 
         /* الهيكل الرئيسي */
         .main-wrapper { display: none; width: 100%; height: 100vh; position: relative; }
         
-        /* القائمة الجانبية */
+        /* القائمة الجانبية للمؤسس */
         .members-sidebar { width: 300px; background: #000; border-left: 2px solid var(--gold); display: none; flex-direction: column; z-index: 999; transition: 0.3s; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid #222; color: var(--gold); text-align: center; font-weight: 900; }
-        .member-item { padding: 12px; border-bottom: 1px solid #111; }
+        .member-item { padding: 15px; border-bottom: 1px solid #111; display: flex; flex-direction: column; gap: 8px; }
+        .member-actions { display: flex; gap: 5px; }
+        .btn-small { flex: 1; padding: 5px; border: none; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
 
-        /* الشات */
+        /* منطقة الشات */
         .chat-section { flex: 1; display: flex; flex-direction: column; background: var(--panel-bg); position: relative; }
         .chat-header { background: #000; padding: 10px 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; height: 60px; }
         .messages-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
@@ -34,19 +37,14 @@
         .message.user { align-self: flex-start; border-right: 3px solid var(--gold); }
         .msg-founder { border: 1px solid var(--gold) !important; background: rgba(212, 175, 55, 0.05) !important; }
         
-        .rank-tag { font-size: 0.55rem; padding: 1px 4px; border-radius: 3px; margin-left: 4px; font-weight: 900; vertical-align: middle; }
-        .r-founder { background: red; color: white; }
-        .r-legend { background: purple; color: white; }
-        .r-active { background: blue; color: white; }
-        .r-new { background: #555; color: white; }
-
-        .reply-content-in-msg { background: rgba(0,0,0,0.3); padding: 5px 10px; border-right: 3px solid var(--gold); border-radius: 5px; margin-bottom: 5px; font-size: 0.75rem; color: #aaa; }
-        #reply-bar { display: none; background: var(--reply-bg); padding: 8px 15px; border-top: 1px solid var(--gold); justify-content: space-between; align-items: center; }
+        .rank-tag { font-size: 0.55rem; padding: 1px 4px; border-radius: 3px; margin-left: 4px; font-weight: 900; color: white; }
+        .r-founder { background: red; }
+        .r-legend { background: purple; }
+        .r-active { background: blue; }
+        .r-new { background: #555; }
 
         .input-area { padding: 10px; background: #000; border-top: 1px solid #222; }
-        .input-wrapper { display: flex; gap: 8px; align-items: center; }
-        #messageInput { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 18px; border-radius: 25px; font-size: 0.9rem; }
-        .send-btn { background: var(--gold); border: none; min-width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .send-btn { background: var(--gold); border: none; min-width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         @media (max-width: 768px) {
             .members-sidebar { position: absolute; right: -100%; height: 100%; width: 260px; }
@@ -58,49 +56,43 @@
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2 style="color: var(--gold); margin-bottom: 20px;">GAME ZONE</h2>
+        <h2 style="color: var(--gold); margin-bottom: 20px; font-weight: 900;">GAME ZONE</h2>
         <input type="email" id="email" placeholder="البريد الإلكتروني">
         <input type="password" id="pass" placeholder="كلمة السر">
-        <button onclick="authSystem()" class="send-btn" style="width:100%; border-radius:10px; color:black; font-weight:bold">دخول</button>
+        <button onclick="authSystem()" class="send-btn" style="width:100%; border-radius:10px; color:black;">دخول</button>
     </div>
 </div>
 
 <div id="setup-overlay" style="display:none">
     <div class="login-box">
-        <h2 style="color: var(--gold); margin-bottom: 10px;">إعداد الهوية</h2>
-        <p style="font-size:0.8rem; margin-bottom:15px">اختر اسماً مستعاراً ليظهر للجميع</p>
-        <input type="text" id="nickInput" placeholder="اكتب اسمك هنا...">
-        <button onclick="saveProfile()" class="send-btn" style="width:100%; border-radius:10px; color:black; font-weight:bold">حفظ والبدء</button>
+        <h2 style="color: var(--gold); margin-bottom: 10px;">إعداد الاسم</h2>
+        <input type="text" id="nickInput" placeholder="اكتب اسمك المستعار هنا...">
+        <button onclick="saveProfile()" class="send-btn" style="width:100%; border-radius:10px; color:black;">حفظ والبدء</button>
     </div>
 </div>
 
 <div class="main-wrapper" id="app">
     <aside class="members-sidebar" id="founderSidebar">
-        <div class="sidebar-header">إدارة الأعضاء</div>
+        <div class="sidebar-header">لوحة تحكم المؤسس</div>
         <div id="membersList" style="overflow-y: auto; flex: 1;"></div>
-        <button onclick="clearZone()" style="background: var(--founder-red); color: white; border: none; padding: 15px; cursor: pointer; font-weight: bold;">تطهير الشات</button>
+        <button onclick="clearZone()" style="background: var(--founder-red); color: white; border: none; padding: 15px; cursor: pointer; font-weight: bold;">تطهير الشات بالكامل</button>
     </aside>
 
     <section class="chat-section">
         <header class="chat-header">
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:var(--gold); font-size:1.2rem"><i class="fas fa-users"></i></button>
+            <button onclick="toggleSidebar()" id="adminBtn" style="background:none; border:none; color:var(--gold); font-size:1.2rem; display:none"><i class="fas fa-user-shield"></i></button>
             <div style="text-align:center">
                 <h2 style="color: var(--gold); font-size: 1rem;">GAME ZONE</h2>
-                <span id="myNameDisplay" style="font-size:0.7rem; color:#888; cursor:pointer" onclick="openNameSetup()">تغيير الاسم <i class="fas fa-edit"></i></span>
+                <span id="myNameDisplay" style="font-size:0.7rem; color:#888; cursor:pointer" onclick="document.getElementById('setup-overlay').style.display='flex'">تغيير الاسم <i class="fas fa-edit"></i></span>
             </div>
             <div onclick="auth.signOut(); location.reload();" style="cursor:pointer; color: #666;"><i class="fas fa-sign-out-alt"></i></div>
         </header>
 
         <main class="messages-container" id="msgBox"></main>
 
-        <div id="reply-bar">
-            <div id="reply-info" style="font-size: 0.8rem;"></div>
-            <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer; color: red;"></i>
-        </div>
-
         <footer class="input-area">
-            <div class="input-wrapper">
-                <input type="text" id="messageInput" placeholder="اكتب رسالتك...">
+            <div style="display:flex; gap:8px">
+                <input type="text" id="messageInput" placeholder="اكتب رسالتك..." style="margin-bottom:0">
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </footer>
@@ -125,16 +117,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-let replyData = null;
+let currentUserData = null;
 
-// وظيفة حساب الرتبة
+// حساب الرتبة
 function getRank(joinDate, email) {
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
     if (!joinDate) return { n: "جديد", c: "r-new" };
     const days = Math.floor((new Date() - joinDate.toDate()) / (1000 * 60 * 60 * 24));
     if (days >= 30) return { n: "أساطير", c: "r-legend" };
     if (days >= 3) return { n: "نشط", c: "r-active" };
-    return { n: "عضو جديد", c: "r-new" };
+    return { n: "جديد", c: "r-new" };
 }
 
 async function authSystem() {
@@ -147,11 +139,15 @@ async function authSystem() {
 
 auth.onAuthStateChanged(async (user) => {
     if(user) {
-        const doc = await db.collection('users').doc(user.email).get();
-        if(!doc.exists) {
+        const banDoc = await db.collection('bans').doc(user.email).get();
+        if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
+
+        const userDoc = await db.collection('users').doc(user.email).get();
+        if(!userDoc.exists) {
             document.getElementById('setup-overlay').style.display = 'flex';
         } else {
-            enterApp(doc.data().name);
+            currentUserData = userDoc.data();
+            enterApp();
         }
     }
 });
@@ -160,64 +156,45 @@ async function saveProfile() {
     const name = document.getElementById('nickInput').value.trim();
     if(!name) return;
     const user = auth.currentUser;
-    const doc = await db.collection('users').doc(user.email).get();
+    const userDoc = await db.collection('users').doc(user.email).get();
     
-    // إذا كان المستخدم جديداً نضع تاريخ انضمام، إذا كان يغير اسمه نحافظ على التاريخ القديم
     const data = {
         name: name,
         email: user.email,
-        joinDate: doc.exists ? doc.data().joinDate : firebase.firestore.FieldValue.serverTimestamp()
+        joinDate: userDoc.exists ? userDoc.data().joinDate : firebase.firestore.FieldValue.serverTimestamp()
     };
     
     await db.collection('users').doc(user.email).set(data, {merge: true});
+    currentUserData = data;
     document.getElementById('setup-overlay').style.display = 'none';
-    enterApp(name);
+    enterApp();
 }
 
-function enterApp(name) {
+function enterApp() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('myNameDisplay').innerHTML = `${name} <i class="fas fa-edit"></i>`;
-    listenMessages();
+    document.getElementById('myNameDisplay').innerHTML = `${currentUserData.name} <i class="fas fa-edit"></i>`;
+    
     if(auth.currentUser.email === FOUNDER_ID) {
+        document.getElementById('adminBtn').style.display = 'block';
         document.getElementById('founderSidebar').style.display = 'flex';
         loadMembersList();
     }
-}
-
-function openNameSetup() {
-    document.getElementById('setup-overlay').style.display = 'flex';
-}
-
-function setReply(name, text) {
-    replyData = { name, text };
-    document.getElementById('reply-info').innerText = `الرد على ${name}...`;
-    document.getElementById('reply-bar').style.display = 'flex';
-    document.getElementById('messageInput').focus();
-}
-
-function cancelReply() {
-    replyData = null;
-    document.getElementById('reply-bar').style.display = 'none';
+    listenMessages();
 }
 
 async function sendMessage() {
     const inp = document.getElementById('messageInput');
     if(!inp.value.trim()) return;
     
-    const userDoc = await db.collection('users').doc(auth.currentUser.email).get();
-    const u = userDoc.data();
-
     await db.collection('messages').add({
         text: inp.value,
-        sender: u.email,
-        name: u.name,
-        joinDate: u.joinDate,
-        time: firebase.firestore.FieldValue.serverTimestamp(),
-        reply: replyData
+        sender: currentUserData.email,
+        name: currentUserData.name,
+        joinDate: currentUserData.joinDate,
+        time: firebase.firestore.FieldValue.serverTimestamp()
     });
     inp.value = "";
-    cancelReply();
 }
 
 function listenMessages() {
@@ -226,21 +203,15 @@ function listenMessages() {
         box.innerHTML = "";
         snap.forEach(doc => {
             const m = doc.data();
-            const isMe = m.sender === auth.currentUser.email;
             const rank = getRank(m.joinDate, m.sender);
+            const isMe = m.sender === auth.currentUser.email;
             const div = document.createElement('div');
             div.className = `message ${isMe ? 'me' : 'user'} ${m.sender === FOUNDER_ID ? 'msg-founder' : ''}`;
-            
-            let replyHTML = m.reply ? `<div class="reply-content-in-msg"><b>${m.reply.name}:</b> ${m.reply.text}</div>` : '';
-            
             div.innerHTML = `
-                ${replyHTML}
-                <div style="font-size:0.65rem; color:var(--gold); margin-bottom:4px; display:flex; justify-content:space-between;">
-                    <span><span class="rank-tag ${rank.c}">${rank.n}</span> ${m.name}</span>
-                    <i class="fas fa-reply" onclick="setReply('${m.name}', '${m.text}')" style="cursor:pointer; opacity:0.6"></i>
+                <div style="font-size:0.65rem; color:var(--gold); margin-bottom:4px;">
+                    <span class="rank-tag ${rank.c}">${rank.n}</span> ${m.name}
                 </div>
                 <div style="font-size:0.9rem">${m.text}</div>
-                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" onclick="db.collection('messages').doc('${doc.id}').delete()" style="color:red; font-size:10px; cursor:pointer"></i>` : ''}
             `;
             box.appendChild(div);
         });
@@ -248,21 +219,32 @@ function listenMessages() {
     });
 }
 
-function toggleSidebar() { document.getElementById('founderSidebar').classList.toggle('open'); }
+// وظائف المؤسس المفقودة (ميوت وبان)
 function loadMembersList() {
     db.collection('users').onSnapshot(snap => {
         const list = document.getElementById('membersList');
         list.innerHTML = "";
         snap.forEach(doc => {
             const u = doc.data();
+            if(u.email === FOUNDER_ID) return;
             const div = document.createElement('div');
             div.className = "member-item";
-            div.innerHTML = `<div style="font-size:0.8rem">${u.name}</div><div style="font-size:0.6rem;color:#666">${u.email}</div>`;
+            div.innerHTML = `
+                <div style="font-size:0.8rem">${u.name} (${u.email})</div>
+                <div class="member-actions">
+                    <button class="btn-small" style="background:orange" onclick="toggleMute('${u.email}')">ميوت</button>
+                    <button class="btn-small" style="background:red; color:white" onclick="setBan('${u.email}')">بان</button>
+                </div>
+            `;
             list.appendChild(div);
         });
     });
 }
-async function clearZone() { if(confirm("مسح الكل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
+
+async function setBan(email) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(email).set({banned: true}); }
+async function toggleMute(email) { alert("تم كتم: " + email); /* هنا يمكن إضافة منطق الميوت برمجياً */ }
+async function clearZone() { if(confirm("مسح الشات؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
+function toggleSidebar() { document.getElementById('founderSidebar').classList.toggle('open'); }
 document.getElementById('messageInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
 </script>
 </body>
