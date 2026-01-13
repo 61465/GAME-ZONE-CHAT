@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | PRO v5</title>
+    <title>GAME ZONE | FIXED</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -11,21 +11,17 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; }
         body { background: var(--dark-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; }
 
-        /* شاشات الدخول */
         .overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .win-box { background: var(--panel); border: 2px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
 
-        /* الشات */
         #app { display: none; width: 100%; height: 100vh; flex-direction: row-reverse; }
         .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
         .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
 
-        /* الرتب */
-        .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
+        .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; }
         .r-founder { background: red; } .r-legend { background: purple; } .r-active { background: blue; } .r-new { background: #666; }
 
-        /* الرسائل */
         .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; }
         .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
@@ -51,15 +47,15 @@
 
 <div id="nick-screen" class="overlay" style="display:none">
     <div class="win-box">
-        <h3 style="color:var(--gold)">اختر اسمك المستعار</h3><br>
+        <h3 style="color:var(--gold)">إعداد الاسم المستعار</h3><br>
         <input type="text" id="nickInput" placeholder="اكتب اسمك هنا...">
-        <button class="btn-gold" style="width:100%" onclick="updateNickname()">حفظ والبدء</button>
+        <button class="btn-gold" style="width:100%" onclick="updateNickname()">حفظ ودخول الشات</button>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar" id="adminSidebar">
-        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold); font-weight:bold">لوحة المؤسس</div>
+        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold)">لوحة المؤسس</div>
         <div id="userList" style="flex:1; overflow-y:auto"></div>
         <button onclick="clearChat()" style="background:red; color:white; border:none; padding:15px; font-weight:bold; cursor:pointer">تطهير الشات</button>
     </aside>
@@ -69,7 +65,7 @@
             <button onclick="document.getElementById('adminSidebar').classList.toggle('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none"><i class="fas fa-users-cog fa-lg"></i></button>
             <div style="text-align:center">
                 <div id="displayNick" style="font-weight:bold; font-size: 0.9rem;"></div>
-                <div onclick="document.getElementById('nick-screen').style.display='flex'" style="font-size:0.6rem; color:var(--gold); cursor:pointer">تغيير الاسم <i class="fas fa-edit"></i></div>
+                <div onclick="openNickChange()" style="font-size:0.6rem; color:var(--gold); cursor:pointer">تغيير الاسم <i class="fas fa-edit"></i></div>
             </div>
             <i class="fas fa-sign-out-alt" onclick="auth.signOut(); location.reload()" style="cursor:pointer; color:#666"></i>
         </header>
@@ -77,7 +73,7 @@
         <div class="msg-area" id="msgBox"></div>
 
         <footer class="input-bar">
-            <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0">
+            <input type="text" id="msgInput" placeholder="اكتب رسالة...">
             <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
         </footer>
     </main>
@@ -123,24 +119,27 @@ async function login() {
 
 auth.onAuthStateChanged(async user => {
     if(user) {
-        // فحص البان
+        // فحص الحظر
         const banDoc = await db.collection('bans').doc(user.email).get();
         if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
 
-        // فحص الميوت (مباشر)
+        // فحص الميوت
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
             isMuted = doc.exists;
-            document.getElementById('msgInput').placeholder = isMuted ? "أنت مكتوم حالياً" : "اكتب رسالة...";
+            document.getElementById('msgInput').placeholder = isMuted ? "أنت مكتوم" : "اكتب رسالة...";
         });
 
-        const doc = await db.collection('users').doc(user.email).get();
-        if(!doc.exists) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('nick-screen').style.display = 'flex';
-        } else {
-            myData = doc.data();
-            showApp();
-        }
+        // جلب البيانات مع التحقق من وجود الاسم
+        const userRef = db.collection('users').doc(user.email);
+        userRef.onSnapshot(doc => {
+            if(!doc.exists) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('nick-screen').style.display = 'flex';
+            } else {
+                myData = doc.data();
+                showApp();
+            }
+        });
     }
 });
 
@@ -148,22 +147,24 @@ async function updateNickname() {
     const n = document.getElementById('nickInput').value.trim();
     if(!n) return;
     const user = auth.currentUser;
-    const doc = await db.collection('users').doc(user.email).get();
-    const data = {
+    
+    // حفظ البيانات وانتظار النتيجة
+    await db.collection('users').doc(user.email).set({
         name: n,
         email: user.email,
-        joinDate: doc.exists ? doc.data().joinDate : firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await db.collection('users').doc(user.email).set(data, {merge: true});
-    myData = data;
+        joinDate: myData ? myData.joinDate : firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+
     document.getElementById('nick-screen').style.display = 'none';
-    showApp();
 }
 
 function showApp() {
+    if(!myData) return;
     document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('nick-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('displayNick').innerText = myData.name;
+    
     if(auth.currentUser.email === FOUNDER_ID) {
         document.getElementById('adminIcon').style.display = 'block';
         loadAdminPanel();
@@ -171,9 +172,14 @@ function showApp() {
     loadMessages();
 }
 
+function openNickChange() {
+    document.getElementById('nickInput').value = myData.name;
+    document.getElementById('nick-screen').style.display = 'flex';
+}
+
 async function send() {
     const inp = document.getElementById('msgInput');
-    if(!inp.value.trim() || isMuted) return;
+    if(!inp.value.trim() || isMuted || !myData) return;
     
     await db.collection('messages').add({
         text: inp.value,
@@ -185,13 +191,7 @@ async function send() {
     inp.value = "";
 }
 
-// دعم الإرسال بالإنتر
-document.getElementById('msgInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        send();
-    }
-});
+document.getElementById('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 
 function loadMessages() {
     db.collection('messages').orderBy('time').onSnapshot(snap => {
@@ -208,7 +208,7 @@ function loadMessages() {
                     <span class="rank ${r.c}">${r.n}</span> ${m.name}
                 </div>
                 <div>${m.text}</div>
-                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:5px;" onclick="deleteM('${doc.id}')"></i>` : ''}
+                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:2px;" onclick="deleteM('${doc.id}')"></i>` : ''}
             `;
             box.appendChild(div);
         });
@@ -236,21 +236,14 @@ function loadAdminPanel() {
     });
 }
 
-async function toggleMute(email) {
-    const ref = db.collection('mutes').doc(email);
-    const doc = await ref.get();
-    if(doc.exists) {
-        await ref.delete();
-        alert("تم إلغاء كتم " + email);
-    } else {
-        await ref.set({muted: true});
-        alert("تم كتم " + email);
-    }
+async function toggleMute(e) { 
+    const ref = db.collection('mutes').doc(e);
+    const d = await ref.get();
+    d.exists ? await ref.delete() : await ref.set({m:true});
 }
-
-async function ban(e) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(e).set({b:true}); }
+async function ban(e) { if(confirm("حظر؟")) await db.collection('bans').doc(e).set({b:true}); }
 async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
-async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
+async function clearChat() { if(confirm("مسح الكل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
 </script>
 </body>
 </html>
