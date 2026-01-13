@@ -24,8 +24,8 @@
         .admin-icons { display: flex; gap: 10px; align-items: center; }
         .input-area { padding: 15px; background: #000; border-top: 1px solid #222; }
         .input-wrapper { display: flex; gap: 10px; align-items: center; }
-        #messageInput { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 30px; font-family: 'Cairo'; }
-        #messageInput:disabled { background: #222; cursor: not-allowed; color: #666; }
+        #messageInput { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 30px; font-family: 'Cairo'; transition: 0.3s; }
+        #messageInput:disabled { background: #2a1010; cursor: not-allowed; color: #ff8888; border-color: red; }
         .send-btn { background: var(--gold); border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; color: black; }
         .founder-panel { display: none; background: #000; padding: 10px; border-top: 1px solid var(--gold); justify-content: center; gap: 20px; }
         .admin-action-btn { background: transparent; border: 1px solid var(--founder-red); color: var(--founder-red); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
@@ -83,7 +83,7 @@ async function authSystem() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
     try { await auth.signInWithEmailAndPassword(e, p); } 
-    catch { const r = await auth.createUserWithEmailAndPassword(e, p); }
+    catch { await auth.createUserWithEmailAndPassword(e, p); }
 }
 
 auth.onAuthStateChanged(user => {
@@ -92,10 +92,17 @@ auth.onAuthStateChanged(user => {
         document.getElementById('chatApp').style.display = 'flex';
         if(user.email === FOUNDER_ID) document.getElementById('adminTools').style.display = 'flex';
         
+        // نظام الميوت المتطور
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
             const input = document.getElementById('messageInput');
-            input.disabled = doc.exists;
-            input.placeholder = doc.exists ? "لقد تم كتمك من قبل المؤسس" : "اكتب رسالتك هنا...";
+            if(doc.exists) {
+                input.disabled = true;
+                input.value = "";
+                input.placeholder = "❌ تم كتمك من قبل المؤسس!";
+            } else {
+                input.disabled = false;
+                input.placeholder = "اكتب رسالتك هنا...";
+            }
         });
         listenMessages();
     }
@@ -118,13 +125,10 @@ async function sendMessage() {
 }
 
 function listenMessages() {
-    // تم حذف الترتيب البرمجي الثقيل لضمان جلب كل الرسائل القديمة فوراً
     db.collection('messages').onSnapshot(snap => {
         const box = document.getElementById('msgBox');
         let msgs = [];
         snap.forEach(doc => msgs.push({id: doc.id, ...doc.data()}));
-        
-        // ترتيب يدوي داخل المتصفح لضمان عدم اختفاء أي رسالة
         msgs.sort((a, b) => (a.time?.seconds || 0) - (b.time?.seconds || 0));
 
         box.innerHTML = "";
@@ -137,8 +141,8 @@ function listenMessages() {
                 <div style="font-size: 0.65rem; color: var(--gold); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
                     <span>${isFounder ? '<span class="founder-tag">FOUNDER</span>' : ''} <b>${m.name}</b></span>
                     <div class="admin-icons">
-                        ${(auth.currentUser.email === FOUNDER_ID && !isFounder) ? `<i class="fas fa-microphone-slash" style="color:orange; cursor:pointer;" onclick="toggleMute('${m.sender}')"></i>` : ''}
-                        ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="deleteMsg('${m.id}')"></i>` : ''}
+                        ${(auth.currentUser.email === FOUNDER_ID && !isFounder) ? `<i class="fas fa-microphone-slash" style="color:orange; cursor:pointer; font-size:14px;" onclick="toggleMute('${m.sender}')"></i>` : ''}
+                        ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash-alt" style="color:red; cursor:pointer; font-size:14px;" onclick="deleteMsg('${m.id}')"></i>` : ''}
                     </div>
                 </div>
                 <div style="font-size: 0.95rem;">${m.text}</div>
@@ -149,10 +153,17 @@ function listenMessages() {
     });
 }
 
+// تعديل الميوت ليعمل بكفاءة
 async function toggleMute(email) {
     const ref = db.collection('mutes').doc(email);
     const d = await ref.get();
-    d.exists ? await ref.delete() : await ref.set({muted: true});
+    if(d.exists) {
+        await ref.delete();
+        console.log("Unmuted");
+    } else {
+        await ref.set({muted: true, at: new Date()});
+        console.log("Muted");
+    }
 }
 
 async function deleteMsg(id) { if(confirm("حذف؟")) await db.collection('messages').doc(id).delete(); }
@@ -166,6 +177,7 @@ async function clearZone() {
 </script>
 </body>
 </html>
+
 
 
 
