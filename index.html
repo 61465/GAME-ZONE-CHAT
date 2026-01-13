@@ -3,102 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GAME ZONE | PRO v5.2</title>
+    <title>GAME ZONE | PRO v5.3</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; }
         
-        /* التعديل 1: استخدام dvh لضمان استجابة الطول مع الكيبورد ومنع الاهتزاز */
         body { 
             background: var(--dark-bg); 
             color: #fff; 
             height: 100dvh; 
             overflow: hidden; 
             display: flex;
-            position: fixed; /* يمنع التمرير المطاطي في iOS */
+            position: fixed;
             width: 100%;
         }
 
-        /* شاشات الدخول */
         .overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .win-box { background: var(--panel); border: 2px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
 
-        /* الشات */
-        /* التعديل 2: ضبط نظام احتواء التطبيق */
-        #app { 
-            display: none; 
-            width: 100%; 
-            height: 100%; 
-            flex-direction: row-reverse; 
-        }
-        
+        #app { display: none; width: 100%; height: 100%; flex-direction: row-reverse; }
         .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
-        
-        /* التعديل 3: جعل الحاوية مرنة للهواتف */
-        .chat-main { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background: #080808; 
-            position: relative; 
-            min-height: 0; 
-        }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; min-height: 0; }
 
-        /* الرتب */
         .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
         .r-founder { background: red; } .r-legend { background: purple; } .r-active { background: blue; } .r-new { background: #666; }
         .r-system { background: var(--gold); color: black; }
 
-        /* الرسائل */
-        /* التعديل 4: التمرير الذكي */
-        .msg-area { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-            min-height: 0;
-            -webkit-overflow-scrolling: touch;
-        }
-        
+        .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; min-height: 0; -webkit-overflow-scrolling: touch; }
         .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; word-wrap: break-word; }
         .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
         .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
         .bubble.system { align-self: center; background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); color: var(--gold); font-size: 0.75rem; text-align: center; }
 
         .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-        
-        /* التعديل 5: شريط إدخال Sticky مع معالجة المساحات الآمنة للهواتف الحديثة */
-        .input-bar { 
-            padding: 10px; 
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            background: #000; 
-            display: flex; 
-            flex-direction: column; 
-            border-top: 1px solid #222; 
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
-        }
-        
-        .input-row { display: flex; gap: 10px; width: 100%; }
-        .btn-gold { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; }
-        
-        /* منع الزووم التلقائي في آيفون عند التركيز */
-        #msgInput { font-size: 16px !important; }
+        .input-bar { padding: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: #000; display: flex; flex-direction: column; border-top: 1px solid #222; position: sticky; bottom: 0; z-index: 10; }
+        .input-row { display: flex; gap: 10px; width: 100%; align-items: center; }
+        .btn-gold { background: var(--gold); border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; transition: 0.2s; }
+        .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* الرد */
+        #msgInput { font-size: 16px !important; margin-bottom: 0; flex: 1; }
         #reply-preview { background: #222; padding: 8px; border-right: 3px solid var(--gold); display: none; justify-content: space-between; align-items: center; margin-bottom: 5px; border-radius: 4px; }
         .reply-box { background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 5px; border-right: 2px solid #555; }
 
-        @media (max-width: 768px) { 
-            .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } 
-            .sidebar.open { right: 0; } 
-        }
+        @media (max-width: 768px) { .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } .sidebar.open { right: 0; } }
     </style>
 </head>
 <body>
@@ -145,8 +95,9 @@
                 <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer; color:red"></i>
             </div>
             <div class="input-row">
-                <button class="btn-gold" onclick="sendPhoto()" title="إرسال صورة"><i class="fas fa-image"></i></button>
-                <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0" autocomplete="off">
+                <input type="file" id="fileInput" style="display:none" accept="image/*" onchange="uploadImage(this)">
+                <button class="btn-gold" id="photoBtn" onclick="document.getElementById('fileInput').click()" title="إرسال صورة"><i class="fas fa-image"></i></button>
+                <input type="text" id="msgInput" placeholder="اكتب رسالة..." autocomplete="off">
                 <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </footer>
@@ -156,6 +107,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
 const FOUNDER_ID = "abdarahman10555@gmail.com";
@@ -171,14 +123,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const storage = firebase.storage();
 let myData = null;
 let isMuted = false;
 let replyData = null;
 
-// تحسين: تمرير الشات عند التركيز على حقل النص لضمان رؤية ما يكتب
 const msgInput = document.getElementById('msgInput');
 const msgBox = document.getElementById('msgBox');
 
+// --- حل مشكلة الكيبورد ---
 msgInput.addEventListener('focus', () => {
     setTimeout(() => {
         msgBox.scrollTop = msgBox.scrollHeight;
@@ -186,13 +139,44 @@ msgInput.addEventListener('focus', () => {
     }, 300);
 });
 
-// معالجة Resize للشاشة (الكيبورد)
 if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => {
         if (window.visualViewport.height < window.innerHeight) {
             msgBox.scrollTop = msgBox.scrollHeight;
         }
     });
+}
+
+// --- دالة رفع الصور المباشرة ---
+async function uploadImage(input) {
+    const file = input.files[0];
+    if (!file || isMuted) return;
+
+    const btn = document.getElementById('photoBtn');
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+
+    try {
+        const fileName = Date.now() + "_" + auth.currentUser.uid;
+        const storageRef = storage.ref('chat_images/' + fileName);
+        const snapshot = await storageRef.put(file);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+
+        await db.collection('messages').add({
+            image: downloadURL,
+            sender: myData.email,
+            name: myData.name,
+            joinDate: myData.joinDate || null,
+            time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) {
+        alert("فشل الرفع، تأكد من تفعيل Storage في Firebase");
+    } finally {
+        btn.innerHTML = originalIcon;
+        btn.disabled = false;
+        input.value = "";
+    }
 }
 
 function getRank(joinDate, email) {
@@ -218,12 +202,10 @@ auth.onAuthStateChanged(async user => {
     if(user) {
         const banDoc = await db.collection('bans').doc(user.email).get();
         if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
-        
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
             isMuted = doc.exists;
             msgInput.placeholder = isMuted ? "أنت مكتوم حالياً" : "اكتب رسالة...";
         });
-
         const doc = await db.collection('users').doc(user.email).get();
         if(!doc.exists) {
             document.getElementById('auth-screen').style.display = 'none';
@@ -239,20 +221,9 @@ async function updateNickname() {
     const n = document.getElementById('nickInput').value.trim();
     if(!n) return;
     const user = auth.currentUser;
-    const data = { name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp() };
-    await db.collection('users').doc(user.email).set(data, {merge: true});
-    
-    await db.collection('messages').add({
-        text: `انضم المحارب الجديد ${n} إلى GAME ZONE! ⚔️`,
-        sender: "SYSTEM",
-        name: "النظام",
-        time: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    const updatedDoc = await db.collection('users').doc(user.email).get();
-    myData = updatedDoc.data();
+    await db.collection('users').doc(user.email).set({ name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp() }, {merge: true});
     document.getElementById('nick-screen').style.display = 'none';
-    showApp();
+    location.reload();
 }
 
 function showApp() {
@@ -277,24 +248,9 @@ function cancelReply() {
     document.getElementById('reply-preview').style.display = 'none';
 }
 
-async function sendPhoto() {
-    const url = prompt("أدخل رابط الصورة المباشر:");
-    if(!url || isMuted) return;
-    try {
-        await db.collection('messages').add({
-            image: url,
-            sender: myData.email,
-            name: myData.name,
-            joinDate: myData.joinDate || null,
-            time: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    } catch(e) { alert("خطأ في الإرسال"); }
-}
-
 async function send() {
     const msgText = msgInput.value.trim();
     if(!msgText || isMuted) return;
-    
     try {
         await db.collection('messages').add({
             text: msgText,
@@ -319,15 +275,12 @@ function loadMessages() {
             const r = getRank(m.joinDate, m.sender);
             const isMe = m.sender === auth.currentUser.email;
             const isSys = m.sender === "SYSTEM";
-            
             const div = document.createElement('div');
             div.className = `bubble ${isSys ? 'system' : (isMe ? 'me' : 'user')}`;
-            
             let content = "";
             if(m.reply) content += `<div class="reply-box"><b>${m.reply.name}:</b> ${m.reply.text}</div>`;
             if(m.text) content += `<div>${m.text}</div>`;
-            if(m.image) content += `<img src="${m.image}" style="max-width:100%; border-radius:8px; margin-top:5px" onerror="this.src='https://via.placeholder.com/150?text=Error+Image'">`;
-
+            if(m.image) content += `<img src="${m.image}" style="max-width:100%; border-radius:8px; margin-top:5px" onclick="window.open(this.src)">`;
             div.innerHTML = `
                 ${!isSys ? `<div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold" onclick="setReply('${m.name}', '${m.text || 'صورة'}')">
                     <span class="rank ${r.c}">${r.n}</span> ${m.name} <i class="fas fa-reply" style="opacity:0.5; margin-right:5px; cursor:pointer"></i>
@@ -372,6 +325,7 @@ async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const
 </script>
 </body>
 </html>
+
 
 
 
