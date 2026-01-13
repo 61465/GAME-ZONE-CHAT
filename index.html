@@ -3,153 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE CHAT | FOUNDER EDITION</title>
+    <title>GAME ZONE CHAT | المؤسس</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@400;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         
         :root {
             --gold: #D4AF37;
-            --gold-glow: rgba(212, 175, 55, 0.5);
-            --bg: #050505;
-            --card: #0d0d0d;
-            --founder-red: #ff3131;
-            --mute-orange: #ff9100;
+            --gold-glow: rgba(212, 175, 55, 0.4);
+            --dark-bg: #050505;
+            --panel-bg: #0a0a0a;
+            --founder-red: #ff3e3e;
         }
-
+        
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         
         body {
-            background: var(--bg);
-            color: #fff;
+            background: var(--dark-bg);
+            color: #e0e0e0;
             font-family: 'Cairo', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
         }
 
-        /* شاشة الدخول الفخمة */
         #login-overlay {
-            position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+            position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000;
             display: flex; justify-content: center; align-items: center;
         }
+
         .login-box {
-            width: 350px; padding: 40px; background: var(--card);
-            border: 2px solid var(--gold); border-radius: 20px;
-            text-align: center; box-shadow: 0 0 30px var(--gold-glow);
-        }
-        .login-box h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); margin-bottom: 25px; font-size: 1.8rem; }
-        .login-box input {
-            width: 100%; padding: 12px; margin-bottom: 15px;
-            background: #000; border: 1px solid #333; color: #fff; border-radius: 8px;
-        }
-        .login-box button {
-            width: 100%; padding: 12px; background: var(--gold); border: none;
-            color: #000; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s;
-        }
-        .login-box button:hover { background: #fff; box-shadow: 0 0 15px #fff; }
-
-        /* حاوية الشات الرئيسية */
-        .app-container {
-            width: 100%; max-width: 900px; height: 95vh;
-            background: var(--card); border: 1px solid var(--gold);
-            display: none; flex-direction: column; border-radius: 20px;
-            position: relative; box-shadow: 0 0 50px rgba(0,0,0,1);
+            width: 320px; padding: 30px; background: var(--panel-bg);
+            border: 1px solid var(--gold); border-radius: 15px; text-align: center;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
-        /* الهيدر */
-        .header {
-            padding: 20px; background: #000; border-bottom: 2px solid var(--gold);
-            text-align: center; border-radius: 20px 20px 0 0;
+        .chat-container {
+            width: 100%; max-width: 800px; height: 95vh;
+            background: var(--panel-bg); border: 2px solid var(--gold);
+            border-radius: 20px; display: none; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
         }
-        .header h1 { font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 1.5rem; letter-spacing: 4px; }
 
-        /* منطقة الرسائل */
-        .chat-box {
+        .chat-header {
+            background: #000; padding: 15px; text-align: center;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .chat-header h1 { 
+            color: var(--gold); 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            font-size: 1.6rem;
+            text-transform: uppercase;
+        }
+
+        .messages-container {
             flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 15px;
-            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+            display: flex; flex-direction: column; gap: 12px;
+            background: radial-gradient(circle, #0f0f0f 0%, #050505 100%);
         }
 
-        .msg {
-            max-width: 80%; padding: 15px; border-radius: 15px;
-            position: relative; animation: fadeIn 0.3s ease;
-            background: rgba(255,255,255,0.05); border: 1px solid #222;
+        .message {
+            max-width: 85%; padding: 12px 18px; border-radius: 18px;
+            position: relative; animation: slideUp 0.3s ease;
+            background: rgba(255,255,255,0.03); border: 1px solid #222;
         }
 
-        /* تمييز رسائل المؤسس */
-        .is-founder {
+        .msg-founder {
             border: 1px solid var(--gold) !important;
-            background: rgba(212, 175, 55, 0.1) !important;
+            background: rgba(212, 175, 55, 0.08) !important;
             box-shadow: 0 0 15px var(--gold-glow);
         }
 
-        .msg.sent { align-self: flex-end; border-left: 4px solid var(--gold); }
-        .msg.received { align-self: flex-start; border-right: 4px solid #444; }
+        .message.user { align-self: flex-start; border-right: 3px solid var(--gold); }
+        .message.me { align-self: flex-end; border-left: 3px solid #555; background: rgba(255,255,255,0.07); }
 
-        .msg-info {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px; font-size: 0.75rem; font-weight: bold;
+        .founder-tag {
+            background: var(--founder-red); color: white; font-size: 10px;
+            padding: 2px 8px; border-radius: 4px; font-weight: 900; margin-left: 8px;
         }
-        .sender-name { color: var(--gold); display: flex; align-items: center; gap: 5px; }
-        .founder-badge { background: var(--founder-red); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
 
-        /* أدوات الأدمن داخل الرسالة */
-        .admin-controls { display: flex; gap: 10px; margin-right: 15px; }
-        .admin-btn { cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .admin-btn:hover { transform: scale(1.3); }
-
-        /* منطقة الكتابة */
-        .footer { padding: 20px; background: #000; border-top: 1px solid #222; border-radius: 0 0 20px 20px; }
-        .input-group { display: flex; gap: 15px; }
-        #msgInput {
-            flex: 1; background: #111; border: 1px solid #333; color: #fff;
-            padding: 15px 20px; border-radius: 30px; font-family: 'Cairo'; font-size: 1rem;
+        .admin-icons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-        #msgInput:focus { border-color: var(--gold); }
+
+        .input-area { padding: 15px; background: #000; border-top: 1px solid #222; }
+        .input-wrapper { display: flex; gap: 10px; align-items: center; }
+
+        #messageInput {
+            flex: 1; background: #111; border: 1px solid #333; color: white;
+            padding: 12px 20px; border-radius: 30px; font-family: 'Cairo';
+        }
+
+        #messageInput:disabled {
+            background: #222;
+            cursor: not-allowed;
+            color: #666;
+        }
+
         .send-btn {
-            width: 55px; height: 55px; background: var(--gold); border: none;
-            border-radius: 50%; cursor: pointer; color: #000; font-size: 1.2rem;
+            background: var(--gold); border: none; width: 45px; height: 45px;
+            border-radius: 50%; cursor: pointer; color: black;
         }
 
-        /* لوحة التحكم السفلية */
-        .founder-bar {
+        .founder-panel {
             display: none; background: #000; padding: 10px;
-            border-top: 1px solid var(--gold); justify-content: center;
+            border-top: 1px solid var(--gold); justify-content: center; gap: 20px;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .admin-action-btn {
+            background: transparent; border: 1px solid var(--founder-red);
+            color: var(--founder-red); padding: 5px 15px; border-radius: 20px;
+            cursor: pointer; font-size: 0.8rem;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2>GAME ZONE</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="pass" placeholder="كلمة السر">
-        <button onclick="authSystem()">دخول السيرفر</button>
+        <h2 style="color: var(--gold); margin-bottom: 10px; font-weight: 900;">GAME ZONE CHAT</h2>
+        <p style="font-size: 0.7rem; color: #888; margin-bottom: 20px;">الدخول إلى منطقة التحكم</p>
+        <input type="email" id="email" placeholder="البريد الإلكتروني" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:white; border-radius: 8px;">
+        <input type="password" id="pass" placeholder="كلمة السر" style="width:100%; padding:12px; margin-bottom:20px; background:#000; border:1px solid #333; color:white; border-radius: 8px;">
+        <button onclick="authSystem()" style="width:100%; padding:12px; background:var(--gold); border:none; font-weight:bold; cursor:pointer; border-radius: 8px;">دخول</button>
     </div>
 </div>
 
-<div class="app-container" id="chatApp">
-    <header class="header">
-        <h1>GAME ZONE CHAT</h1>
-        <div id="founderStatus" style="color: var(--gold); font-size: 0.8rem; margin-top: 5px; display: none;">👑 وضع المؤسس مفعّل</div>
+<div class="chat-container" id="chatApp">
+    <header class="chat-header">
+        <h1><i class="fas fa-bolt" style="color:var(--gold); margin-left:10px;"></i>GAME ZONE CHAT</h1>
+        <div id="status" style="font-size: 0.7rem; color: var(--gold); margin-top: 5px;">متصل بالخادم...</div>
     </header>
 
-    <main class="chat-box" id="chatBox"></main>
+    <main class="messages-container" id="msgBox"></main>
 
-    <div class="founder-bar" id="founderBar">
-        <button onclick="clearAllMessages()" style="background:none; border:1px solid var(--founder-red); color:var(--founder-red); padding:5px 20px; border-radius:20px; cursor:pointer; font-weight:bold;">تطهير شامل للشات</button>
+    <div class="founder-panel" id="adminTools">
+        <button class="admin-action-btn" onclick="clearZone()"><i class="fas fa-trash-alt"></i> تطهير كافة الرسائل</button>
     </div>
 
-    <footer class="footer">
-        <div class="input-group">
-            <input type="text" id="msgInput" placeholder="اكتب رسالتك هنا...">
-            <button class="send-btn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+    <footer class="input-area">
+        <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا...">
+            <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </footer>
 </div>
@@ -159,7 +158,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-const FOUNDER_EMAIL = "abdarahman10555@gmail.com";
+const FOUNDER_ID = "abdarahman10555@gmail.com";
 const firebaseConfig = {
     apiKey: "AIzaSyBqu1IE24FhA-govU_swQ4IcynOj4AB-ao",
     authDomain: "game-zone-chat1.firebaseapp.com",
@@ -176,13 +175,12 @@ const auth = firebase.auth();
 async function authSystem() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
-    
-    // فحص البان قبل الدخول
-    const banDoc = await db.collection('blacklist').doc(e).get();
-    if(banDoc.exists) return alert("لقد تم حظرك من قبل المؤسس!");
-
-    try { await auth.signInWithEmailAndPassword(e, p); }
-    catch { await auth.createUserWithEmailAndPassword(e, p); }
+    try {
+        await auth.signInWithEmailAndPassword(e, p);
+    } catch {
+        const r = await auth.createUserWithEmailAndPassword(e, p);
+        await db.collection('users').doc(r.user.uid).set({ name: e.split('@')[0], email: e });
+    }
 }
 
 auth.onAuthStateChanged(user => {
@@ -190,71 +188,78 @@ auth.onAuthStateChanged(user => {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('chatApp').style.display = 'flex';
         
-        if(user.email === FOUNDER_EMAIL) {
-            document.getElementById('founderStatus').style.display = 'block';
-            document.getElementById('founderBar').style.display = 'flex';
+        if(user.email === FOUNDER_ID) {
+            document.getElementById('adminTools').style.display = 'flex';
+            document.getElementById('status').innerText = "⚡ مرحباً بك يا مؤسس CHAT ZONE";
         }
 
-        // فحص الميوت (الكتم)
+        // مراقبة حالة الكتم (Mute)
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
-            const isMuted = doc.exists;
-            document.getElementById('msgInput').disabled = isMuted;
-            document.getElementById('msgInput').placeholder = isMuted ? "تم كتمك من قبل الإدارة" : "اكتب رسالتك هنا...";
+            const input = document.getElementById('messageInput');
+            if (doc.exists) {
+                input.disabled = true;
+                input.placeholder = "لقد تم كتمك من قبل المؤسس";
+            } else {
+                input.disabled = false;
+                input.placeholder = "اكتب رسالتك هنا...";
+            }
         });
 
-        loadMessages();
+        listenMessages();
     }
 });
 
-// ميزة الإرسال بزر Enter
-document.getElementById('msgInput').addEventListener('keydown', function(e) {
-    if(e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMsg();
+// ميزة الإرسال بالإنتر
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
     }
 });
 
-async function sendMsg() {
-    const input = document.getElementById('msgInput');
-    if(!input.value.trim() || input.disabled) return;
+async function sendMessage() {
+    const inp = document.getElementById('messageInput');
+    if(!inp.value.trim() || inp.disabled) return;
 
     await db.collection('messages').add({
-        text: input.value,
+        text: inp.value,
         sender: auth.currentUser.email,
-        userName: auth.currentUser.email.split('@')[0],
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        name: auth.currentUser.email.split('@')[0],
+        time: firebase.firestore.FieldValue.serverTimestamp()
     });
-    input.value = "";
+    inp.value = "";
 }
 
-function loadMessages() {
-    db.collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => {
-        const box = document.getElementById('chatBox');
-        box.innerHTML = "";
+function listenMessages() {
+    db.collection('messages').onSnapshot(snap => {
+        const box = document.getElementById('msgBox');
+        let msgs = [];
         snap.forEach(doc => {
-            const data = doc.data();
-            const isFounder = data.sender === FOUNDER_EMAIL;
-            const isMe = data.sender === auth.currentUser.email;
-            const amIFounder = auth.currentUser.email === FOUNDER_EMAIL;
+            msgs.push({id: doc.id, ...doc.data()});
+        });
 
+        msgs.sort((a, b) => (a.time?.seconds || 0) - (b.time?.seconds || 0));
+
+        box.innerHTML = "";
+        msgs.forEach(m => {
+            const isFounder = m.sender === FOUNDER_ID;
+            const isMe = m.sender === auth.currentUser.email;
+            
             const div = document.createElement('div');
-            div.className = `msg ${isMe ? 'sent' : 'received'} ${isFounder ? 'is-founder' : ''}`;
+            div.className = `message ${isMe ? 'me' : 'user'} ${isFounder ? 'msg-founder' : ''}`;
             
             div.innerHTML = `
-                <div class="msg-info">
-                    <span class="sender-name">
-                        ${isFounder ? '<span class="founder-badge">FOUNDER</span>' : ''}
-                        ${data.userName}
-                    </span>
-                    ${amIFounder && !isFounder ? `
-                        <div class="admin-controls">
-                            <i class="fas fa-microphone-slash admin-btn" style="color:var(--mute-orange)" onclick="muteUser('${data.sender}')"></i>
-                            <i class="fas fa-ban admin-btn" style="color:red" onclick="banUser('${data.sender}')"></i>
-                            <i class="fas fa-trash-alt admin-btn" onclick="deleteMessage('${doc.id}')"></i>
-                        </div>
-                    ` : ''}
+                <div style="font-size: 0.65rem; color: var(--gold); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>${isFounder ? '<span class="founder-tag">FOUNDER</span>' : ''} <b>${m.name}</b></span>
+                    <div class="admin-icons">
+                        ${(auth.currentUser.email === FOUNDER_ID && !isFounder) ? `
+                            <i class="fas fa-microphone-slash" style="color:orange; cursor:pointer;" onclick="toggleMute('${m.sender}')" title="كتم"></i>
+                        ` : ''}
+                        ${(auth.currentUser.email === FOUNDER_ID) ? `
+                            <i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="deleteMsg('${m.id}')" title="حذف"></i>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="msg-text">${data.text}</div>
+                <div style="font-size: 0.95rem;">${m.text}</div>
             `;
             box.appendChild(div);
         });
@@ -262,25 +267,25 @@ function loadMessages() {
     });
 }
 
-// وظائف المؤسس المطلقة
-async function deleteMessage(id) { await db.collection('messages').doc(id).delete(); }
-
-async function muteUser(email) {
-    const ref = db.collection('mutes').doc(email);
-    const doc = await ref.get();
-    if(doc.exists) { await ref.delete(); alert("تم فك الكتم"); }
-    else { await ref.set({muted: true}); alert("تم كتم المستخدم"); }
-}
-
-async function banUser(email) {
-    if(confirm(`حظر ${email} نهائياً؟`)) {
-        await db.collection('blacklist').doc(email).set({banned: true});
-        alert("تم الحظر بنجاح");
+// وظيفة الكتم للمؤسس
+async function toggleMute(userEmail) {
+    const muteRef = db.collection('mutes').doc(userEmail);
+    const doc = await muteRef.get();
+    if (doc.exists) {
+        await muteRef.delete();
+        alert("تم إلغاء الكتم عن: " + userEmail);
+    } else {
+        await muteRef.set({ muted: true });
+        alert("تم كتم المستخدم: " + userEmail);
     }
 }
 
-async function clearAllMessages() {
-    if(confirm("تنبيه: سيتم مسح كافة سجلات المحادثة!")) {
+async function deleteMsg(id) {
+    if(confirm("حذف الرسالة؟")) await db.collection('messages').doc(id).delete();
+}
+
+async function clearZone() {
+    if(confirm("سيتم مسح كافة الرسائل نهائياً! هل أنت متأكد؟")) {
         const snap = await db.collection('messages').get();
         const batch = db.batch();
         snap.forEach(d => batch.delete(d.ref));
@@ -290,8 +295,6 @@ async function clearAllMessages() {
 </script>
 </body>
 </html>
-
-
 
 
 
