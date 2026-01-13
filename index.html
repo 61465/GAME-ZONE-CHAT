@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | لوحة المؤسس</title>
+    <title>GAME ZONE CHAT | المؤسس</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -45,7 +45,7 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.9);
         }
 
-        /* هيدر GAME ZONE */
+        /* الهيدر الجديد */
         .chat-header {
             background: #000; padding: 15px; text-align: center;
             border-bottom: 2px solid var(--gold);
@@ -54,8 +54,8 @@
         .chat-header h1 { 
             color: var(--gold); 
             font-weight: 900; 
-            letter-spacing: 3px; 
-            font-size: 1.8rem;
+            letter-spacing: 2px; 
+            font-size: 1.6rem;
             text-transform: uppercase;
         }
 
@@ -89,7 +89,6 @@
 
         /* منطقة الإدخال */
         .input-area { padding: 15px; background: #000; border-top: 1px solid #222; }
-        
         .input-wrapper { display: flex; gap: 10px; align-items: center; }
 
         #messageInput {
@@ -102,7 +101,7 @@
             border-radius: 50%; cursor: pointer; color: black;
         }
 
-        /* لوحة المؤسس السفلية */
+        /* لوحة التحكم */
         .founder-panel {
             display: none; background: #000; padding: 10px;
             border-top: 1px solid var(--gold); justify-content: center; gap: 20px;
@@ -121,8 +120,8 @@
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2 style="color: var(--gold); margin-bottom: 10px; font-weight: 900;">GAME ZONE</h2>
-        <p style="font-size: 0.7rem; color: #888; margin-bottom: 20px;">نظام الدخول للمنطقة الخاصة</p>
+        <h2 style="color: var(--gold); margin-bottom: 10px; font-weight: 900;">GAME ZONE CHAT</h2>
+        <p style="font-size: 0.7rem; color: #888; margin-bottom: 20px;">الدخول إلى منطقة التحكم</p>
         <input type="email" id="email" placeholder="البريد الإلكتروني" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:white; border-radius: 8px;">
         <input type="password" id="pass" placeholder="كلمة السر" style="width:100%; padding:12px; margin-bottom:20px; background:#000; border:1px solid #333; color:white; border-radius: 8px;">
         <button onclick="authSystem()" style="width:100%; padding:12px; background:var(--gold); border:none; font-weight:bold; cursor:pointer; border-radius: 8px;">دخول</button>
@@ -131,8 +130,8 @@
 
 <div class="chat-container" id="chatApp">
     <header class="chat-header">
-        <h1><i class="fas fa-crown" style="font-size: 1.2rem; margin-left: 10px;"></i>GAME ZONE</h1>
-        <div id="status" style="font-size: 0.7rem; color: var(--gold); margin-top: 5px; font-weight: bold;">جاري الاتصال بالسيرفر...</div>
+        <h1><i class="fas fa-bolt" style="color:var(--gold); margin-left:10px;"></i>GAME ZONE CHAT</h1>
+        <div id="status" style="font-size: 0.7rem; color: var(--gold); margin-top: 5px;">متصل بالخادم...</div>
     </header>
 
     <main class="messages-container" id="msgBox"></main>
@@ -143,7 +142,7 @@
 
     <footer class="input-area">
         <div class="input-wrapper">
-            <input type="text" id="messageInput" placeholder="اكتب رسالتك في GAME ZONE...">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا...">
             <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </footer>
@@ -185,9 +184,7 @@ auth.onAuthStateChanged(user => {
         document.getElementById('chatApp').style.display = 'flex';
         if(user.email === FOUNDER_ID) {
             document.getElementById('adminTools').style.display = 'flex';
-            document.getElementById('status').innerText = "⚡ صلاحيات المؤسس مفعّلة";
-        } else {
-            document.getElementById('status').innerText = "👤 وضع العضوية";
+            document.getElementById('status').innerText = "⚡ مرحباً بك يا مؤسس CHAT ZONE";
         }
         listenMessages();
     }
@@ -206,12 +203,20 @@ async function sendMessage() {
     inp.value = "";
 }
 
+// تم تعديل هذه الدالة لتكون أكثر مرونة في عرض الرسائل القديمة
 function listenMessages() {
-    db.collection('messages').orderBy('time', 'asc').onSnapshot(snap => {
+    db.collection('messages').onSnapshot(snap => {
         const box = document.getElementById('msgBox');
-        box.innerHTML = "";
+        let msgs = [];
         snap.forEach(doc => {
-            const m = doc.data();
+            msgs.push({id: doc.id, ...doc.data()});
+        });
+
+        // ترتيب الرسائل يدوياً لضمان ظهور القديم والجديد حتى لو تعطل الـ Timestamp
+        msgs.sort((a, b) => (a.time?.seconds || 0) - (b.time?.seconds || 0));
+
+        box.innerHTML = "";
+        msgs.forEach(m => {
             const isFounder = m.sender === FOUNDER_ID;
             const isMe = m.sender === auth.currentUser.email;
             
@@ -221,7 +226,7 @@ function listenMessages() {
             div.innerHTML = `
                 <div style="font-size: 0.65rem; color: var(--gold); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
                     <span>${isFounder ? '<span class="founder-tag">FOUNDER</span>' : ''} <b>${m.name}</b></span>
-                    ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-times" style="color:red; cursor:pointer;" onclick="deleteMsg('${doc.id}')"></i>` : ''}
+                    ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-times" style="color:red; cursor:pointer;" onclick="deleteMsg('${m.id}')"></i>` : ''}
                 </div>
                 <div style="font-size: 0.95rem;">${m.text}</div>
             `;
@@ -232,18 +237,21 @@ function listenMessages() {
 }
 
 async function deleteMsg(id) {
-    if(confirm("حذف الرسالة من السيرفر؟")) await db.collection('messages').doc(id).delete();
+    if(confirm("حذف الرسالة؟")) await db.collection('messages').doc(id).delete();
 }
 
 async function clearZone() {
-    if(confirm("تطهير الـ GAME ZONE؟ سيتم مسح كافة الرسائل!")) {
+    if(confirm("سيتم مسح كافة الرسائل نهائياً! هل أنت متأكد؟")) {
         const snap = await db.collection('messages').get();
-        snap.forEach(d => d.ref.delete());
+        const batch = db.batch();
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
     }
 }
 </script>
 </body>
 </html>
+
 
 
 
