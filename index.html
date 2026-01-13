@@ -24,16 +24,23 @@
         /* الرتب */
         .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
         .r-founder { background: red; } .r-legend { background: purple; } .r-active { background: blue; } .r-new { background: #666; }
+        .r-system { background: var(--gold); color: black; }
 
         /* الرسائل */
         .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; word-wrap: break-word; }
         .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
         .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
+        .bubble.system { align-self: center; background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); color: var(--gold); font-size: 0.75rem; text-align: center; }
 
         .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-        .input-bar { padding: 10px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
+        .input-bar { padding: 10px; background: #000; display: flex; flex-direction: column; border-top: 1px solid #222; }
+        .input-row { display: flex; gap: 10px; width: 100%; }
         .btn-gold { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; }
+        
+        /* الرد */
+        #reply-preview { background: #222; padding: 8px; border-right: 3px solid var(--gold); display: none; justify-content: space-between; align-items: center; margin-bottom: 5px; border-radius: 4px; }
+        .reply-box { background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 5px; border-right: 2px solid #555; }
 
         @media (max-width: 768px) { .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } .sidebar.open { right: 0; } }
     </style>
@@ -77,8 +84,15 @@
         <div class="msg-area" id="msgBox"></div>
 
         <footer class="input-bar">
-            <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0">
-            <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+            <div id="reply-preview">
+                <div id="reply-text" style="font-size:0.7rem; color:#aaa"></div>
+                <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer; color:red"></i>
+            </div>
+            <div class="input-row">
+                <button class="btn-gold" onclick="sendPhoto()" title="إرسال صورة"><i class="fas fa-image"></i></button>
+                <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0">
+                <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+            </div>
         </footer>
     </main>
 </div>
@@ -103,9 +117,10 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 let myData = null;
 let isMuted = false;
+let replyData = null;
 
-// دالة الرتب
 function getRank(joinDate, email) {
+    if (email === "SYSTEM") return { n: "نظام", c: "r-system" };
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
     if (!joinDate) return { n: "جديد", c: "r-new" };
     const date = joinDate.toDate ? joinDate.toDate() : new Date(joinDate);
@@ -115,28 +130,19 @@ function getRank(joinDate, email) {
     return { n: "جديد", c: "r-new" };
 }
 
-// تسجيل الدخول
 async function login() {
     const e = document.getElementById('email').value.trim();
     const p = document.getElementById('pass').value;
     if(!e || !p) return alert("يرجى ملء البيانات");
-    try { 
-        await auth.signInWithEmailAndPassword(e, p); 
-    } catch (err) { 
-        try {
-            await auth.createUserWithEmailAndPassword(e, p);
-        } catch(regErr) {
-            alert("خطأ: " + regErr.message);
-        }
-    }
+    try { await auth.signInWithEmailAndPassword(e, p); } 
+    catch (err) { try { await auth.createUserWithEmailAndPassword(e, p); } catch(regErr) { alert(regErr.message); } }
 }
 
-// مراقبة حالة المستخدم
 auth.onAuthStateChanged(async user => {
     if(user) {
         const banDoc = await db.collection('bans').doc(user.email).get();
         if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
-
+        
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
             isMuted = doc.exists;
             document.getElementById('msgInput').placeholder = isMuted ? "أنت مكتوم حالياً" : "اكتب رسالة...";
@@ -157,12 +163,17 @@ async function updateNickname() {
     const n = document.getElementById('nickInput').value.trim();
     if(!n) return;
     const user = auth.currentUser;
-    const data = {
-        name: n,
-        email: user.email,
-        joinDate: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    const data = { name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp() };
     await db.collection('users').doc(user.email).set(data, {merge: true});
+    
+    // إرسال رسالة ترحيبية للنظام (تحديث 5)
+    await db.collection('messages').add({
+        text: `انضم المحارب الجديد ${n} إلى GAME ZONE! ⚔️`,
+        sender: "SYSTEM",
+        name: "النظام",
+        time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
     const updatedDoc = await db.collection('users').doc(user.email).get();
     myData = updatedDoc.data();
     document.getElementById('nick-screen').style.display = 'none';
@@ -180,7 +191,33 @@ function showApp() {
     loadMessages();
 }
 
-// دالة الإرسال المعدلة لحل مشكلتك
+// نظام الرد (تحديث 3)
+function setReply(name, text) {
+    replyData = { name, text };
+    document.getElementById('reply-text').innerText = `الرد على ${name}: ${text.substring(0, 20)}...`;
+    document.getElementById('reply-preview').style.display = 'flex';
+}
+
+function cancelReply() {
+    replyData = null;
+    document.getElementById('reply-preview').style.display = 'none';
+}
+
+// إرسال الصور (تحديث 4 - رابط مباشر)
+async function sendPhoto() {
+    const url = prompt("أدخل رابط الصورة المباشر:");
+    if(!url || isMuted) return;
+    try {
+        await db.collection('messages').add({
+            image: url,
+            sender: myData.email,
+            name: myData.name,
+            joinDate: myData.joinDate || null,
+            time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch(e) { alert("خطأ في الإرسال"); }
+}
+
 async function send() {
     const inp = document.getElementById('msgInput');
     const msgText = inp.value.trim();
@@ -191,14 +228,13 @@ async function send() {
             text: msgText,
             sender: myData.email,
             name: myData.name,
-            joinDate: myData.joinDate || firebase.firestore.FieldValue.serverTimestamp(),
+            reply: replyData,
+            joinDate: myData.joinDate || null,
             time: firebase.firestore.FieldValue.serverTimestamp()
         });
         inp.value = "";
-    } catch (error) {
-        console.error("Error details:", error);
-        alert("خطأ في الإرسال: تأكد من تفعيل Firestore Rules");
-    }
+        cancelReply();
+    } catch (error) { alert("خطأ في الإرسال"); }
 }
 
 document.getElementById('msgInput').addEventListener('keydown', e => { if(e.key==='Enter') send(); });
@@ -211,19 +247,27 @@ function loadMessages() {
             const m = doc.data();
             const r = getRank(m.joinDate, m.sender);
             const isMe = m.sender === auth.currentUser.email;
+            const isSys = m.sender === "SYSTEM";
+            
             const div = document.createElement('div');
-            div.className = `bubble ${isMe ? 'me' : 'user'}`;
+            div.className = `bubble ${isSys ? 'system' : (isMe ? 'me' : 'user')}`;
+            
+            let content = "";
+            if(m.reply) content += `<div class="reply-box"><b>${m.reply.name}:</b> ${m.reply.text}</div>`;
+            if(m.text) content += `<div>${m.text}</div>`;
+            if(m.image) content += `<img src="${m.image}" style="max-width:100%; border-radius:8px; margin-top:5px" onerror="this.src='https://via.placeholder.com/150?text=Error+Image'">`;
+
             div.innerHTML = `
-                <div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold">
-                    <span class="rank ${r.c}">${r.n}</span> ${m.name}
-                </div>
-                <div>${m.text}</div>
-                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:5px;" onclick="deleteM('${doc.id}')"></i>` : ''}
+                ${!isSys ? `<div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold" onclick="setReply('${m.name}', '${m.text || 'صورة'}')">
+                    <span class="rank ${r.c}">${r.n}</span> ${m.name} <i class="fas fa-reply" style="opacity:0.5; margin-right:5px; cursor:pointer"></i>
+                </div>` : ''}
+                ${content}
+                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:2px;" onclick="deleteM('${doc.id}')"></i>` : ''}
             `;
             box.appendChild(div);
         });
         box.scrollTop = box.scrollHeight;
-    }, err => console.log("Load Error:", err));
+    });
 }
 
 function loadAdminPanel() {
@@ -251,7 +295,6 @@ async function toggleMute(email) {
     const doc = await ref.get();
     doc.exists ? await ref.delete() : await ref.set({muted: true});
 }
-
 async function ban(e) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(e).set({b:true}); }
 async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
 async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
