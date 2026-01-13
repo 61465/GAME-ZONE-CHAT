@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAME ZONE | PRO v4</title>
+    <title>GAME ZONE | PRO v5</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; --founder-red: #ff3e3e; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; }
         body { background: var(--dark-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; }
 
         /* شاشات الدخول */
@@ -19,14 +19,11 @@
         /* الشات */
         #app { display: none; width: 100%; height: 100vh; flex-direction: row-reverse; }
         .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
 
         /* الرتب */
-        .rank { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; }
-        .r-founder { background: red; box-shadow: 0 0 5px red; }
-        .r-legend { background: purple; }
-        .r-active { background: blue; }
-        .r-new { background: #666; }
+        .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
+        .r-founder { background: red; } .r-legend { background: purple; } .r-active { background: blue; } .r-new { background: #666; }
 
         /* الرسائل */
         .msg-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -34,10 +31,9 @@
         .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
         .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
 
-        /* التحكم */
         .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-        .input-bar { padding: 10px; background: #000; display: flex; gap: 10px; }
-        .btn-gold { background: var(--gold); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .input-bar { padding: 10px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
+        .btn-gold { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; }
 
         @media (max-width: 768px) { .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } .sidebar.open { right: 0; } }
     </style>
@@ -63,19 +59,19 @@
 
 <div id="app">
     <aside class="sidebar" id="adminSidebar">
-        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold)">إدارة الأعضاء</div>
+        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold); font-weight:bold">لوحة المؤسس</div>
         <div id="userList" style="flex:1; overflow-y:auto"></div>
-        <button onclick="clearChat()" style="background:red; color:white; border:none; padding:10px; cursor:pointer">تطهير الشات</button>
+        <button onclick="clearChat()" style="background:red; color:white; border:none; padding:15px; font-weight:bold; cursor:pointer">تطهير الشات</button>
     </aside>
 
     <main class="chat-main">
         <header class="header">
-            <button onclick="document.getElementById('adminSidebar').classList.toggle('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none"><i class="fas fa-user-shield fa-lg"></i></button>
+            <button onclick="document.getElementById('adminSidebar').classList.toggle('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none"><i class="fas fa-users-cog fa-lg"></i></button>
             <div style="text-align:center">
-                <div id="displayNick" style="font-weight:bold">جاري التحميل...</div>
+                <div id="displayNick" style="font-weight:bold; font-size: 0.9rem;"></div>
                 <div onclick="document.getElementById('nick-screen').style.display='flex'" style="font-size:0.6rem; color:var(--gold); cursor:pointer">تغيير الاسم <i class="fas fa-edit"></i></div>
             </div>
-            <i class="fas fa-sign-out-alt" onclick="auth.signOut(); location.reload()" style="cursor:pointer"></i>
+            <i class="fas fa-sign-out-alt" onclick="auth.signOut(); location.reload()" style="cursor:pointer; color:#666"></i>
         </header>
 
         <div class="msg-area" id="msgBox"></div>
@@ -105,10 +101,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-
 let myData = null;
+let isMuted = false;
 
-// حساب الرتب
 function getRank(joinDate, email) {
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
     if (!joinDate) return { n: "جديد", c: "r-new" };
@@ -121,15 +116,26 @@ function getRank(joinDate, email) {
 async function login() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
+    if(!e || !p) return;
     try { await auth.signInWithEmailAndPassword(e, p); }
     catch { await auth.createUserWithEmailAndPassword(e, p); }
 }
 
 auth.onAuthStateChanged(async user => {
     if(user) {
-        document.getElementById('auth-screen').style.display = 'none';
+        // فحص البان
+        const banDoc = await db.collection('bans').doc(user.email).get();
+        if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
+
+        // فحص الميوت (مباشر)
+        db.collection('mutes').doc(user.email).onSnapshot(doc => {
+            isMuted = doc.exists;
+            document.getElementById('msgInput').placeholder = isMuted ? "أنت مكتوم حالياً" : "اكتب رسالة...";
+        });
+
         const doc = await db.collection('users').doc(user.email).get();
         if(!doc.exists) {
+            document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('nick-screen').style.display = 'flex';
         } else {
             myData = doc.data();
@@ -155,6 +161,7 @@ async function updateNickname() {
 }
 
 function showApp() {
+    document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('displayNick').innerText = myData.name;
     if(auth.currentUser.email === FOUNDER_ID) {
@@ -166,7 +173,8 @@ function showApp() {
 
 async function send() {
     const inp = document.getElementById('msgInput');
-    if(!inp.value.trim()) return;
+    if(!inp.value.trim() || isMuted) return;
+    
     await db.collection('messages').add({
         text: inp.value,
         sender: myData.email,
@@ -176,6 +184,14 @@ async function send() {
     });
     inp.value = "";
 }
+
+// دعم الإرسال بالإنتر
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        send();
+    }
+});
 
 function loadMessages() {
     db.collection('messages').orderBy('time').onSnapshot(snap => {
@@ -192,7 +208,7 @@ function loadMessages() {
                     <span class="rank ${r.c}">${r.n}</span> ${m.name}
                 </div>
                 <div>${m.text}</div>
-                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer" onclick="deleteM('${doc.id}')"></i>` : ''}
+                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:5px;" onclick="deleteM('${doc.id}')"></i>` : ''}
             `;
             box.appendChild(div);
         });
@@ -208,21 +224,33 @@ function loadAdminPanel() {
             const u = doc.data();
             if(u.email === FOUNDER_ID) return;
             const d = document.createElement('div');
-            d.style = "padding:10px; border-bottom:1px solid #111; font-size:0.8rem";
-            d.innerHTML = `${u.name} <br> 
-                <button onclick="ban('${u.email}')" style="color:red; background:none; border:1px solid red; font-size:0.6rem">بان</button>
-                <button onclick="mute('${u.email}')" style="color:orange; background:none; border:1px solid orange; font-size:0.6rem">ميوت</button>`;
+            d.style = "padding:12px; border-bottom:1px solid #222; font-size:0.8rem";
+            d.innerHTML = `
+                <div style="margin-bottom:8px">${u.name}</div>
+                <div style="display:flex; gap:5px">
+                    <button onclick="toggleMute('${u.email}')" style="flex:1; background:orange; border:none; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer">ميوت</button>
+                    <button onclick="ban('${u.email}')" style="flex:1; background:red; color:white; border:none; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer">بان</button>
+                </div>`;
             list.appendChild(d);
         });
     });
 }
 
-async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
-async function clearChat() { if(confirm("مسح الكل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
-async function ban(e) { if(confirm("حظر؟")) await db.collection('bans').doc(e).set({b:true}); }
-function mute(e) { alert("تم كتم " + e); }
+async function toggleMute(email) {
+    const ref = db.collection('mutes').doc(email);
+    const doc = await ref.get();
+    if(doc.exists) {
+        await ref.delete();
+        alert("تم إلغاء كتم " + email);
+    } else {
+        await ref.set({muted: true});
+        alert("تم كتم " + email);
+    }
+}
 
-document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key==='Enter') send(); });
+async function ban(e) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(e).set({b:true}); }
+async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
+async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
 </script>
 </body>
 </html>
