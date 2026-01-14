@@ -3,31 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GAME ZONE | PRO v5.2</title>
+    <title>GAME ZONE | PRO v7.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #D4AF37; --dark-bg: #050505; --panel: #111; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; }
         
-        /* التعديل 1: استخدام dvh لضمان استجابة الطول مع الكيبورد ومنع الاهتزاز */
         body { 
             background: var(--dark-bg); 
             color: #fff; 
             height: 100dvh; 
             overflow: hidden; 
             display: flex;
-            position: fixed; /* يمنع التمرير المطاطي في iOS */
+            position: fixed; 
             width: 100%;
         }
 
-        /* شاشات الدخول */
         .overlay { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .win-box { background: var(--panel); border: 2px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center; }
+        .win-box { background: var(--panel); border: 2px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
 
-        /* الشات */
-        /* التعديل 2: ضبط نظام احتواء التطبيق */
         #app { 
             display: none; 
             width: 100%; 
@@ -36,16 +32,7 @@
         }
         
         .sidebar { width: 280px; background: #000; border-left: 2px solid var(--gold); display: flex; flex-direction: column; transition: 0.3s; }
-        
-        /* التعديل 3: جعل الحاوية مرنة للهواتف */
-        .chat-main { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background: #080808; 
-            position: relative; 
-            min-height: 0; 
-        }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; min-height: 0; }
 
         /* الرتب */
         .rank { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; color: white; vertical-align: middle; }
@@ -53,26 +40,104 @@
         .r-system { background: var(--gold); color: black; }
 
         /* الرسائل */
-        /* التعديل 4: التمرير الذكي */
         .msg-area { 
             flex: 1; 
             overflow-y: auto; 
             padding: 15px; 
             display: flex; 
             flex-direction: column; 
-            gap: 10px; 
+            gap: 12px; 
             min-height: 0;
             -webkit-overflow-scrolling: touch;
         }
         
-        .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; word-wrap: break-word; }
-        .bubble.me { align-self: flex-end; background: var(--gold); color: #000; }
-        .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); }
-        .bubble.system { align-self: center; background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); color: var(--gold); font-size: 0.75rem; text-align: center; }
+        .bubble { max-width: 85%; padding: 10px; border-radius: 12px; position: relative; font-size: 0.9rem; border: 1px solid #222; word-wrap: break-word; line-height: 1.5; }
+        .bubble.me { align-self: flex-end; background: var(--gold); color: #000; border-bottom-left-radius: 2px; }
+        .bubble.user { align-self: flex-start; background: #1a1a1a; border-right: 3px solid var(--gold); border-bottom-right-radius: 2px; }
+        .bubble.system { align-self: center; background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--gold); color: var(--gold); font-size: 0.75rem; text-align: center; width: 90%; }
 
-        .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+        /* شريط التصويت العلوي */
+        #poll-bar {
+            display: none;
+            background: linear-gradient(90deg, #0a2a5a, #1a3a6a);
+            border-bottom: 2px solid var(--gold);
+            padding: 12px 10px;
+            text-align: center;
+            position: relative;
+            z-index: 100;
+            animation: slideDown 0.5s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        #poll-options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .poll-btn {
+            flex: 1 1 calc(50% - 16px);
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .poll-btn:hover, .poll-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.03);
+        }
+        .poll-btn.voted {
+            background: rgba(212, 175, 55, 0.3);
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        .poll-btn small {
+            display: block;
+            font-size: 0.7rem;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        /* شريط التقدم */
+        .vote-progress {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .vote-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), #ffd700);
+            transition: width 0.5s ease;
+        }
+
+        /* تأثير الاهتزاز */
+        .shake-screen { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* تنسيقات أخرى */
+        .header { padding: 10px; background: #000; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; height: 60px; }
         
-        /* التعديل 5: شريط إدخال Sticky مع معالجة المساحات الآمنة للهواتف الحديثة */
         .input-bar { 
             padding: 10px; 
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
@@ -80,74 +145,180 @@
             display: flex; 
             flex-direction: column; 
             border-top: 1px solid #222; 
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
         }
         
-        .input-row { display: flex; gap: 10px; width: 100%; }
-        .btn-gold { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: black; }
+        .input-row { display: flex; gap: 8px; width: 100%; align-items: center; }
+        .btn-gold { 
+            background: var(--gold); 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: black; 
+            transition: 0.2s;
+        }
+        .btn-gold:active { transform: scale(0.95); }
         
-        /* منع الزووم التلقائي في آيفون عند التركيز */
-        #msgInput { font-size: 16px !important; }
+        #msgInput { 
+            flex: 1; 
+            background: #111; 
+            border: 1px solid #333; 
+            color: #fff; 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-size: 16px !important;
+        }
 
-        /* الرد */
-        #reply-preview { background: #222; padding: 8px; border-right: 3px solid var(--gold); display: none; justify-content: space-between; align-items: center; margin-bottom: 5px; border-radius: 4px; }
-        .reply-box { background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 5px; border-right: 2px solid #555; }
+        #reply-preview { 
+            background: #222; 
+            padding: 8px; 
+            border-right: 3px solid var(--gold); 
+            display: none; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+        }
+        .reply-box { 
+            background: rgba(0,0,0,0.3); 
+            padding: 5px 8px; 
+            border-radius: 4px; 
+            font-size: 0.75rem; 
+            margin-bottom: 5px; 
+            border-right: 2px solid #555; 
+            opacity: 0.8; 
+        }
 
         @media (max-width: 768px) { 
-            .sidebar { position: absolute; right: -100%; height: 100%; z-index: 1001; } 
-            .sidebar.open { right: 0; } 
+            .sidebar { 
+                position: absolute; 
+                right: -100%; 
+                height: 100%; 
+                z-index: 1001; 
+                width: 85%;
+            } 
+            .sidebar.open { right: 0; }
+            .poll-btn { flex: 1 1 100%; }
+        }
+
+        .chat-img { 
+            max-width: 100%; 
+            border-radius: 8px; 
+            margin-top: 5px; 
+            cursor: pointer; 
+            display: block; 
+            border: 1px solid rgba(255,255,255,0.1); 
         }
     </style>
 </head>
 <body>
 
+<!-- نافذة إنشاء التصويت الجديدة -->
+<div id="poll-creator" class="overlay" style="display:none">
+    <div class="win-box">
+        <h3 style="color:var(--gold)">بدء تصويت الجمهور 🗳️</h3><br>
+        <input type="text" id="pollTitle" placeholder="عنوان التصويت (مثلاً: من الأفضل؟)" autocomplete="off">
+        <input type="text" id="pollOptions" placeholder="الخيارات (مثلاً: ناروتو، لوفي، غوكو)" autocomplete="off">
+        <input type="number" id="pollDuration" placeholder="المدة بالثواني" value="60" min="10" max="300">
+        <button class="btn-gold" style="width:100%" onclick="startPoll()">بدء التصويت</button>
+        <button class="btn-gold" style="width:100%; margin-top:10px; background:#444; color:white" onclick="document.getElementById('poll-creator').style.display='none'">إلغاء</button>
+        <p style="font-size:0.7rem; color:#aaa; margin-top:15px">
+            💡 ملاحظة: اكتب الخيارات مفصولة بفاصلة أو فاصلة عربية<br>مثال: أحمد, محمد, علي
+        </p>
+    </div>
+</div>
+
+<!-- شاشة المصادقة -->
 <div id="auth-screen" class="overlay">
     <div class="win-box">
-        <h2 style="color:var(--gold)">GAME ZONE</h2><br>
+        <h2 style="color:var(--gold)">GAME ZONE PRO</h2>
+        <p style="color:#aaa; font-size:0.8rem; margin-bottom:20px">game-zone-chat</p>
         <input type="email" id="email" placeholder="الإيميل">
         <input type="password" id="pass" placeholder="كلمة السر">
         <button class="btn-gold" style="width:100%" onclick="login()">دخول / تسجيل</button>
     </div>
 </div>
 
+<!-- شاشة اختيار الاسم -->
 <div id="nick-screen" class="overlay" style="display:none">
     <div class="win-box">
         <h3 style="color:var(--gold)">اختر اسمك المستعار</h3><br>
-        <input type="text" id="nickInput" placeholder="اكتب اسمك هنا...">
+        <input type="text" id="nickInput" placeholder="اكتب اسمك هنا..." autocomplete="off">
         <button class="btn-gold" style="width:100%" onclick="updateNickname()">حفظ والبدء</button>
     </div>
 </div>
 
+<!-- التطبيق الرئيسي -->
 <div id="app">
+    <!-- لوحة الإدارة -->
     <aside class="sidebar" id="adminSidebar">
-        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold); font-weight:bold">لوحة المؤسس</div>
-        <div id="userList" style="flex:1; overflow-y:auto"></div>
-        <button onclick="clearChat()" style="background:red; color:white; border:none; padding:15px; font-weight:bold; cursor:pointer">تطهير الشات</button>
+        <div style="padding:15px; border-bottom:1px solid #222; text-align:center; color:var(--gold); font-weight:bold">
+            <i class="fas fa-crown"></i> لوحة التحكم
+        </div>
+        <div id="userList" style="flex:1; overflow-y:auto; padding:10px"></div>
+        <div style="padding:10px">
+            <button class="btn-gold" onclick="document.getElementById('adminSidebar').classList.remove('open')" style="width:100%; margin-bottom:5px">
+                <i class="fas fa-times"></i> إغلاق اللوحة
+            </button>
+            <button onclick="clearChat()" style="background:red; color:white; border:none; padding:12px; font-weight:bold; cursor:pointer; width:100%; border-radius:8px">
+                <i class="fas fa-trash"></i> تطهير الشات
+            </button>
+        </div>
     </aside>
 
+    <!-- الشات الرئيسي -->
     <main class="chat-main">
+        <!-- شريط التصويت العلوي -->
+        <div id="poll-bar">
+            <div id="displayPollTitle" style="font-weight:900; color:var(--gold); margin-bottom:5px; font-size:0.9rem"></div>
+            <div id="poll-timer" style="font-size: 0.7rem; color: #ffeb3b; margin-bottom: 8px;">
+                <i class="fas fa-clock"></i> ينتهي خلال: --:--
+            </div>
+            <div id="poll-options-container"></div>
+            <div style="font-size:0.65rem; color:#aaa; margin-top:8px">
+                <i class="fas fa-info-circle"></i> صوت مرة واحدة فقط
+            </div>
+        </div>
+
+        <!-- شريط الرأس -->
         <header class="header">
-            <button onclick="document.getElementById('adminSidebar').classList.toggle('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none"><i class="fas fa-users-cog fa-lg"></i></button>
+            <button onclick="document.getElementById('adminSidebar').classList.add('open')" id="adminIcon" style="background:none; border:none; color:var(--gold); display:none">
+                <i class="fas fa-users-cog fa-lg"></i>
+            </button>
             <div style="text-align:center">
                 <div id="displayNick" style="font-weight:bold; font-size: 0.9rem;"></div>
-                <div onclick="document.getElementById('nick-screen').style.display='flex'" style="font-size:0.6rem; color:var(--gold); cursor:pointer">تغيير الاسم <i class="fas fa-edit"></i></div>
+                <div onclick="document.getElementById('nick-screen').style.display='flex'" style="font-size:0.6rem; color:var(--gold); cursor:pointer">
+                    <i class="fas fa-edit"></i> تغيير الاسم
+                </div>
             </div>
-            <i class="fas fa-sign-out-alt" onclick="auth.signOut().then(() => location.reload())" style="cursor:pointer; color:#666"></i>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <i class="fas fa-vote-yea" onclick="document.getElementById('poll-creator').style.display='flex'" 
+                   style="cursor:pointer; color:var(--gold); font-size: 1.2rem;" 
+                   title="بدء تصويت جديد"></i>
+                <i class="fas fa-sign-out-alt" onclick="auth.signOut().then(() => location.reload())" 
+                   style="cursor:pointer; color:#666; font-size: 1.1rem" 
+                   title="تسجيل الخروج"></i>
+            </div>
         </header>
 
+        <!-- منطقة الرسائل -->
         <div class="msg-area" id="msgBox"></div>
 
+        <!-- شريط الإدخال -->
         <footer class="input-bar">
             <div id="reply-preview">
                 <div id="reply-text" style="font-size:0.7rem; color:#aaa"></div>
                 <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer; color:red"></i>
             </div>
             <div class="input-row">
-                <button class="btn-gold" onclick="sendPhoto()" title="إرسال صورة"><i class="fas fa-image"></i></button>
-                <input type="text" id="msgInput" placeholder="اكتب رسالة..." style="margin-bottom:0" autocomplete="off">
-                <button class="btn-gold" onclick="send()"><i class="fas fa-paper-plane"></i></button>
+                <button class="btn-gold" onclick="sendPhoto()" title="إرسال صورة">
+                    <i class="fas fa-image"></i>
+                </button>
+                <input type="text" id="msgInput" placeholder="اكتب رسالة..." autocomplete="off">
+                <button class="btn-gold" onclick="send()" title="إرسال">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </footer>
     </main>
@@ -158,6 +329,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
+// الإعدادات الأصلية
 const FOUNDER_ID = "abdarahman10555@gmail.com";
 const firebaseConfig = {
     apiKey: "AIzaSyBqu1IE24FhA-govU_swQ4IcynOj4AB-ao",
@@ -174,27 +346,12 @@ const auth = firebase.auth();
 let myData = null;
 let isMuted = false;
 let replyData = null;
+let pollInterval = null;
 
-// تحسين: تمرير الشات عند التركيز على حقل النص لضمان رؤية ما يكتب
 const msgInput = document.getElementById('msgInput');
 const msgBox = document.getElementById('msgBox');
 
-msgInput.addEventListener('focus', () => {
-    setTimeout(() => {
-        msgBox.scrollTop = msgBox.scrollHeight;
-        window.scrollTo(0, 0); 
-    }, 300);
-});
-
-// معالجة Resize للشاشة (الكيبورد)
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        if (window.visualViewport.height < window.innerHeight) {
-            msgBox.scrollTop = msgBox.scrollHeight;
-        }
-    });
-}
-
+// دوال التحكم الأساسية
 function getRank(joinDate, email) {
     if (email === "SYSTEM") return { n: "نظام", c: "r-system" };
     if (email === FOUNDER_ID) return { n: "مؤسس", c: "r-founder" };
@@ -206,28 +363,41 @@ function getRank(joinDate, email) {
     return { n: "جديد", c: "r-new" };
 }
 
+// تسجيل الدخول
 async function login() {
     const e = document.getElementById('email').value.trim();
     const p = document.getElementById('pass').value;
     if(!e || !p) return alert("يرجى ملء البيانات");
     try { await auth.signInWithEmailAndPassword(e, p); } 
-    catch (err) { try { await auth.createUserWithEmailAndPassword(e, p); } catch(regErr) { alert(regErr.message); } }
+    catch (err) { 
+        try { 
+            await auth.createUserWithEmailAndPassword(e, p);
+        } catch(regErr) { 
+            alert("خطأ: " + regErr.message); 
+        } 
+    }
 }
 
 auth.onAuthStateChanged(async user => {
     if(user) {
         const banDoc = await db.collection('bans').doc(user.email).get();
-        if(banDoc.exists) { alert("أنت محظور!"); auth.signOut(); return; }
+        if(banDoc.exists) { 
+            alert("أنت محظور من النظام!"); 
+            auth.signOut(); 
+            return; 
+        }
         
         db.collection('mutes').doc(user.email).onSnapshot(doc => {
             isMuted = doc.exists;
             msgInput.placeholder = isMuted ? "أنت مكتوم حالياً" : "اكتب رسالة...";
+            msgInput.disabled = isMuted;
         });
 
         const doc = await db.collection('users').doc(user.email).get();
         if(!doc.exists) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('nick-screen').style.display = 'flex';
+            document.getElementById('nickInput').focus();
         } else {
             myData = doc.data();
             showApp();
@@ -237,13 +407,19 @@ auth.onAuthStateChanged(async user => {
 
 async function updateNickname() {
     const n = document.getElementById('nickInput').value.trim();
-    if(!n) return;
+    if(!n || n.length < 2) return alert("الاسم يجب أن يكون على الأقل حرفين");
+    
     const user = auth.currentUser;
-    const data = { name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp() };
+    const data = { 
+        name: n, 
+        email: user.email, 
+        joinDate: firebase.firestore.FieldValue.serverTimestamp() 
+    };
+    
     await db.collection('users').doc(user.email).set(data, {merge: true});
     
     await db.collection('messages').add({
-        text: `انضم المحارب الجديد ${n} إلى GAME ZONE! ⚔️`,
+        text: `🏆 انضم المحارب الجديد "${n}" إلى GAME ZONE!`,
         sender: "SYSTEM",
         name: "النظام",
         time: firebase.firestore.FieldValue.serverTimestamp()
@@ -259,17 +435,21 @@ function showApp() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('displayNick').innerText = myData.name;
+    
     if(auth.currentUser.email === FOUNDER_ID) {
         document.getElementById('adminIcon').style.display = 'block';
         loadAdminPanel();
     }
+    
     loadMessages();
+    msgInput.focus();
 }
 
 function setReply(name, text) {
     replyData = { name, text };
     document.getElementById('reply-text').innerText = `الرد على ${name}: ${text.substring(0, 20)}...`;
     document.getElementById('reply-preview').style.display = 'flex';
+    msgInput.focus();
 }
 
 function cancelReply() {
@@ -278,8 +458,10 @@ function cancelReply() {
 }
 
 async function sendPhoto() {
+    if (isMuted) return alert("أنت مكتوم ولا يمكنك الإرسال");
     const url = prompt("أدخل رابط الصورة المباشر:");
-    if(!url || isMuted) return;
+    if(!url) return;
+    
     try {
         await db.collection('messages').add({
             image: url,
@@ -288,12 +470,13 @@ async function sendPhoto() {
             joinDate: myData.joinDate || null,
             time: firebase.firestore.FieldValue.serverTimestamp()
         });
-    } catch(e) { alert("خطأ في الإرسال"); }
+    } catch(e) { alert("خطأ في إرسال الصورة"); }
 }
 
 async function send() {
     const msgText = msgInput.value.trim();
     if(!msgText || isMuted) return;
+    if(msgText.length > 500) return alert("الرسالة طويلة جداً!");
     
     try {
         await db.collection('messages').add({
@@ -306,11 +489,19 @@ async function send() {
         });
         msgInput.value = "";
         cancelReply();
-    } catch (error) { alert("خطأ في الإرسال"); }
+    } catch (error) { 
+        alert("خطأ في الإرسال: " + error.message); 
+    }
 }
 
-msgInput.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+msgInput.addEventListener('keydown', e => { 
+    if(e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+    }
+});
 
+// تحميل الرسائل
 function loadMessages() {
     db.collection('messages').orderBy('time').onSnapshot(snap => {
         msgBox.innerHTML = "";
@@ -325,36 +516,248 @@ function loadMessages() {
             
             let content = "";
             if(m.reply) content += `<div class="reply-box"><b>${m.reply.name}:</b> ${m.reply.text}</div>`;
+            
             if(m.text) content += `<div>${m.text}</div>`;
-            if(m.image) content += `<img src="${m.image}" style="max-width:100%; border-radius:8px; margin-top:5px" onerror="this.src='https://via.placeholder.com/150?text=Error+Image'">`;
+            if(m.image) {
+                content += `<img src="${m.image}" class="chat-img" onclick="window.open('${m.image}', '_blank')" 
+                           onerror="this.src='https://via.placeholder.com/300x200/333/fff?text=صورة+غير+متاحة'" 
+                           alt="صورة مرسلة">`;
+            }
 
             div.innerHTML = `
-                ${!isSys ? `<div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold" onclick="setReply('${m.name}', '${m.text || 'صورة'}')">
-                    <span class="rank ${r.c}">${r.n}</span> ${m.name} <i class="fas fa-reply" style="opacity:0.5; margin-right:5px; cursor:pointer"></i>
+                ${!isSys ? `<div style="font-size:0.6rem; margin-bottom:4px; font-weight:bold">
+                    <span class="rank ${r.c}">${r.n}</span> 
+                    ${m.name} 
+                    <i class="fas fa-reply" style="opacity:0.5; margin-right:5px; cursor:pointer" 
+                       onclick="setReply('${m.name.replace(/'/g, "\\'")}', '${(m.text || 'صورة').replace(/'/g, "\\'")}')"></i>
                 </div>` : ''}
                 ${content}
-                ${(auth.currentUser.email === FOUNDER_ID) ? `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:2px;" onclick="deleteM('${doc.id}')"></i>` : ''}
+                ${(auth.currentUser.email === FOUNDER_ID) ? 
+                  `<i class="fas fa-trash" style="color:red; font-size:10px; cursor:pointer; position:absolute; left:5px; bottom:2px;" 
+                     onclick="deleteM('${doc.id}')" title="حذف الرسالة"></i>` : ''}
             `;
             msgBox.appendChild(div);
         });
-        msgBox.scrollTop = msgBox.scrollHeight;
+        msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
     });
 }
 
+// === نظام التصويت المتقدم ===
+async function startPoll() {
+    const title = document.getElementById('pollTitle').value.trim();
+    const optionsRaw = document.getElementById('pollOptions').value.trim();
+    const duration = parseInt(document.getElementById('pollDuration').value) || 60;
+    
+    if(!title) return alert("يرجى إدخال عنوان للتصويت");
+    if(!optionsRaw) return alert("يرجى إدخال خيارات للتصويت");
+    if(duration < 10) return alert("المدة يجب أن تكون 10 ثواني على الأقل");
+    
+    // تحويل النص إلى مصفوفة خيارات
+    const optionsArray = optionsRaw
+        .replace(/،/g, ',') // تحويل الفاصلة العربية إلى إنجليزية
+        .split(',')
+        .map(opt => opt.trim())
+        .filter(opt => opt.length > 0);
+    
+    if(optionsArray.length < 2) return alert("يرجى إدخال خيارين على الأقل");
+    if(optionsArray.length > 8) return alert("الحد الأقصى هو 8 خيارات");
+    
+    // تجهيز كائن التصويت
+    let votesData = {};
+    optionsArray.forEach(opt => votesData[opt] = 0);
+    
+    const endTime = Date.now() + (duration * 1000);
+    
+    try {
+        await db.collection('currentPoll').doc('active').set({
+            title: title,
+            options: optionsArray,
+            votes: votesData,
+            voters: [],
+            active: true,
+            endTime: endTime,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            creator: auth.currentUser.email
+        });
+        
+        document.getElementById('poll-creator').style.display = 'none';
+        document.getElementById('pollTitle').value = '';
+        document.getElementById('pollOptions').value = '';
+        
+        // اهتزاز الشاشة
+        document.body.classList.add('shake-screen');
+        setTimeout(() => document.body.classList.remove('shake-screen'), 500);
+        
+    } catch (error) {
+        alert("خطأ في بدء التصويت: " + error.message);
+    }
+}
+
+// مراقبة التصويت الحالي
+db.collection('currentPoll').doc('active').onSnapshot(doc => {
+    const pollBar = document.getElementById('poll-bar');
+    const container = document.getElementById('poll-options-container');
+    
+    clearInterval(pollInterval);
+    
+    if (doc.exists && doc.data().active) {
+        const data = doc.data();
+        pollBar.style.display = 'block';
+        document.getElementById('displayPollTitle').innerText = data.title;
+        container.innerHTML = "";
+
+        // حساب إجمالي الأصوات
+        const totalVotes = Object.values(data.votes).reduce((a, b) => a + b, 0);
+        const hasVoted = data.voters.includes(auth.currentUser.email);
+
+        // إنشاء أزرار لكل خيار
+        data.options.forEach(option => {
+            const count = data.votes[option] || 0;
+            const percent = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
+            
+            const btn = document.createElement('button');
+            btn.className = "poll-btn" + (hasVoted ? " voted" : "");
+            btn.innerHTML = `
+                <div style="font-size:0.9rem; margin-bottom:3px">${option}</div>
+                <small>${percent}% (${count} صوت)</small>
+                ${hasVoted ? `<div class="vote-progress"><div class="vote-progress-fill" style="width:${percent}%"></div></div>` : ''}
+            `;
+            
+            if (!hasVoted) {
+                btn.onclick = () => castVote(option);
+            } else {
+                btn.style.cursor = "default";
+                btn.title = "لقد صوتت بالفعل";
+            }
+            
+            container.appendChild(btn);
+        });
+
+        // العداد التنازلي
+        pollInterval = setInterval(() => {
+            const timeLeft = Math.round((data.endTime - Date.now()) / 1000);
+            if (timeLeft <= 0) {
+                clearInterval(pollInterval);
+                if (auth.currentUser.email === FOUNDER_ID) {
+                    announceFinalWinner(data);
+                }
+            } else {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('poll-timer').innerHTML = 
+                    `<i class="fas fa-clock"></i> ينتهي خلال: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+    } else {
+        pollBar.style.display = 'none';
+    }
+});
+
+async function castVote(optionName) {
+    const ref = db.collection('currentPoll').doc('active');
+    const doc = await ref.get();
+    
+    if (!doc.exists || !doc.data().active) {
+        return alert("لا يوجد تصويت نشط حالياً!");
+    }
+    
+    if (doc.data().voters.includes(auth.currentUser.email)) {
+        return alert("لقد قمت بالتصويت بالفعل! يمكنك التصويت مرة واحدة فقط.");
+    }
+    
+    try {
+        let currentVotes = {...doc.data().votes};
+        currentVotes[optionName] = (currentVotes[optionName] || 0) + 1;
+        
+        await ref.update({
+            votes: currentVotes,
+            voters: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.email)
+        });
+        
+        // إشعار بصوت في الشات
+        await db.collection('messages').add({
+            text: `🗳️ صوت ${myData.name} في التصويت "${doc.data().title}"`,
+            sender: "SYSTEM",
+            name: "النظام",
+            time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+    } catch (error) {
+        alert("خطأ في التصويت: " + error.message);
+    }
+}
+
+async function announceFinalWinner(data) {
+    // تحديد الفائز (الخيار الحاصل على أعلى تصويت)
+    let winner = "";
+    let maxVotes = -1;
+    let winners = [];
+    
+    for (const [name, count] of Object.entries(data.votes)) {
+        if (count > maxVotes) {
+            maxVotes = count;
+            winner = name;
+            winners = [name];
+        } else if (count === maxVotes && count > 0) {
+            winners.push(name);
+        }
+    }
+    
+    let resultText = "";
+    if (winners.length === 1) {
+        resultText = `🏆 الفائز هو: [ ${winner} ] بـ ${maxVotes} صوت!`;
+    } else if (winners.length > 1) {
+        resultText = `⚖️ التعادل بين: ${winners.join(' و ')} بـ ${maxVotes} صوت لكل منهما!`;
+    } else {
+        resultText = "❌ لم يحصل أي خيار على أصوات!";
+    }
+    
+    try {
+        await db.collection('messages').add({
+            text: `📢 انتهى تصويت "${data.title}"\n${resultText}\n✅ إجمالي المشاركين: ${data.voters.length}`,
+            sender: "SYSTEM",
+            name: "النظام",
+            time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await db.collection('currentPoll').doc('active').update({ 
+            active: false,
+            finalResult: resultText
+        });
+        
+    } catch (error) {
+        alert("خطأ في إعلان النتيجة: " + error.message);
+    }
+}
+
+// === دوال الإدارة ===
 function loadAdminPanel() {
     db.collection('users').onSnapshot(snap => {
         const list = document.getElementById('userList');
         list.innerHTML = "";
+        
         snap.forEach(doc => {
             const u = doc.data();
             if(u.email === FOUNDER_ID) return;
+            
             const d = document.createElement('div');
-            d.style = "padding:12px; border-bottom:1px solid #222; font-size:0.8rem";
+            d.style = "padding:12px; border-bottom:1px solid #222; font-size:0.8rem; background: rgba(255,255,255,0.05); border-radius:6px; margin-bottom:8px";
             d.innerHTML = `
-                <div style="margin-bottom:8px">${u.name}</div>
+                <div style="margin-bottom:8px; color:var(--gold)">
+                    <i class="fas fa-user"></i> ${u.name}
+                </div>
+                <div style="font-size:0.7rem; color:#aaa; margin-bottom:8px">
+                    ${u.email}
+                </div>
                 <div style="display:flex; gap:5px">
-                    <button onclick="toggleMute('${u.email}')" style="flex:1; background:orange; border:none; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer">ميوت</button>
-                    <button onclick="ban('${u.email}')" style="flex:1; background:red; color:white; border:none; padding:5px; border-radius:4px; font-weight:bold; cursor:pointer">بان</button>
+                    <button onclick="toggleMute('${u.email}')" 
+                            style="flex:1; background:#e67e22; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.7rem">
+                        <i class="fas fa-volume-mute"></i> ميوت
+                    </button>
+                    <button onclick="banUser('${u.email}')" 
+                            style="flex:1; background:#e74c3c; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.7rem">
+                        <i class="fas fa-ban"></i> حظر
+                    </button>
                 </div>`;
             list.appendChild(d);
         });
@@ -362,32 +765,65 @@ function loadAdminPanel() {
 }
 
 async function toggleMute(email) {
+    if (!confirm(`هل تريد ${isMuted ? 'إلغاء كتم' : 'كتم'} هذا المستخدم؟`)) return;
+    
     const ref = db.collection('mutes').doc(email);
     const doc = await ref.get();
-    doc.exists ? await ref.delete() : await ref.set({muted: true});
+    
+    try {
+        if (doc.exists) {
+            await ref.delete();
+            alert("تم إلغاء كتم المستخدم");
+        } else {
+            await ref.set({ 
+                muted: true, 
+                mutedBy: auth.currentUser.email,
+                mutedAt: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            alert("تم كتم المستخدم");
+        }
+    } catch (error) {
+        alert("خطأ: " + error.message);
+    }
 }
-async function ban(e) { if(confirm("حظر نهائي؟")) await db.collection('bans').doc(e).set({b:true}); }
-async function deleteM(id) { await db.collection('messages').doc(id).delete(); }
-async function clearChat() { if(confirm("مسح كل الرسائل؟")) { const s = await db.collection('messages').get(); s.forEach(d => d.ref.delete()); } }
+
+async function banUser(email) {
+    if (!confirm(`هل تريد حظر هذا المستخدم نهائياً؟`)) return;
+    
+    try {
+        await db.collection('bans').doc(email).set({ 
+            banned: true, 
+            bannedBy: auth.currentUser.email,
+            bannedAt: firebase.firestore.FieldValue.serverTimestamp() 
+        });
+        alert("تم حظر المستخدم بنجاح");
+    } catch (error) {
+        alert("خطأ في الحظر: " + error.message);
+    }
+}
+
+async function deleteM(id) {
+    if (!confirm("هل تريد حذف هذه الرسالة؟")) return;
+    try {
+        await db.collection('messages').doc(id).delete();
+    } catch (error) {
+        alert("خطأ في الحذف: " + error.message);
+    }
+}
+
+async function clearChat() {
+    if (!confirm("⚠️ هل أنت متأكد من مسح جميع الرسائل؟ لا يمكن التراجع عن هذا الإجراء!")) return;
+    
+    try {
+        const snapshot = await db.collection('messages').get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("تم مسح جميع الرسائل بنجاح");
+    } catch (error) {
+        alert("خطأ في مسح الرسائل: " + error.message);
+    }
+}
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
