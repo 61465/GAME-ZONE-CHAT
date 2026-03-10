@@ -1666,7 +1666,6 @@ function loadMessages() {
   allMessages = [];
 
   db.collection('messages')
-    .where('room', '==', currentRoom)
     .orderBy('time')
     .onSnapshot(snap => {
       msgBox.innerHTML = '';
@@ -1904,7 +1903,6 @@ async function send() {
       reply: replyData || null,
       joinDate: myData.joinDate || null,
       xp: myData.xp || 0,
-      room: currentRoom,
       time: firebase.firestore.FieldValue.serverTimestamp(),
       reactions: {}
     });
@@ -2355,7 +2353,7 @@ async function adminDeleteMsg(id) {
 async function clearChat() {
   if (!confirm('⚠️ مسح جميع رسائل الغرفة الحالية؟')) return;
   try {
-    const snap = await db.collection('messages').where('room', '==', currentRoom).get();
+    const snap = await db.collection('messages').get();
     const batch = db.batch();
     snap.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
