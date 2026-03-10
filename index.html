@@ -31,6 +31,9 @@
   --shadow: 0 8px 32px rgba(0,0,0,0.6);
   --radius: 14px;
   --radius-sm: 8px;
+  --room-color: #D4AF37;
+  --room-bg: rgba(212,175,55,0.04);
+  --room-border: rgba(212,175,55,0.2);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; outline:none; -webkit-tap-highlight-color:transparent; }
@@ -1040,7 +1043,131 @@ body {
   .sidebar-backdrop.show { display: block; }
 }
 
-/* ======================== PWA INSTALL BANNER ======================== */
+/* ======================== ROOM PANEL ======================== */
+#room-panel {
+  display: none;
+  position: absolute;
+  top: 60px;
+  left: 0; right: 0;
+  background: rgba(8,8,8,0.98);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--room-border);
+  z-index: 200;
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: slideDown 0.3s ease;
+  padding: 14px;
+}
+#room-panel.show { display: block; }
+
+.panel-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.panel-tab {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+.panel-tab.active, .panel-tab:hover {
+  background: var(--room-bg);
+  border-color: var(--room-color);
+  color: var(--room-color);
+}
+
+.panel-section { display: none; }
+.panel-section.active { display: block; }
+
+.info-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: 0.2s;
+  cursor: pointer;
+}
+.info-card:hover { background: rgba(255,255,255,0.06); border-color: var(--room-border); }
+
+.info-card-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--room-bg);
+  border-radius: 10px;
+}
+.info-card-body { flex: 1; min-width: 0; }
+.info-card-title { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.info-card-meta { font-size: 0.68rem; color: var(--room-color); margin: 2px 0; }
+.info-card-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; }
+
+.tag-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  margin: 2px;
+  border: 1px solid var(--room-border);
+  color: var(--room-color);
+  background: var(--room-bg);
+}
+
+.stat-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.personality-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin: 2px;
+}
+
+/* ======================== ROOM THEME DYNAMIC ======================== */
+#main-header { border-bottom-color: var(--room-border) !important; }
+#main-header { box-shadow: 0 1px 20px var(--room-bg); }
+#msgInput:focus { border-color: var(--room-color) !important; box-shadow: 0 0 0 3px var(--room-bg); }
+.bubble.me { background: linear-gradient(135deg, var(--room-color), color-mix(in srgb, var(--room-color) 70%, #000)) !important; }
+#poll-bar { background: linear-gradient(135deg, var(--room-bg), rgba(0,0,0,0.8)) !important; border-bottom-color: var(--room-border) !important; }
+.poll-title-text { color: var(--room-color) !important; }
+#stats-bar .stat-dot { background: var(--room-color) !important; }
+.room-item.active { background: var(--room-bg) !important; border-color: var(--room-border) !important; }
+
+/* Welcome message bubble */
+.bubble.welcome {
+  align-self: center;
+  background: var(--room-bg);
+  border: 1px solid var(--room-border);
+  color: var(--room-color);
+  font-size: 0.75rem;
+  text-align: center;
+  width: 92%;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 4px 0 8px;
+}
+
 #pwa-banner {
   display: none;
   position: fixed;
@@ -1169,7 +1296,11 @@ body {
     <div class="sidebar-header">
       <div style="flex:1">
         <div style="font-weight:800;color:var(--gold);font-size:0.9rem"><i class="fas fa-gamepad"></i> GAME ZONE</div>
-        <div style="font-size:0.6rem;color:var(--text-muted)" id="sidebar-online-count">جارٍ التحميل...</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">
+          مرحباً، <span id="displayNick" style="color:var(--gold)"></span>
+          <span onclick="document.getElementById('nick-screen').style.display='flex'" style="cursor:pointer;opacity:0.6;margin-right:4px"><i class="fas fa-edit" style="font-size:0.6rem"></i></span>
+        </div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:1px" id="sidebar-online-count">جارٍ التحميل...</div>
       </div>
       <button onclick="closeSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem"><i class="fas fa-times"></i></button>
     </div>
@@ -1244,14 +1375,15 @@ body {
     </div>
 
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="main-header">
       <button onclick="openSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px">
         <i class="fas fa-bars"></i>
       </button>
-      <div class="header-center">
-        <div class="header-title" id="displayNick"></div>
-        <div class="header-sub" onclick="document.getElementById('nick-screen').style.display='flex'">
-          <i class="fas fa-edit"></i> تغيير الاسم
+      <div class="header-center" onclick="toggleRoomPanel()" style="cursor:pointer">
+        <div class="header-title" id="room-title">🌐 المجتمع</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;justify-content:center">
+          <span id="room-desc">نقاشات عامة للجميع</span>
+          <i class="fas fa-chevron-down" id="panel-arrow" style="font-size:0.5rem;transition:0.2s"></i>
         </div>
       </div>
       <div class="header-actions">
@@ -1264,6 +1396,9 @@ body {
         </button>
       </div>
     </header>
+
+    <!-- Room Info Panel -->
+    <div id="room-panel"></div>
 
     <!-- Messages -->
     <div class="msg-area" id="msgBox"></div>
@@ -1358,27 +1493,96 @@ const EMOJI_DATA = {
 
 // ======================== ROOMS ========================
 const ROOMS = [
-  { id: 'general', name: 'عام', icon: '💬', desc: 'الغرفة الرئيسية' },
-  { id: 'gaming', name: 'گیمینگ', icon: '🎮', desc: 'نقاشات الألعاب' },
-  { id: 'anime', name: 'أنيمي', icon: '⚔️', desc: 'عالم الأنيمي' },
-  { id: 'random', name: 'عشوائي', icon: '🎲', desc: 'أي كلام' },
-  { id: 'vip', name: 'VIP', icon: '👑', desc: 'للأعضاء المميزين' },
+  {
+    id: 'general',
+    name: '🌐 المجتمع',
+    icon: '🌐',
+    desc: 'نقاشات عامة للجميع',
+    theme: { color: '#D4AF37', bg: 'rgba(212,175,55,0.04)', border: 'rgba(212,175,55,0.2)' },
+    welcome: '👋 أهلاً بك في غرفة المجتمع! تكلم عن أي شيء يخطر على بالك.',
+    placeholder: 'شارك رأيك مع الجميع...',
+    quickEmojis: ['😂','❤️','🔥','👍','💯','🤔','😎','🎉'],
+    ranks: { new:'عضو جديد', active:'عضو نشط', vip:'عضو مميز', legend:'أسطورة المجتمع' },
+    badge: 'عضو',
+  },
+  {
+    id: 'gaming',
+    name: '🎮 قيمرز',
+    icon: '🎮',
+    desc: 'عالم الألعاب الإلكترونية',
+    theme: { color: '#00d4ff', bg: 'rgba(0,212,255,0.04)', border: 'rgba(0,212,255,0.2)' },
+    welcome: '🎮 GG يا كيمر! هنا نتكلم عن الألعاب، نشارك كليبات، ونرتب مباريات.',
+    placeholder: 'GG يا كيمر...',
+    quickEmojis: ['🎮','🕹️','🏆','⚔️','💥','🔥','😤','💀'],
+    ranks: { new:'نوب', active:'كيمر', vip:'برو بلاير', legend:'ليجند' },
+    badge: 'كيمر',
+  },
+  {
+    id: 'anime',
+    name: '⛩️ أنمي & مانجا',
+    icon: '⛩️',
+    desc: 'عالم الأنمي والمانجا',
+    theme: { color: '#ff6eb4', bg: 'rgba(255,110,180,0.04)', border: 'rgba(255,110,180,0.2)' },
+    welcome: '⛩️ مرحباً يا أوتاكو! ناقش أحدث الأنمي، شارك الميمز، وتكلم عن المانجا.',
+    placeholder: 'ما رأيك في آخر حلقة؟',
+    quickEmojis: ['⛩️','🗡️','✨','🌸','😭','🔥','👁️','💮'],
+    ranks: { new:'طالب أكاديمية', active:'شينوبي', vip:'جونين', legend:'هوكاجي' },
+    badge: 'أوتاكو',
+  },
+  {
+    id: 'movies',
+    name: '🎬 أفلام & مسلسلات',
+    icon: '🎬',
+    desc: 'سينما، دراما، مسلسلات',
+    theme: { color: '#f39c12', bg: 'rgba(243,156,18,0.04)', border: 'rgba(243,156,18,0.2)' },
+    welcome: '🎬 أهلاً بالسينمائيين! شارك مراجعاتك، اقترح أفلاماً، وناقش آخر المسلسلات.',
+    placeholder: 'ما آخر فيلم شفته؟',
+    quickEmojis: ['🎬','🍿','⭐','🎭','😱','😢','🔥','👏'],
+    ranks: { new:'مشاهد جديد', active:'محب الأفلام', vip:'ناقد سينمائي', legend:'أوسكار' },
+    badge: 'سينمائي',
+  },
+  {
+    id: 'random',
+    name: '🎲 عشوائي',
+    icon: '🎲',
+    desc: 'أي كلام وكل كلام',
+    theme: { color: '#a29bfe', bg: 'rgba(162,155,254,0.04)', border: 'rgba(162,155,254,0.2)' },
+    welcome: '🎲 هنا ماكو قوانين! تكلم عن أي شيء من قلبك.',
+    placeholder: 'كل شيء مسموح هنا...',
+    quickEmojis: ['😂','🤣','💀','🗿','🤡','🎲','🌚','😭'],
+    ranks: { new:'غريب جديد', active:'مجنون بالقدر الكافي', vip:'فوضوي مميز', legend:'ملك الفوضى' },
+    badge: 'عشوائي',
+  },
+  {
+    id: 'vip',
+    name: '👑 VIP لاونج',
+    icon: '👑',
+    desc: 'للأعضاء المميزين فقط',
+    theme: { color: '#ffd700', bg: 'rgba(255,215,0,0.05)', border: 'rgba(255,215,0,0.3)' },
+    welcome: '👑 مرحباً يا VIP! هذه الغرفة لنخبة المجتمع.',
+    placeholder: 'حديث بين المميزين...',
+    quickEmojis: ['👑','💎','🏆','✨','🥂','💰','🌟','🎖️'],
+    ranks: { new:'ضيف شرف', active:'VIP', vip:'Elite', legend:'LEGEND' },
+    badge: 'VIP',
+  },
 ];
 
 // ======================== RANK SYSTEM ========================
-function getRank(joinDate, email, xp) {
+function getRank(joinDate, email, xp, roomId) {
   if (email === "SYSTEM") return { n:"نظام", c:"r-system" };
   if (email === FOUNDER_ID) return { n:"مؤسس", c:"r-founder" };
-  if (xp && xp >= 5000) return { n:"أسطورة", c:"r-legend" };
-  if (xp && xp >= 1000) return { n:"VIP", c:"r-vip" };
-  if (xp && xp >= 200) return { n:"نشط", c:"r-active" };
-  if (!joinDate) return { n:"جديد", c:"r-new" };
+  const room = ROOMS.find(r => r.id === (roomId || currentRoom));
+  const ranks = room ? room.ranks : { new:'جديد', active:'نشط', vip:'VIP', legend:'أسطورة' };
+  if (xp && xp >= 5000) return { n: ranks.legend, c:"r-legend" };
+  if (xp && xp >= 1000) return { n: ranks.vip, c:"r-vip" };
+  if (xp && xp >= 200)  return { n: ranks.active, c:"r-active" };
+  if (!joinDate) return { n: ranks.new, c:"r-new" };
   const date = joinDate.toDate ? joinDate.toDate() : new Date(joinDate);
   const days = Math.floor((new Date() - date) / 86400000);
-  if (days >= 30) return { n:"أسطورة", c:"r-legend" };
-  if (days >= 7) return { n:"VIP", c:"r-vip" };
-  if (days >= 3) return { n:"نشط", c:"r-active" };
-  return { n:"جديد", c:"r-new" };
+  if (days >= 30) return { n: ranks.legend, c:"r-legend" };
+  if (days >= 7)  return { n: ranks.vip, c:"r-vip" };
+  if (days >= 3)  return { n: ranks.active, c:"r-active" };
+  return { n: ranks.new, c:"r-new" };
 }
 
 function getAvatarColor(name) {
@@ -1409,6 +1613,225 @@ function showXPPopup(x, y, amount) {
   el.style.top = y + 'px';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1200);
+}
+
+// ======================== ROOM PANEL DATA ========================
+const ROOM_PANELS = {
+
+  gaming: {
+    tabs: ['🔥 أشهر الألعاب', '🏆 إيسبورت', '🎭 شخصيات'],
+    sections: [
+      // أشهر الألعاب
+      [
+        { icon:'🔫', title:'Call of Duty: Warzone', meta:'Battle Royale · 2020', desc:'أشهر برويال رويال بجرافيكس خرافي وتحديثات مستمرة.', tags:['FPS','Battle Royale','Multiplayer'], stats:['👥 100M+','⭐ 8.5/10'] },
+        { icon:'🌌', title:'Elden Ring', meta:'Action RPG · FromSoftware', desc:'تحفة من مياسازاكي وجورج مارتن. عالم مفتوح يقتلك بمحبة.', tags:['RPG','Souls-like','Open World'], stats:['👥 20M+','⭐ 9.8/10'] },
+        { icon:'🏗️', title:'Minecraft', meta:'Sandbox · Mojang', desc:'اللعبة الأكثر مبيعاً في التاريخ. لا حدود للإبداع.', tags:['Sandbox','Survival','Creative'], stats:['👥 238M+','⭐ 9.5/10'] },
+        { icon:'⚡', title:'League of Legends', meta:'MOBA · Riot Games', desc:'أكثر ألعاب الـ MOBA تنافسية. الأريثر محتاج شجاعة.', tags:['MOBA','Competitive','Strategy'], stats:['👥 150M+','⭐ 8.8/10'] },
+        { icon:'🎯', title:'Valorant', meta:'Tactical FPS · Riot Games', desc:'تكتيك + ابيليتيز = لعبة مش طبيعية. للبرو بلاير بس.', tags:['FPS','Tactical','Competitive'], stats:['👥 18M+','⭐ 9/10'] },
+        { icon:'⚽', title:'FC 25', meta:'Sports · EA', desc:'أشهر لعبة كورة في العالم. اكسب أصحابك في الالتيميت تيم.', tags:['Sports','Online','Ultimate Team'], stats:['👥 50M+','⭐ 7.8/10'] },
+      ],
+      // إيسبورت
+      [
+        { icon:'🏆', title:'The International - Dota 2', meta:'$40M Prize Pool', desc:'أكبر بطولة إيسبورت في التاريخ من حيث الجوائز المالية.', tags:['Dota 2','MOBA','Valve'], stats:['💰 $40M+','📺 2M Viewers'] },
+        { icon:'🎯', title:'Valorant Champions', meta:'Riot Games Global', desc:'البطولة العالمية للفيلوريانت. أفضل 16 فريق من كل العالم.', tags:['Valorant','Riot','Global'], stats:['💰 $1M+','📺 1.5M Viewers'] },
+        { icon:'⚡', title:'Worlds - League of Legends', meta:'Riot Games Annual', desc:'البطولة السنوية الأكبر للـ LoL. الافتتاح مهرجان موسيقي كامل.', tags:['LoL','Riot','Annual'], stats:['💰 $2.2M','📺 5M+ Viewers'] },
+        { icon:'🔫', title:'ESL Pro League - CS2', meta:'Counter-Strike', desc:'أعرق بطولة في تاريخ الـ FPS التنافسي.', tags:['CS2','ESL','FPS'], stats:['💰 $1M','📺 800K Viewers'] },
+      ],
+      // شخصيات
+      [
+        { icon:'⚔️', title:'Geralt of Rivia', meta:'The Witcher 3 · INFJ', desc:'الساحر المتجول. هادئ، منطقي، ومحترف. لا يحكم على أحد بسرعة.', tags:['INFJ','سحر','Stoic'], stats:['❤️ قوة الإرادة','🧠 حكيم'] },
+        { icon:'🕷️', title:'Master Chief', meta:'Halo · ISTJ', desc:'الجندي المثالي. مخلص لمهمته، لا يتكلم كثير، ينجز الشغل.', tags:['ISTJ','قائد','Hero'], stats:['💪 صامد','🎯 دقيق'] },
+        { icon:'🌸', title:'Cloud Strife', meta:'FF7 · INTJ', desc:'برود ظاهري يخفي أعمق المشاعر. تيبيكال INTJ يعاني وحده.', tags:['INTJ','Mysterious','Warrior'], stats:['🗡️ مقاتل','💔 حساس'] },
+        { icon:'🔥', title:'Arthur Morgan', meta:'RDR2 · ISFP', desc:'أكثر شخصية ملمستني في تاريخ الألعاب. يبحث عن معنى في عالم يتغير.', tags:['ISFP','Cowboy','Moral'], stats:['❤️ عاطفي','🤠 شجاع'] },
+      ]
+    ]
+  },
+
+  anime: {
+    tabs: ['⭐ أشهر أنمي', '📚 مانجا لازم تقرأها', '🧠 شخصيات & شخصياتهم'],
+    sections: [
+      // أشهر أنمي
+      [
+        { icon:'🍥', title:'Naruto / Shippuden', meta:'Masashi Kishimoto · 720 حلقة', desc:'قصة الفتى الذي لم يستسلم. درس في الإصرار والصداقة والعفو.', tags:['Shounen','Ninja','إيجابي'], stats:['⭐ 8.4','❤️ تقييم الجماهير: أسطوري'] },
+        { icon:'👒', title:'One Piece', meta:'Eiichiro Oda · 1000+ حلقة', desc:'أطول رحلة في تاريخ المانجا. لوفي ومعه كنز ليس كما تتوقع.', tags:['Shounen','Adventure','Pirate'], stats:['⭐ 9/10','📖 Ongoing'] },
+        { icon:'⚔️', title:'Demon Slayer', meta:'Koyoharu Gotouge · 4 مواسم', desc:'أنيمي ثأر وعائلة بأنيميشن Ufotable الخرافي. كل حلقة فيلم.', tags:['Shounen','Action','Dark'], stats:['⭐ 8.7','🎨 أنيميشن: S+'] },
+        { icon:'🏫', title:'Attack on Titan', meta:'Hajime Isayama · Complete', desc:'لا يوجد أبطال ولا أشرار. فقط وجهات نظر مختلفة لنفس المأساة.', tags:['Dark','Political','Complete'], stats:['⭐ 9.1','🏆 أفضل أنمي عقد'] },
+        { icon:'☠️', title:'Hunter x Hunter', meta:'Yoshihiro Togashi · Hiatus', desc:'نظام الـ Nen الأذكى في تاريخ الأنمي. والمؤلف ظهره يؤلمه.', tags:['Shounen','Strategic','Hiatus'], stats:['⭐ 9/10','😭 Hiatus دائم'] },
+        { icon:'🌙', title:'Fullmetal Alchemist: Brotherhood', meta:'Hiromu Arakawa · Complete', desc:'قصة أخوين وقانون التكافؤ. الأكثر اكتمالاً روائياً في تاريخ الأنمي.', tags:['Complete','Emotional','Perfect'], stats:['⭐ 9.1','🏆 الأمثل للمبتدئين'] },
+      ],
+      // مانجا
+      [
+        { icon:'📕', title:'Berserk', meta:'Kentaro Miura · Dark Fantasy', desc:'أعمق وأقسى مانجا في التاريخ. غاتس يجعل مشاكلك تبدو صغيرة.', tags:['Dark Fantasy','Seinen','Masterpiece'], stats:['⭐ 9.4','😢 المؤلف رحمه الله'] },
+        { icon:'📗', title:'Vagabond', meta:'Takehiko Inoue · Martial Arts', desc:'قصة المسامورائي ميياموتو موساشي. الرسومات تحفة فنية حقيقية.', tags:['Seinen','Historical','Art'], stats:['⭐ 9.3','🎨 أجمل رسومات مانجا'] },
+        { icon:'📘', title:'Vinland Saga', meta:'Makoto Yukimura · Vikings', desc:'من الانتقام للسلام. رحلة ثورفين من المحارب للإنسان.', tags:['Historical','Vikings','Mature'], stats:['⭐ 9/10','🏆 أفضل مانجا تاريخية'] },
+        { icon:'📙', title:'Chainsaw Man', meta:'Tatsuki Fujimoto · Modern', desc:'ديانجي وكلبه الفاشوش. الأكثر جنوناً في الجيل الجديد.', tags:['Action','Dark Comedy','Modern'], stats:['⭐ 8.8','🔥 Gen-Z Anime'] },
+      ],
+      // شخصيات
+      [
+        { icon:'🍥', title:'Naruto Uzumaki', meta:'Naruto · ENFJ', desc:'أكثر شخصية ملهمة. يحول أعداءه لأصدقاء بالإصرار والقلب الكبير.', tags:['ENFJ','بطل','ملهم'], stats:['💪 إصرار: MAX','❤️ تعاطف: MAX'] },
+        { icon:'⚡', title:'Levi Ackerman', meta:'AOT · ISTP', desc:'أقوى جندي بشري. قليل الكلام، كثير الفعل. الـ ISTP المثالي.', tags:['ISTP','برود','قائد'], stats:['⚔️ قوة: S','🧠 استراتيجية: S'] },
+        { icon:'👁️', title:'Light Yagami', meta:'Death Note · ENTJ', desc:'عبقرية مع غرور قاتل. مثال كلاسيكي على ENTJ يفقد بوصلته الأخلاقية.', tags:['ENTJ','Anti-Hero','عبقري'], stats:['🧠 ذكاء: MAX','😈 غرور: MAX'] },
+        { icon:'🌸', title:'Itachi Uchiha', meta:'Naruto · INFJ', desc:'الـ INFJ الكلاسيكي - يتحمل كل شيء صامتاً لحماية من يحب.', tags:['INFJ','تضحية','مظلوم'], stats:['❤️ تضحية: MAX','😭 مأساوي: MAX'] },
+        { icon:'☠️', title:'Killua Zoldyck', meta:'HxH · INTP', desc:'قاتل محترف بقلب طفل. الـ INTP الذي يجد نفسه في الصداقة.', tags:['INTP','Assassin','Loyal'], stats:['⚡ سرعة: S','❤️ ولاء: MAX'] },
+        { icon:'🗡️', title:'Guts', meta:'Berserk · ISTP', desc:'أقوى شخصية في تاريخ المانجا نفسياً وجسدياً. يتحدى القدر كل يوم.', tags:['ISTP','Anti-Hero','صامد'], stats:['💪 قوة: BEYOND','🔥 إرادة: ∞'] },
+      ]
+    ]
+  },
+
+  movies: {
+    tabs: ['🎬 أفلام خرافية', '📺 مسلسلات لازم', '🎭 شخصيات & تحليل'],
+    sections: [
+      // أفلام
+      [
+        { icon:'🌀', title:'Inception', meta:'2010 · Christopher Nolan', desc:'حلم داخل حلم داخل حلم. نولان يجعل دماغك يعمل أوفرتايم.', tags:['Sci-Fi','Thriller','Mind-Bending'], stats:['⭐ 8.8/10','🏆 4 Oscars'] },
+        { icon:'🃏', title:'The Dark Knight', meta:'2008 · Christopher Nolan', desc:'ليس فيلم سوبرهيرو. فلسفة في الفوضى والنظام. هيث ليدجر خالد.', tags:['DC','Drama','Crime'], stats:['⭐ 9/10','🏆 Oscar هيث ليدجر'] },
+        { icon:'🌌', title:'Interstellar', meta:'2014 · Christopher Nolan', desc:'علم حقيقي ومشاعر حقيقية. ساعة الأرواح تجعلك تبكي بدون سبب واضح.', tags:['Sci-Fi','Space','Emotional'], stats:['⭐ 8.7/10','🎵 موسيقى هانز زيمر'] },
+        { icon:'🧩', title:'Parasite', meta:'2019 · Bong Joon-ho', desc:'أول فيلم غير إنجليزي يفوز بأوسكار أفضل فيلم. تحليل طبقي مذهل.', tags:['Korean','Thriller','Social'], stats:['⭐ 8.6/10','🏆 4 Oscars'] },
+        { icon:'🔫', title:'Pulp Fiction', meta:'1994 · Quentin Tarantino', desc:'غيّر سينما التسعينيات. سرد غير خطي وحوارات لا تنسى.', tags:['Crime','Non-Linear','Classic'], stats:['⭐ 8.9/10','🎬 كلاسيكي خالد'] },
+        { icon:'🤖', title:'The Matrix', meta:'1999 · Wachowski', desc:'ماذا لو كانت حياتك محاكاة؟ فلسفة مغلّفة في أكشن خرافي.', tags:['Sci-Fi','Philosophy','Action'], stats:['⭐ 8.7/10','🏆 4 Oscars'] },
+      ],
+      // مسلسلات
+      [
+        { icon:'👑', title:'Breaking Bad', meta:'2008-2013 · 5 مواسم', desc:'كيف يتحول إنسان عادي لوحش. أفضل قوس شخصية في تاريخ التلفزيون.', tags:['Crime','Drama','Complete'], stats:['⭐ 9.5/10','🏆 أفضل مسلسل IMDb'] },
+        { icon:'🌿', title:'Chernobyl', meta:'2019 · HBO · 5 حلقات', desc:'أقصر وأقوى مسلسل. الحقيقة في مواجهة الكذب المؤسسي.', tags:['Historical','Drama','Mini-Series'], stats:['⭐ 9.4/10','😰 مؤلم جداً'] },
+        { icon:'🕵️', title:'True Detective S1', meta:'2014 · HBO', desc:'ماكونهي وهارلسون في تحقيق يمتد 17 سنة. فلسفة وجودية وغموض.', tags:['Crime','Mystery','Philosophical'], stats:['⭐ 9.3/10','🏆 الأفضل في نوعه'] },
+        { icon:'🎭', title:'Succession', meta:'2018-2023 · HBO · 4 مواسم', desc:'صراع ثروة وسلطة عائلية. شكسبير في القرن 21.', tags:['Drama','Family','Power'], stats:['⭐ 8.9/10','🏆 Emmy 13 مرة'] },
+        { icon:'💊', title:'The Last of Us', meta:'2023 · HBO · Season 2', desc:'أفضل تحويل لعبة فيديو لمسلسل. بيدرو باسكال يكسر قلبك.', tags:['Post-Apocalyptic','Drama','Video Game'], stats:['⭐ 8.8/10','🎮 مبني على لعبة'] },
+        { icon:'🔪', title:'Squid Game', meta:'2021 · Netflix · كوري', desc:'ظاهرة عالمية. ألعاب أطفال بنتائج دموية كتعليق على الرأسمالية.', tags:['Korean','Thriller','Social'], stats:['⭐ 8/10','📺 الأكثر مشاهدة Netflix'] },
+      ],
+      // تحليل شخصيات
+      [
+        { icon:'🧪', title:'Walter White / Heisenberg', meta:'Breaking Bad · INTJ', desc:'مثال مدرسي على INTJ يستخدم عبقريته للأسباب الخاطئة. الغرور هو نهايته.', tags:['INTJ','Villain','Transformation'], stats:['🧠 عبقرية: MAX','😈 غرور: يقتله'] },
+        { icon:'🃏', title:'The Joker', meta:'TDK · ENTP', desc:'الفوضى كفلسفة. يحطم النظام لإثبات أن الجميع يمكن كسرهم.', tags:['ENTP','Chaos','Philosophy'], stats:['😂 يضحك كثيراً','🔥 خطير جداً'] },
+        { icon:'👑', title:'Tony Soprano', meta:'Sopranos · ESTP', desc:'زعيم مافيا يذهب للتحليل النفسي. صراع بين القوة والضعف الداخلي.', tags:['ESTP','Complex','Human'], stats:['💪 هيمنة: HIGH','😰 قلق: HIGH'] },
+        { icon:'🌿', title:'Joel Miller', meta:'The Last of Us · ISTJ', desc:'أب فقد ابنته. قلبه مكسور لكنه يحمي بكل ما عنده. ISTJ بكل تعقيداته.', tags:['ISTJ','Father','Protective'], stats:['❤️ حب: Infinite','😢 حزن: Infinite'] },
+      ]
+    ]
+  },
+
+  general: {
+    tabs: ['📰 نقاشات رائجة', '💡 حقائق مثيرة', '🎯 شخصيات MBTI'],
+    sections: [
+      [
+        { icon:'🤖', title:'مستقبل الذكاء الاصطناعي', meta:'تقنية · 2024', desc:'هل سيأخذ الـ AI وظائفنا؟ ماذا تعتقد؟ ناقش مع المجتمع.', tags:['AI','مستقبل','تقنية'], stats:['🔥 نقاش حار','💬 1K+ رأي'] },
+        { icon:'🌍', title:'ألعاب vs أفلام: أيهما أفضل قصصاً؟', meta:'ترفيه · نقاش', desc:'RDR2 وElden Ring يبكيانك أكثر من أي فيلم؟ أم لا؟', tags:['Gaming','أفلام','قصص'], stats:['🎮 Team Games','🎬 Team Movies'] },
+        { icon:'🧠', title:'هل المبدعون يعانون أكثر؟', meta:'نفس · فلسفة', desc:'ربط بين الإبداع والاكتئاب. هل الألم يولد الفن؟', tags:['فلسفة','نفس','إبداع'], stats:['🤔 جدلي','💭 عميق'] },
+      ],
+      [
+        { icon:'🧠', title:'10% من الدماغ فقط - خرافة!', meta:'علم · حقيقة', desc:'نستخدم 100% من دماغنا. الخرافة جاءت من سوء فهم دراسات قديمة.', tags:['علم','حقيقة','دماغ'], stats:['✅ مؤكد علمياً'] },
+        { icon:'🐙', title:'الأخطبوط يرى بجلده', meta:'طبيعة · مذهل', desc:'رغم أنه أعمى الألوان لكنه يستطيع إحساس الضوء عبر جلده. طبيعة خرافية.', tags:['طبيعة','حيوانات','مذهل'], stats:['🐙 Amazing'] },
+        { icon:'🌌', title:'الكون عمره 13.8 مليار سنة', meta:'فضاء · علم', desc:'وأنت لم تكن موجوداً لـ 13.799 مليار سنة. يوضع العمر في سياق.', tags:['فضاء','علم','فلسفة'], stats:['🌌 مذهل'] },
+      ],
+      [
+        { icon:'🧠', title:'INTJ - المهندس المعماري', meta:'MBTI · نادر', desc:'يبني خططاً معقدة في رأسه. يبدو بارداً لكنه يفكر أعمق من أي أحد.', tags:['INTJ','نادر','عبقري'], stats:['👥 2% من البشر','🧠 استراتيجي'] },
+        { icon:'⚡', title:'ENTP - المناظر', meta:'MBTI · مثير', desc:'يحب الجدال لمجرد إيجاد الحقيقة. يقنعك ثم يتحدى وجهة نظره هو.', tags:['ENTP','جدلي','مبدع'], stats:['🗣️ يحب النقاش','💡 مبتكر'] },
+        { icon:'❤️', title:'INFJ - المحامي', meta:'MBTI · أنادر', desc:'الأنادر بين 16 شخصية. يقرأ الناس بسهولة ويضع الآخرين قبل نفسه.', tags:['INFJ','الأنادر','حساس'], stats:['👥 1% فقط','❤️ عميق جداً'] },
+      ]
+    ]
+  },
+
+  random: {
+    tabs: ['💀 ميمز & كوميدي', '🌚 فلسفة الفراغ', '🤯 أغرب حقائق'],
+    sections: [
+      [
+        { icon:'🗿', title:'موآي - الوجه الجامد', meta:'ميم · إكسبرت', desc:'عندما يحكيلك حد قصة حياته وتحاول تبدي اهتمام. الوجه الرسمي للغرفة.', tags:['🗿','كوميدي','كلاسيك'], stats:['😂 الأكثر استخداماً'] },
+        { icon:'🌚', title:'يا باشا', meta:'ميم عربي · خالد', desc:'الإيموجي الرسمي لعدم الاكتراث في الوطن العربي. لا تفسير مطلوب.', tags:['عربي','كوميدي','🌚'], stats:['🌚 لا تفسير'] },
+        { icon:'💀', title:'إحساس الساعة 3 صباحاً', meta:'مشترك إنساني', desc:'لا تعب ولا نشاط. مجرد وجود غريب. تفكر في كل حاجة وما تقدر تنام.', tags:['3AM','وجودي','كوميدي'], stats:['😭 كلنا نعرف'] },
+      ],
+      [
+        { icon:'🌀', title:'لو الكون لا نهاية له...', meta:'فلسفة × فيزياء', desc:'يعني في نسخة منك تقرأ هذا الكلام الآن في مكان ما. أو ربما لا. أو ربما الاثنين.', tags:['فيزياء','فلسفة','🤯'], stats:['🧠 دماغ مفجر'] },
+        { icon:'😴', title:'ما معنى الحلم؟', meta:'نفس · غموض', desc:'دماغك يشغّل محاكاة كاملة أثناء نومك. الشخصيات التي تراها يخترعها هو لحظياً.', tags:['أحلام','نفس','غريب'], stats:['😴 مذهل'] },
+        { icon:'🔮', title:'هل الوقت حقيقي؟', meta:'فيزياء · آينشتاين', desc:'آينشتاين قال الوقت نسبي. اللحظة الحالية لك تختلف عن لحظة شخص آخر.', tags:['فيزياء','وقت','آينشتاين'], stats:['⏰ ما في حاضر حقيقي'] },
+      ],
+      [
+        { icon:'🐜', title:'النمل يحمل 50x وزنه', meta:'حشرات · مذهل', desc:'لو الإنسان عنده نفس النسبة كان يرفع سيارة. النمل = العضل الحقيقي.', tags:['حيوانات','علم','🐜'], stats:['💪 NPC قوي جداً'] },
+        { icon:'🧊', title:'الثلج يطفو على الماء', meta:'كيمياء · نادر', desc:'معظم المواد تغرق في حالتها السائلة. الماء استثناء غريب يجعل الحياة ممكنة.', tags:['كيمياء','ماء','مذهل'], stats:['🌊 بدونه ما في حياة'] },
+        { icon:'🦟', title:'البعوضة أخطر كائن على الأرض', meta:'بيولوجيا · مخيف', desc:'تقتل أكثر من مليون إنسان سنوياً. أكثر من الثعابين والأسود والبشر مجتمعين.', tags:['حيوانات','خطر','حقيقة'], stats:['☠️ أخطر من الأسد'] },
+      ]
+    ]
+  },
+
+  vip: {
+    tabs: ['💎 محتوى حصري', '🎖️ مزايا VIP', '👑 نصائح من النخبة'],
+    sections: [
+      [
+        { icon:'💎', title:'محتوى VIP حصري', meta:'فقط للأعضاء المميزين', desc:'هنا تجد نقاشات عميقة، محتوى مختار بعناية، وتجارب أعضاء النخبة.', tags:['حصري','VIP','نخبة'], stats:['👑 Premium','🔒 Members Only'] },
+        { icon:'🎯', title:'كيف تصل لـ Legend؟', meta:'خارطة الطريق', desc:'اجمع 5000 XP بالتفاعل والرسائل والمشاركة في التصويتات.', tags:['XP','تطور','هدف'], stats:['🏆 5000 XP = Legend','⚡ +10 XP/رسالة'] },
+      ],
+      [
+        { icon:'⭐', title:'تمييز في جميع الغرف', meta:'مزية VIP', desc:'اسمك يظهر بلون ذهبي مميز في كل الغرف مع شارة VIP خاصة.', tags:['مميز','ذهبي','شارة'], stats:['✨ في كل الغرف'] },
+        { icon:'🎙️', title:'أولوية في النقاشات', meta:'مزية VIP', desc:'تصويتك يساوي 2x في بولات الجمهور وله وزن أكبر في النقاشات.', tags:['تصويت','أولوية','VIP'], stats:['🗳️ 2x قوة تصويت'] },
+        { icon:'🔔', title:'إشعارات حصرية', meta:'مزية VIP', desc:'تصلك إشعارات عن الأحداث الخاصة والبولات والإعلانات قبل الجميع.', tags:['إشعارات','حصري','أول'], stats:['⚡ قبل الجميع'] },
+      ],
+      [
+        { icon:'💡', title:'نصيحة #1: كن منتظماً', meta:'من تجارب الأعضاء', desc:'الانتظام أهم من الكم. 5 رسائل يومياً أفضل من 50 في يوم واحد للنمو.', tags:['نصيحة','انتظام','نمو'], stats:['📈 يبني مجتمعاً حقيقياً'] },
+        { icon:'🤝', title:'نصيحة #2: تفاعل بصدق', meta:'من تجارب الأعضاء', desc:'التعليق الحقيقي يبني علاقات أقوى من مئة "👍" عابرة.', tags:['تفاعل','صدق','علاقات'], stats:['❤️ جودة > كمية'] },
+      ]
+    ]
+  }
+};
+
+let currentPanelTab = 0;
+let roomPanelOpen = false;
+
+function toggleRoomPanel() {
+  roomPanelOpen = !roomPanelOpen;
+  const panel = document.getElementById('room-panel');
+  const arrow = document.getElementById('panel-arrow');
+  if (roomPanelOpen) {
+    buildRoomPanel();
+    panel.classList.add('show');
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  } else {
+    panel.classList.remove('show');
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+  }
+}
+
+function buildRoomPanel() {
+  const panel = document.getElementById('room-panel');
+  const data = ROOM_PANELS[currentRoom];
+  if (!data) { panel.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:20px">لا يوجد محتوى مخصص لهذه الغرفة بعد</div>'; return; }
+
+  currentPanelTab = 0;
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-size:0.8rem;font-weight:800;color:var(--room-color)">${ROOMS.find(r=>r.id===currentRoom)?.icon} محتوى ${ROOMS.find(r=>r.id===currentRoom)?.name}</div>
+    <button onclick="toggleRoomPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="panel-tabs">`;
+
+  data.tabs.forEach((tab, i) => {
+    html += `<button class="panel-tab ${i===0?'active':''}" onclick="switchPanelTab(${i})">${tab}</button>`;
+  });
+  html += '</div>';
+
+  data.sections.forEach((section, si) => {
+    html += `<div class="panel-section ${si===0?'active':''}" id="psec-${si}">`;
+    section.forEach(item => {
+      const tagsHtml = (item.tags||[]).map(t=>`<span class="tag-pill">${t}</span>`).join('');
+      const statsHtml = (item.stats||[]).map(s=>`<span class="stat-mini">${s}</span>`).join('');
+      html += `<div class="info-card">
+        <div class="info-card-icon">${item.icon}</div>
+        <div class="info-card-body">
+          <div class="info-card-title">${item.title}</div>
+          <div class="info-card-meta">${item.meta}</div>
+          <div class="info-card-desc">${item.desc}</div>
+          <div style="margin-top:6px">${tagsHtml}</div>
+          <div style="margin-top:4px">${statsHtml}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  panel.innerHTML = html;
+}
+
+function switchPanelTab(idx) {
+  currentPanelTab = idx;
+  document.querySelectorAll('.panel-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.panel-section').forEach((s,i) => s.classList.toggle('active', i===idx));
 }
 
 // ======================== LOGIN ========================
@@ -1485,6 +1908,8 @@ function showApp() {
   loadOnlineUsers();
   loadLeaderboard();
   startPollListener();
+  const defaultRoom = ROOMS.find(r => r.id === currentRoom);
+  if (defaultRoom) applyRoomTheme(defaultRoom);
   setTimeout(() => msgInput.focus(), 400);
 }
 
@@ -1496,10 +1921,11 @@ function buildRoomsList() {
     const d = document.createElement('div');
     d.className = 'room-item' + (r.id === currentRoom ? ' active' : '');
     d.id = 'room-' + r.id;
+    d.style.cssText = r.id === currentRoom ? `border-color:${r.theme.color}40;background:${r.theme.bg}` : '';
     d.innerHTML = `
-      <div class="room-icon">${r.icon}</div>
+      <div class="room-icon" style="background:${r.theme.bg};border:1px solid ${r.theme.border};font-size:1.1rem">${r.icon}</div>
       <div class="room-info">
-        <div class="room-name">${r.name}</div>
+        <div class="room-name" style="color:${r.id === currentRoom ? r.theme.color : ''}">${r.name}</div>
         <div class="room-desc">${r.desc}</div>
       </div>`;
     d.onclick = () => switchRoom(r.id);
@@ -1514,9 +1940,51 @@ function switchRoom(roomId) {
   const el = document.getElementById('room-' + roomId);
   if (el) el.classList.add('active');
   const room = ROOMS.find(r => r.id === roomId);
-  document.getElementById('stat-room').innerText = room ? room.name : roomId;
+  if (room) applyRoomTheme(room);
   loadMessages();
   closeSidebar();
+}
+
+function applyRoomTheme(room) {
+  // Close panel if open
+  roomPanelOpen = false;
+  const panel = document.getElementById('room-panel');
+  const arrow = document.getElementById('panel-arrow');
+  if (panel) panel.classList.remove('show');
+  if (arrow) arrow.style.transform = 'rotate(0deg)';
+  // Update stats bar room name
+  document.getElementById('stat-room').innerText = room.name;
+
+  // Update header accent color
+  document.documentElement.style.setProperty('--room-color', room.theme.color);
+  document.documentElement.style.setProperty('--room-bg', room.theme.bg);
+  document.documentElement.style.setProperty('--room-border', room.theme.border);
+
+  // Update input placeholder
+  const inp = document.getElementById('msgInput');
+  if (inp) inp.placeholder = room.placeholder;
+
+  // Update header title
+  document.getElementById('room-title').innerText = room.name;
+  document.getElementById('room-desc').innerText = room.desc;
+
+  // Update quick emojis
+  const qe = document.getElementById('quickEmojis');
+  if (qe) {
+    qe.innerHTML = '';
+    room.quickEmojis.forEach(e => {
+      const span = document.createElement('span');
+      span.innerText = e;
+      span.onclick = () => insertEmoji(e);
+      qe.appendChild(span);
+    });
+  }
+
+  // Update chat background accent
+  const chatMain = document.querySelector('.chat-main');
+  if (chatMain) {
+    chatMain.style.background = `radial-gradient(ellipse at top right, ${room.theme.bg} 0%, var(--dark-bg) 60%)`;
+  }
 }
 
 // ======================== PRESENCE SYSTEM ========================
@@ -1665,19 +2133,35 @@ function loadMessages() {
   msgBox.innerHTML = '';
   allMessages = [];
 
-  db.collection('messages')
+  if (window._msgsUnsub) { window._msgsUnsub(); }
+
+  const roomToLoad = currentRoom;
+  window._msgsUnsub = db.collection('messages')
     .orderBy('time')
     .onSnapshot(snap => {
       msgBox.innerHTML = '';
       allMessages = [];
-      msgCount = snap.size;
-      document.getElementById('stat-msgs').innerText = msgCount;
 
+      // Show welcome banner again after snapshot clears msgBox
+      const room = ROOMS.find(r => r.id === roomToLoad);
+      if (room) {
+        const welcome = document.createElement('div');
+        welcome.className = 'bubble welcome';
+        welcome.innerHTML = `<div style="font-size:1.5rem;margin-bottom:4px">${room.icon}</div><b>${room.name}</b><br><span style="opacity:0.8;font-size:0.72rem">${room.welcome}</span>`;
+        msgBox.appendChild(welcome);
+      }
+
+      let msgCount = 0;
       let lastDate = null;
 
       snap.forEach(doc => {
         const m = { ...doc.data(), id: doc.id };
+        // Filter by room in JS - show messages with matching room OR messages with no room (old messages in general)
+        const msgRoom = m.room || 'general';
+        if (msgRoom !== roomToLoad) return;
+
         allMessages.push(m);
+        msgCount++;
 
         const time = m.time?.toDate ? m.time.toDate() : new Date();
         const dateStr = time.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -1693,9 +2177,8 @@ function loadMessages() {
         renderMessage(m, doc.id);
       });
 
+      document.getElementById('stat-msgs').innerText = msgCount;
       msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
-
-      // load typing
       loadTypingIndicator();
     });
 
@@ -1903,6 +2386,7 @@ async function send() {
       reply: replyData || null,
       joinDate: myData.joinDate || null,
       xp: myData.xp || 0,
+      room: currentRoom,
       time: firebase.firestore.FieldValue.serverTimestamp(),
       reactions: {}
     });
