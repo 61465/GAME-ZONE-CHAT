@@ -1184,6 +1184,176 @@ body {
   align-items: center;
   gap: 12px;
 }
+/* ======================== ROOM FEATURES ======================== */
+
+/* Daily Challenge / Topic Bar */
+#daily-bar {
+  display: none;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.6), var(--room-bg));
+  border-bottom: 1px solid var(--room-border);
+  font-size: 0.72rem;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#daily-bar:hover { background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(var(--room-bg),0.8)); }
+#daily-bar.show { display: flex; }
+.daily-icon { font-size: 1.1rem; flex-shrink: 0; }
+.daily-label { font-size: 0.58rem; color: var(--room-color); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.daily-text { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.daily-badge { background: var(--room-color); color: #000; font-size: 0.55rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; flex-shrink: 0; }
+
+/* Live Session Badge */
+.live-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.4);
+  color: #e74c3c; padding: 2px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 700;
+}
+.live-dot { width: 6px; height: 6px; background: #e74c3c; border-radius: 50%; animation: pulse 1s infinite; }
+
+/* Gaming Live Sessions */
+#live-sessions {
+  display: flex; gap: 8px; padding: 8px 14px; overflow-x: auto;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#live-sessions:empty { display: none; }
+.session-chip {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 10px; font-size: 0.72rem; cursor: pointer;
+  transition: 0.2s; white-space: nowrap;
+}
+.session-chip:hover { border-color: var(--room-color); background: var(--room-bg); }
+
+/* Spoiler text */
+.spoiler {
+  background: #333; color: transparent; border-radius: 4px; cursor: pointer;
+  transition: all 0.3s; user-select: none; padding: 0 4px;
+}
+.spoiler.revealed { background: rgba(255,255,255,0.1); color: var(--text); }
+
+/* Mini Review */
+.mini-review {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; margin-top: 6px;
+}
+.stars { color: #ffd700; font-size: 0.9rem; letter-spacing: 2px; }
+
+/* Random Question */
+#random-q-bar {
+  display: none; padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(162,155,254,0.08), rgba(0,0,0,0.5));
+  border-bottom: 1px solid rgba(162,155,254,0.2);
+  flex-shrink: 0; animation: slideDown 0.3s ease;
+}
+#random-q-bar.show { display: block; }
+.random-q-text {
+  font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.4;
+}
+.random-q-actions { display: flex; gap: 8px; }
+
+/* Truth or Dare */
+#tod-bar {
+  display: none; padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(231,76,60,0.08), rgba(0,0,0,0.5));
+  border-bottom: 1px solid rgba(231,76,60,0.2);
+  flex-shrink: 0;
+}
+#tod-bar.show { display: block; }
+
+/* Rating modal */
+#rating-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+  z-index: 50000; justify-content: center; align-items: flex-end;
+}
+#rating-modal.show { display: flex; }
+.rating-box {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0; width: 100%; max-width: 480px;
+  margin: 0 auto; padding: 20px; animation: slideUp 0.3s ease;
+}
+.star-selector { display: flex; gap: 8px; justify-content: center; margin: 14px 0; }
+.star-selector span {
+  font-size: 1.8rem; cursor: pointer; transition: transform 0.15s; opacity: 0.3;
+}
+.star-selector span.active { opacity: 1; transform: scale(1.2); }
+
+/* Spotify status */
+.spotify-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(30,215,96,0.1); border: 1px solid rgba(30,215,96,0.3);
+  border-radius: 20px; padding: 2px 8px; font-size: 0.65rem; color: #1ED760;
+  margin-top: 3px;
+}
+
+/* Anime word of day */
+#anime-word {
+  display: none; padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(255,110,180,0.06), transparent);
+  border-bottom: 1px solid rgba(255,110,180,0.15);
+  font-size: 0.75rem; align-items: center; gap: 10px; flex-shrink: 0;
+}
+#anime-word.show { display: flex; }
+.jp-word { font-size: 1.1rem; font-weight: 900; color: #ff6eb4; }
+.jp-meaning { color: var(--text-muted); font-size: 0.68rem; }
+
+/* Meme of day */
+#meme-bar {
+  display: none; padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(162,155,254,0.06), transparent);
+  border-bottom: 1px solid rgba(162,155,254,0.15);
+  align-items: center; gap: 10px; flex-shrink: 0; cursor: pointer;
+}
+#meme-bar.show { display: flex; }
+
+/* Weekly poll auto */
+#weekly-poll-bar {
+  display: none; padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.06), transparent);
+  border-bottom: 1px solid rgba(0,212,255,0.15);
+  flex-shrink: 0;
+}
+#weekly-poll-bar.show { display: block; }
+
+/* Number game */
+#numgame-bar {
+  display: none; padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(162,155,254,0.08), rgba(0,0,0,0.5));
+  border-bottom: 1px solid rgba(162,155,254,0.2); flex-shrink: 0;
+}
+#numgame-bar.show { display: block; }
+
+/* Translate btn */
+.translate-btn {
+  font-size: 0.6rem; color: var(--blue); cursor: pointer; margin-top: 3px;
+  display: inline-flex; align-items: center; gap: 3px; opacity: 0.7; transition: opacity 0.2s;
+}
+.translate-btn:hover { opacity: 1; }
+.translated-text { color: var(--blue); font-size: 0.8rem; margin-top: 4px; font-style: italic; }
+
+/* Feature toolbar per room */
+#room-toolbar {
+  display: flex; gap: 6px; padding: 6px 10px; overflow-x: auto;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  scrollbar-width: none;
+}
+#room-toolbar::-webkit-scrollbar { display: none; }
+.toolbar-btn {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 5px 10px; border-radius: 20px;
+  font-size: 0.7rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  font-family: 'Tajawal', sans-serif; font-weight: 600;
+}
+.toolbar-btn:hover, .toolbar-btn.active {
+  background: var(--room-bg); border-color: var(--room-color); color: var(--room-color);
+}
+.toolbar-btn i { font-size: 0.7rem; }
+
 </style>
 </head>
 <body>
@@ -1359,6 +1529,81 @@ body {
       <div class="stat-item"><span class="stat-dot"></span><span id="stat-online">0</span> متصل</div>
       <div class="stat-item"><i class="fas fa-comment" style="font-size:0.6rem;color:var(--gold)"></i><span id="stat-msgs">0</span> رسالة</div>
       <div class="stat-item"><i class="fas fa-hashtag" style="font-size:0.6rem;color:var(--blue)"></i><span id="stat-room">عام</span></div>
+    </div>
+
+    <!-- Daily / Topic Bar -->
+    <div id="daily-bar">
+      <div class="daily-icon" id="daily-icon">🎯</div>
+      <div style="flex:1;min-width:0">
+        <div class="daily-label" id="daily-label">موضوع اليوم</div>
+        <div class="daily-text" id="daily-text">جارٍ التحميل...</div>
+      </div>
+      <div class="daily-badge" id="daily-badge">جديد</div>
+    </div>
+
+    <!-- Room Toolbar (feature buttons per room) -->
+    <div id="room-toolbar"></div>
+
+    <!-- Gaming: Live Sessions -->
+    <div id="live-sessions"></div>
+
+    <!-- Anime: Word of Day -->
+    <div id="anime-word">
+      <div class="jp-word" id="jp-word">ありがとう</div>
+      <div>
+        <div style="font-weight:700;color:var(--text);font-size:0.78rem" id="jp-roman">Arigatou</div>
+        <div class="jp-meaning" id="jp-meaning">شكراً جزيلاً</div>
+      </div>
+      <div style="margin-right:auto;font-size:0.6rem;color:var(--text-muted)">🌸 كلمة اليوم</div>
+    </div>
+
+    <!-- Random: Question Generator -->
+    <div id="random-q-bar">
+      <div class="random-q-text" id="random-q-text">🎲 اضغط لتوليد سؤال عشوائي!</div>
+      <div class="random-q-actions">
+        <button class="toolbar-btn" onclick="generateRandomQ()" style="flex:1"><i class="fas fa-random"></i> سؤال جديد</button>
+        <button class="toolbar-btn" onclick="sendRandomQToChat()" style="flex:1"><i class="fas fa-paper-plane"></i> أرسله للشات</button>
+      </div>
+    </div>
+
+    <!-- Random: Truth or Dare -->
+    <div id="tod-bar">
+      <div style="font-size:0.75rem;font-weight:700;color:#e74c3c;margin-bottom:8px">🎭 Truth or Dare</div>
+      <div id="tod-text" style="font-size:0.82rem;color:var(--text);margin-bottom:10px;line-height:1.4">اختر نوعاً للبدء!</div>
+      <div style="display:flex;gap:6px">
+        <button class="toolbar-btn" onclick="getTOD('truth')" style="flex:1;color:#3498db;border-color:#3498db40"><i class="fas fa-brain"></i> Truth</button>
+        <button class="toolbar-btn" onclick="getTOD('dare')" style="flex:1;color:#e74c3c;border-color:#e74c3c40"><i class="fas fa-fire"></i> Dare</button>
+        <button class="toolbar-btn" onclick="sendTODToChat()" style="flex:1"><i class="fas fa-paper-plane"></i> للشات</button>
+      </div>
+    </div>
+
+    <!-- Random: Number Game -->
+    <div id="numgame-bar">
+      <div style="font-size:0.75rem;font-weight:700;color:#a29bfe;margin-bottom:8px">🎰 لعبة الأرقام - خمّن بين 1-100</div>
+      <div id="numgame-status" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px">فكّر برقم وحاول تخمينه!</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="numgame-input" type="number" min="1" max="100" placeholder="رقمك..." class="form-input" style="flex:1;padding:7px 10px;font-size:0.82rem">
+        <button class="toolbar-btn" onclick="guessNumber()" style="color:#a29bfe;border-color:#a29bfe40"><i class="fas fa-check"></i> خمّن</button>
+        <button class="toolbar-btn" onclick="newNumberGame()"><i class="fas fa-redo"></i> جديد</button>
+      </div>
+    </div>
+
+    <!-- Movies: Rating Modal -->
+    <div id="rating-modal">
+      <div class="rating-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-weight:800;font-size:0.9rem">⭐ قيّم عمل</div>
+          <button onclick="closeRating()" style="background:none;border:none;color:var(--text-muted);cursor:pointer"><i class="fas fa-times"></i></button>
+        </div>
+        <input class="form-input" id="rating-title" placeholder="اسم الفيلم / المسلسل..." style="margin-bottom:10px">
+        <div class="star-selector" id="star-selector">
+          <span onclick="setStar(1)">⭐</span><span onclick="setStar(2)">⭐</span>
+          <span onclick="setStar(3)">⭐</span><span onclick="setStar(4)">⭐</span>
+          <span onclick="setStar(5)">⭐</span>
+        </div>
+        <textarea class="form-input" id="rating-review" placeholder="رأيك (اختياري)..." rows="2" style="margin-bottom:10px;resize:none"></textarea>
+        <button class="btn-gold" style="width:100%" onclick="submitRating()"><i class="fas fa-paper-plane"></i> أرسل التقييم للشات</button>
+      </div>
     </div>
 
     <!-- Pinned Message -->
@@ -1910,6 +2155,7 @@ function showApp() {
   startPollListener();
   const defaultRoom = ROOMS.find(r => r.id === currentRoom);
   if (defaultRoom) applyRoomTheme(defaultRoom);
+  initRoomFeatures(currentRoom);
   setTimeout(() => msgInput.focus(), 400);
 }
 
@@ -1942,6 +2188,7 @@ function switchRoom(roomId) {
   const room = ROOMS.find(r => r.id === roomId);
   if (room) applyRoomTheme(room);
   loadMessages();
+  initRoomFeatures(roomId);
   closeSidebar();
 }
 
@@ -2287,9 +2534,8 @@ function renderMessage(m, docId) {
 // ======================== PARSE TEXT (MENTIONS) ========================
 function parseText(text) {
   if (!text) return '';
-  // Mentions
+  text = parseSpoiler(text);
   text = text.replace(/@(\S+)/g, '<span class="mention">@$1</span>');
-  // URLs (basic)
   text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--blue);word-break:break-all">$1</a>');
   return text;
 }
@@ -2843,6 +3089,455 @@ async function clearChat() {
     await batch.commit();
     showToast('تم مسح الرسائل 🗑️', 'success');
   } catch (e) { showToast('خطأ: ' + e.message, 'error'); }
+}
+
+// ======================== ROOM FEATURES ENGINE ========================
+
+// ---- DATA ----
+const DAILY_TOPICS = {
+  general: [
+    { icon:'🤔', text:'هل تعتقد أن الذكاء الاصطناعي سيغير حياتنا خلال 10 سنوات؟', badge:'نقاش' },
+    { icon:'🌍', text:'لو سافرت لأي مكان بالعالم مجاناً، وين تروح؟', badge:'سؤال' },
+    { icon:'💭', text:'ما هو أصعب قرار اتخذته في حياتك؟', badge:'عميق' },
+    { icon:'🎯', text:'ما هي عادة واحدة غيرت حياتك للأفضل؟', badge:'تحدي' },
+    { icon:'🔥', text:'ألعاب أم أفلام: أيهما يقدم قصصاً أعمق؟', badge:'جدل' },
+  ],
+  gaming: [
+    { icon:'🎮', text:'تحدي اليوم: شارك أصعب لحظة واجهتها في أي لعبة!', badge:'تحدي' },
+    { icon:'🏆', text:'ما هي أفضل لعبة لعبتها في حياتك وليش؟', badge:'سؤال' },
+    { icon:'🔥', text:'PC vs Console vs Mobile: أيهما يستحق؟', badge:'جدل' },
+    { icon:'💀', text:'شارك أغرب bug شفته في لعبة!', badge:'مضحك' },
+    { icon:'⚔️', text:'لو تلعب مع أي شخصية من أي لعبة، مين تختار؟', badge:'خيال' },
+  ],
+  anime: [
+    { icon:'⛩️', text:'ما هو أفضل أنمي شاهدته وغيّر نظرتك للحياة؟', badge:'عميق' },
+    { icon:'😭', text:'ما هو المشهد الذي بكيت فيه أكثر في أنمي؟', badge:'emoción' },
+    { icon:'⚔️', text:'تحدي: اشرح قصة أنمي بجملة واحدة!', badge:'تحدي' },
+    { icon:'🏆', text:'أقوى شخصية في تاريخ الأنمي؟ ليش؟', badge:'جدل' },
+    { icon:'🌸', text:'أي أنمي تتمنى لو صحيت يوماً وأنت بداخله؟', badge:'خيال' },
+  ],
+  movies: [
+    { icon:'🎬', text:'ما هو آخر فيلم شاهدته وكيف تقيّمه من 10؟', badge:'تقييم' },
+    { icon:'🍿', text:'فيلم الأسبوع: اقترح فيلماً للمجموعة!', badge:'اقتراح' },
+    { icon:'😱', text:'ما هو أكثر twist في فيلم صدمك؟ (بدون spoiler!)', badge:'جدل' },
+    { icon:'🎭', text:'أفضل ممثل/ة تعتقد أنهم لم ينالوا حقهم من الشهرة؟', badge:'رأي' },
+    { icon:'🔮', text:'ما هو فيلم خيال علمي تتمنى أن يتحقق في الواقع؟', badge:'خيال' },
+  ],
+  random: [
+    { icon:'🎲', text:'سؤال عشوائي: لو كنت حيواناً، ما هو؟ وليش؟', badge:'عشوائي' },
+    { icon:'🌚', text:'أغرب سؤال تساءلته الساعة 3 صباحاً؟', badge:'3AM' },
+    { icon:'🤡', text:'ما هو أغرب شيء فعلته بحياتك؟', badge:'هيكي' },
+    { icon:'💀', text:'لو اخترت superpower واحدة، ماذا تختار؟', badge:'خيال' },
+    { icon:'🗿', text:'ما هو أكثر شيء تفعله بدون سبب؟', badge:'كوميدي' },
+  ],
+  vip: [
+    { icon:'👑', text:'نصيحة VIP اليوم: شارك أفضل نصيحة تلقيتها في حياتك', badge:'حكمة' },
+    { icon:'💎', text:'ما هو هدفك الكبير للسنة القادمة؟', badge:'طموح' },
+    { icon:'🏆', text:'ما هو إنجازك الذي تفخر به أكثر؟', badge:'فخر' },
+  ],
+};
+
+const RANDOM_QUESTIONS = [
+  'لو استيقظت غداً بقدرة خارقة واحدة، ماذا تختار؟ 🦸',
+  'ما هو الشيء الذي تعرفه أنت فقط عن نفسك؟ 🤫',
+  'لو كنت تستطيع حذف اختراع واحد من التاريخ، ماذا تحذف؟ 🗑️',
+  'ما هو اليوم الذي تتمنى لو تعيشه مرة أخرى؟ ⏰',
+  'لو أعطوك مليون دولار لكن لا تستطيع إخبار أحد، هل تقبل؟ 💰',
+  'ما هو الكتاب أو الفيلم الذي غيّر تفكيرك؟ 📚',
+  'لو تستطيع التحدث مع نفسك قبل 5 سنوات، ماذا تقول؟ 💭',
+  'ما هو شيء يعتقد الناس أنه صعب لكنك تجده سهلاً؟ 😏',
+  'لو اخترت حيواناً يمثل شخصيتك، ما هو؟ 🐾',
+  'ما هو أكبر خوف لديك ولا تعترف به عادةً؟ 😨',
+  'لو استطعت أن تتقن أي مهارة فوراً، ماذا تختار؟ ⚡',
+  'ما هو الشيء الذي تتمنى لو تعلمته مبكراً في حياتك؟ 🎯',
+];
+
+const TRUTH_QUESTIONS = [
+  'ما هو أكثر شيء تندم عليه في حياتك؟',
+  'من هو الشخص الذي أثّر فيك أكثر؟ وكيف؟',
+  'ما هو الكذب الأبيض الأكبر الذي قلته؟',
+  'ما هو حلمك السري الذي لا تخبر أحداً به؟',
+  'ما هو الشيء الذي تفعله ولا تريد أحداً أن يعلم؟',
+  'لو يعلم أصحابك شيئاً واحداً عنك، ماذا تتمنى؟',
+  'ما هو أصعب قرار اتخذته وندمت عليه؟',
+];
+
+const DARE_CHALLENGES = [
+  'أرسل رسالة صوتية بصوت مضحك تقول فيها: "أنا البطل الأسطوري!" 🎙️',
+  'اكتب رسالة كاملة باستخدام إيموجيات فقط! 😂',
+  'اكتب مدح لأغرب شيء في غرفتك الآن! 🏠',
+  'أرسل صورة لأقرب شيء أصفر اللون بجانبك! 💛',
+  'اكتب قصيدة قصيرة عن الإنترنت في 3 أسطر! 📝',
+  'قل 10 كلمات تبدأ بحرف "ش" في 10 ثواني! ⏱️',
+  'اكتب جملة كاملة بالحروف معكوسة! 🔄',
+];
+
+const ANIME_WORDS = [
+  { jp: 'ありがとう', roman: 'Arigatou', meaning: 'شكراً جزيلاً' },
+  { jp: '頑張って', roman: 'Ganbatte', meaning: 'حظاً موفقاً / اجتهد' },
+  { jp: '仲間', roman: 'Nakama', meaning: 'الرفيق / الصديق المقرب' },
+  { jp: '運命', roman: 'Unmei', meaning: 'القدر / المصير' },
+  { jp: '力', roman: 'Chikara', meaning: 'القوة' },
+  { jp: '覚悟', roman: 'Kakugo', meaning: 'الاستعداد / العزم' },
+  { jp: '絆', roman: 'Kizuna', meaning: 'الرابطة / الصلة العميقة' },
+  { jp: '夢', roman: 'Yume', meaning: 'الحلم' },
+  { jp: '勝利', roman: 'Shouri', meaning: 'النصر' },
+  { jp: '諦めない', roman: 'Akiramenai', meaning: 'لا تستسلم!' },
+];
+
+// ---- NUMBER GAME STATE ----
+let numGameSecret = 0;
+let numGameTries = 0;
+
+// ---- STAR RATING STATE ----
+let selectedStars = 0;
+
+// ---- INIT ROOM FEATURES ----
+function initRoomFeatures(roomId) {
+  // Hide all feature bars first
+  ['daily-bar','live-sessions','anime-word','random-q-bar','tod-bar',
+   'numgame-bar','room-toolbar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('show'); el.style.display = ''; }
+  });
+
+  // Build toolbar & features per room
+  const toolbar = document.getElementById('room-toolbar');
+  toolbar.innerHTML = '';
+
+  if (roomId === 'gaming') {
+    buildToolbar([
+      { icon:'🔴', label:'جلسة مباشرة', fn:'toggleLiveSession()' },
+      { icon:'📊', label:'بول الأسبوع', fn:'showWeeklyPoll()' },
+      { icon:'🎯', label:'تحدي اليوم', fn:'toggleDailyBar()' },
+      { icon:'📸', label:'شارك لقطة', fn:'sendPhoto()' },
+    ]);
+    showDailyBar(roomId);
+    loadLiveSessions();
+  }
+
+  else if (roomId === 'anime') {
+    buildToolbar([
+      { icon:'🌸', label:'كلمة اليوم', fn:'toggleAnimeWord()' },
+      { icon:'🗳️', label:'بول الشخصيات', fn:'showAnimePoll()' },
+      { icon:'⚠️', label:'Spoiler Tag', fn:'insertSpoilerTag()' },
+      { icon:'📅', label:'أنمي الموسم', fn:'showSeasonAnime()' },
+    ]);
+    showDailyBar(roomId);
+    showAnimeWord();
+  }
+
+  else if (roomId === 'movies') {
+    buildToolbar([
+      { icon:'⭐', label:'قيّم عمل', fn:'openRating()' },
+      { icon:'🎬', label:'فيلم الأسبوع', fn:'showMovieOfWeek()' },
+      { icon:'🔮', label:'Spoiler Tag', fn:'insertSpoilerTag()' },
+      { icon:'🎭', label:'بول أفضل فيلم', fn:'showMoviePoll()' },
+    ]);
+    showDailyBar(roomId);
+  }
+
+  else if (roomId === 'general') {
+    buildToolbar([
+      { icon:'📰', label:'موضوع اليوم', fn:'toggleDailyBar()' },
+      { icon:'🎵', label:'أنا أسمع...', fn:'sendSpotifyStatus()' },
+      { icon:'🌐', label:'ترجمة', fn:'showTranslateHelp()' },
+    ]);
+    showDailyBar(roomId);
+  }
+
+  else if (roomId === 'random') {
+    buildToolbar([
+      { icon:'🎲', label:'سؤال عشوائي', fn:'toggleRandomQ()' },
+      { icon:'🎭', label:'Truth or Dare', fn:'toggleTOD()' },
+      { icon:'🎰', label:'لعبة الأرقام', fn:'toggleNumGame()' },
+      { icon:'😂', label:'ميم اليوم', fn:'showMemeOfDay()' },
+    ]);
+    newNumberGame();
+  }
+
+  else if (roomId === 'vip') {
+    buildToolbar([
+      { icon:'👑', label:'نصيحة VIP', fn:'toggleDailyBar()' },
+      { icon:'💎', label:'إحصائياتي', fn:'showMyStats()' },
+      { icon:'🎁', label:'XP مضاعف', fn:'showVIPReward()' },
+    ]);
+    showDailyBar(roomId);
+  }
+}
+
+function buildToolbar(buttons) {
+  const toolbar = document.getElementById('room-toolbar');
+  toolbar.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'toolbar-btn';
+    btn.innerHTML = `${b.icon} ${b.label}`;
+    btn.setAttribute('onclick', b.fn);
+    toolbar.appendChild(btn);
+  });
+}
+
+// ---- DAILY BAR ----
+function showDailyBar(roomId) {
+  const topics = DAILY_TOPICS[roomId] || DAILY_TOPICS.general;
+  const dayIdx = new Date().getDay() % topics.length;
+  const topic = topics[dayIdx];
+  const bar = document.getElementById('daily-bar');
+  document.getElementById('daily-icon').innerText = topic.icon;
+  document.getElementById('daily-text').innerText = topic.text;
+  document.getElementById('daily-badge').innerText = topic.badge;
+  bar.classList.add('show');
+  bar.onclick = () => {
+    if (confirm('إرسال موضوع اليوم للشات؟')) {
+      sendSystemLike(`${topic.icon} موضوع اليوم: ${topic.text}`);
+    }
+  };
+}
+
+function toggleDailyBar() {
+  const bar = document.getElementById('daily-bar');
+  bar.classList.toggle('show');
+}
+
+// ---- LIVE GAMING SESSIONS ----
+async function toggleLiveSession() {
+  const ref = db.collection('liveSessions').doc(auth.currentUser.email);
+  const doc = await ref.get();
+  if (doc.exists) {
+    await ref.delete();
+    showToast('انتهت جلستك المباشرة', 'info');
+  } else {
+    const game = prompt('ما اللعبة التي تلعبها الآن؟');
+    if (!game) return;
+    await ref.set({ name: myData.name, game, email: auth.currentUser.email, time: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast(`🔴 جلستك المباشرة في ${game} بدأت!`, 'gold');
+    sendSystemLike(`🔴 ${myData.name} يلعب الآن: ${game}`);
+  }
+}
+
+function loadLiveSessions() {
+  db.collection('liveSessions').onSnapshot(snap => {
+    const cont = document.getElementById('live-sessions');
+    cont.innerHTML = '';
+    snap.forEach(doc => {
+      const s = doc.data();
+      const chip = document.createElement('div');
+      chip.className = 'session-chip';
+      const isMe = s.email === auth.currentUser.email;
+      chip.innerHTML = `<span class="live-dot"></span> <b style="color:var(--room-color)">${s.name}</b> يلعب ${s.game} ${isMe ? '<span style="color:var(--red);font-size:0.6rem">● أنت</span>' : ''}`;
+      if (isMe) chip.onclick = toggleLiveSession;
+      cont.appendChild(chip);
+    });
+  });
+}
+
+// ---- ANIME WORD ----
+function showAnimeWord() {
+  const dayIdx = new Date().getDay() % ANIME_WORDS.length;
+  const w = ANIME_WORDS[dayIdx];
+  document.getElementById('jp-word').innerText = w.jp;
+  document.getElementById('jp-roman').innerText = w.roman;
+  document.getElementById('jp-meaning').innerText = w.meaning;
+  document.getElementById('anime-word').classList.add('show');
+}
+
+function toggleAnimeWord() {
+  document.getElementById('anime-word').classList.toggle('show');
+}
+
+// ---- RANDOM QUESTION ----
+let currentRandomQ = '';
+function toggleRandomQ() {
+  const bar = document.getElementById('random-q-bar');
+  bar.classList.toggle('show');
+  if (bar.classList.contains('show')) generateRandomQ();
+}
+
+function generateRandomQ() {
+  const q = RANDOM_QUESTIONS[Math.floor(Math.random() * RANDOM_QUESTIONS.length)];
+  currentRandomQ = q;
+  document.getElementById('random-q-text').innerText = q;
+}
+
+function sendRandomQToChat() {
+  if (!currentRandomQ) return;
+  sendSystemLike(`🎲 سؤال عشوائي: ${currentRandomQ}`);
+  showToast('تم إرسال السؤال للشات!', 'success');
+}
+
+// ---- TRUTH OR DARE ----
+let currentTOD = '';
+function toggleTOD() {
+  const bar = document.getElementById('tod-bar');
+  bar.classList.toggle('show');
+}
+
+function getTOD(type) {
+  const list = type === 'truth' ? TRUTH_QUESTIONS : DARE_CHALLENGES;
+  const item = list[Math.floor(Math.random() * list.length)];
+  currentTOD = `${type === 'truth' ? '🧠 Truth' : '🔥 Dare'}: ${item}`;
+  document.getElementById('tod-text').innerText = currentTOD;
+}
+
+function sendTODToChat() {
+  if (!currentTOD) return getTOD('truth');
+  sendSystemLike(`🎭 ${currentTOD}`);
+  showToast('تم الإرسال!', 'success');
+}
+
+// ---- NUMBER GAME ----
+function toggleNumGame() {
+  const bar = document.getElementById('numgame-bar');
+  bar.classList.toggle('show');
+}
+
+function newNumberGame() {
+  numGameSecret = Math.floor(Math.random() * 100) + 1;
+  numGameTries = 0;
+  const status = document.getElementById('numgame-status');
+  if (status) status.innerText = 'فكّرت برقم بين 1 و 100... خمّن! 🎰';
+  const input = document.getElementById('numgame-input');
+  if (input) input.value = '';
+}
+
+function guessNumber() {
+  const val = parseInt(document.getElementById('numgame-input').value);
+  if (!val || val < 1 || val > 100) return showToast('أدخل رقماً بين 1 و 100', 'error');
+  numGameTries++;
+  const status = document.getElementById('numgame-status');
+  if (val === numGameSecret) {
+    status.innerHTML = `🎉 صح! الرقم كان <b style="color:var(--room-color)">${numGameSecret}</b> وأجبت في ${numGameTries} محاولة!`;
+    sendSystemLike(`🎰 ${myData.name} خمّن الرقم ${numGameSecret} في ${numGameTries} محاولة! 🎉`);
+    setTimeout(newNumberGame, 3000);
+  } else if (val < numGameSecret) {
+    status.innerText = `⬆️ أكبر! المحاولة ${numGameTries}`;
+  } else {
+    status.innerText = `⬇️ أصغر! المحاولة ${numGameTries}`;
+  }
+}
+
+// ---- RATING SYSTEM ----
+function openRating() {
+  selectedStars = 0;
+  document.querySelectorAll('.star-selector span').forEach(s => s.classList.remove('active'));
+  document.getElementById('rating-title').value = '';
+  document.getElementById('rating-review').value = '';
+  document.getElementById('rating-modal').classList.add('show');
+}
+
+function closeRating() {
+  document.getElementById('rating-modal').classList.remove('show');
+}
+
+function setStar(n) {
+  selectedStars = n;
+  document.querySelectorAll('.star-selector span').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+
+async function submitRating() {
+  const title = document.getElementById('rating-title').value.trim();
+  const review = document.getElementById('rating-review').value.trim();
+  if (!title) return showToast('أدخل اسم العمل', 'error');
+  if (!selectedStars) return showToast('اختر عدد النجوم', 'error');
+  const stars = '⭐'.repeat(selectedStars);
+  const msg = `🎬 تقييم ${myData.name}:\n📽️ ${title}\n${stars} (${selectedStars}/5)\n${review ? `💬 ${review}` : ''}`;
+  await sendSystemLike(msg);
+  closeRating();
+  showToast('تم إرسال تقييمك!', 'success');
+}
+
+// ---- SPOILER TAG ----
+function insertSpoilerTag() {
+  const pos = msgInput.selectionStart;
+  const before = msgInput.value.slice(0, pos);
+  const after = msgInput.value.slice(pos);
+  msgInput.value = before + '[spoiler]نص الـ spoiler هنا[/spoiler]' + after;
+  msgInput.focus();
+  showToast('أضف النص داخل [spoiler]...[/spoiler]', 'info');
+}
+
+// ---- SPOTIFY STATUS ----
+function sendSpotifyStatus() {
+  const song = prompt('ما الأغنية التي تسمعها الآن؟ (الاسم - الفنان)');
+  if (!song) return;
+  sendSystemLike(`🎵 ${myData.name} يسمع الآن: ${song}`);
+}
+
+// ---- POLLS ----
+function showWeeklyPoll() {
+  document.getElementById('pollTitle').value = 'أفضل لعبة هذا الأسبوع؟';
+  document.getElementById('pollOptions').value = 'Warzone, Elden Ring, Valorant, FC25';
+  document.getElementById('pollDuration').value = '300';
+  document.getElementById('poll-creator').style.display = 'flex';
+}
+
+function showAnimePoll() {
+  document.getElementById('pollTitle').value = 'أفضل شخصية في الأنمي؟';
+  document.getElementById('pollOptions').value = 'ناروتو, لوفي, غوكو, إيتاشي, ليفي';
+  document.getElementById('pollDuration').value = '300';
+  document.getElementById('poll-creator').style.display = 'flex';
+}
+
+function showMoviePoll() {
+  document.getElementById('pollTitle').value = 'أفضل فيلم على الإطلاق؟';
+  document.getElementById('pollOptions').value = 'Inception, The Dark Knight, Interstellar, Parasite';
+  document.getElementById('pollDuration').value = '300';
+  document.getElementById('poll-creator').style.display = 'flex';
+}
+
+function showMovieOfWeek() {
+  document.getElementById('pollTitle').value = 'فيلم الأسبوع - ما رأيك نشاهده؟';
+  document.getElementById('pollOptions').value = 'Oppenheimer, Dune 2, Past Lives, Poor Things';
+  document.getElementById('pollDuration').value = '600';
+  document.getElementById('poll-creator').style.display = 'flex';
+}
+
+function showSeasonAnime() {
+  sendSystemLike('📅 أنمي الموسم الحالي الأبرز:\n🔥 Demon Slayer S4\n⚔️ Blue Lock S2\n🌸 Frieren\n👁️ Chainsaw Man S2\nشارك رأيك عن أفضلها!');
+}
+
+function showTranslateHelp() {
+  showToast('لترجمة رسالة، اضغط عليها مطولاً واختر "ترجمة"', 'info', 4000);
+}
+
+function showMyStats() {
+  const xp = myData?.xp || 0;
+  const rank = getRank(myData?.joinDate, auth.currentUser.email, xp);
+  sendSystemLike(`📊 إحصائيات ${myData.name}:\n🏆 الرتبة: ${rank.n}\n⚡ XP: ${xp.toLocaleString()}\n💬 عضو في GAME ZONE VIP`);
+}
+
+function showVIPReward() {
+  showToast('🎁 XP مضاعف كل جمعة للأعضاء VIP! ابقَ نشطاً.', 'gold', 5000);
+}
+
+function showMemeOfDay() {
+  const memes = [
+    'https://i.imgur.com/placeholder1.jpg',
+  ];
+  showToast('😂 ميم اليوم: شارك أضحك ميم عندك في الشات!', 'info', 4000);
+  sendSystemLike('😂 وقت الميمز! شارك أضحك ميم عندك 👇');
+}
+
+// ---- PARSE SPOILER TAGS IN MESSAGES ----
+function parseSpoiler(text) {
+  return text.replace(/\[spoiler\](.*?)\[\/spoiler\]/gs, (_, content) =>
+    `<span class="spoiler" onclick="this.classList.toggle('revealed')" title="اضغط لإظهار السبويلر">${content}</span>`
+  );
+}
+
+// ---- SEND SYSTEM-LIKE USER MESSAGE ----
+async function sendSystemLike(text) {
+  try {
+    await db.collection('messages').add({
+      text, sender: myData.email, name: myData.name,
+      joinDate: myData.joinDate || null, xp: myData.xp || 0,
+      room: currentRoom, time: firebase.firestore.FieldValue.serverTimestamp(),
+      reactions: {}
+    });
+  } catch (e) { showToast('خطأ في الإرسال', 'error'); }
 }
 
 // ======================== PWA ========================
