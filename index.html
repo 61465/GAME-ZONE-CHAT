@@ -2041,10 +2041,15 @@ body {
 
   <!-- URL Input -->
   <div style="display:flex;gap:8px;margin-bottom:12px">
-    <input class="form-input" id="radio-url-input" placeholder="🔗 الصق رابط أغنية أو يوتيوب أو راديو مباشر..." style="flex:1;font-size:0.78rem">
+    <input class="form-input" id="radio-url-input" placeholder="🔗 رابط يوتيوب أو راديو مباشر..." style="flex:1;font-size:0.78rem">
     <button class="btn-gold" onclick="startRadio()" style="padding:8px 14px;white-space:nowrap;font-size:0.78rem">
       <i class="fas fa-play"></i> بث
     </button>
+  </div>
+
+  <!-- YouTube Player (hidden iframe) -->
+  <div id="yt-player-wrap" style="display:none;border-radius:12px;overflow:hidden;margin-bottom:10px">
+    <div id="yt-player"></div>
   </div>
 
   <!-- Quick Radio Stations -->
@@ -2055,9 +2060,10 @@ body {
     <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/f3wvbbqmdg8uv','🎺 Jazz')">🎺 Jazz</button>
     <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/4d1gndwka08uv','🌊 Chill')">🌊 Chill</button>
     <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/rbw6q4xq5s8uv','⚡ EDM')">⚡ EDM</button>
+    <button class="toolbar-btn" onclick="quickRadio('yt:jfKfPfyJRdk','🎵 Lofi YT Live')" style="color:#ff6b6b;border-color:#ff6b6b44">▶ YT Lofi</button>
   </div>
 
-  <!-- Hidden audio element -->
+  <!-- Hidden audio element for direct streams -->
   <audio id="radio-audio" style="display:none" crossorigin="anonymous"></audio>
 </div>
 
@@ -2324,6 +2330,7 @@ body {
   </main>
 </div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -4349,38 +4356,103 @@ let recognition = null;
 let transcriptOn = false;
 
 function toggleTranscript() {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    return showToast('متصفحك لا يدعم النص التلقائي', 'error');
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    return showToast('متصفحك لا يدعم النص التلقائي — استخدم Chrome', 'error');
   }
   const box = document.getElementById('ai-transcript');
+  const btn = document.getElementById('btn-transcript');
+
   if (transcriptOn) {
     recognition?.stop();
+    recognition = null;
     transcriptOn = false;
     box.classList.remove('show');
+    if (btn) { btn.style.background = 'rgba(52,152,219,0.1)'; btn.style.borderColor = 'rgba(52,152,219,0.3)'; }
+    showToast('📝 تم إيقاف النص التلقائي', 'info');
     return;
   }
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+  recognition = new SpeechRec();
   recognition.lang = 'ar-SA';
   recognition.continuous = true;
   recognition.interimResults = true;
-  recognition.onresult = e => {
-    let text = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      text += e.results[i][0].transcript;
-    }
-    document.getElementById('transcript-text').innerText = text;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    transcriptOn = true;
+    box.classList.add('show');
+    if (btn) { btn.style.background = 'rgba(52,152,219,0.25)'; btn.style.borderColor = '#3498db'; }
+    showToast('📝 النص التلقائي مفعّل — تكلم الآن', 'success');
   };
-  recognition.onerror = () => { transcriptOn = false; box.classList.remove('show'); };
-  recognition.start();
-  transcriptOn = true;
-  box.classList.add('show');
-  showToast('📝 النص التلقائي مفعّل', 'success');
+
+  recognition.onresult = e => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t + ' ';
+      else interim += t;
+    }
+    const el = document.getElementById('transcript-text');
+    if (el) el.innerHTML = (final ? `<span style="color:var(--text)">${final}</span>` : '') +
+      (interim ? `<span style="color:var(--text-muted);font-style:italic">${interim}</span>` : '');
+  };
+
+  recognition.onerror = e => {
+    if (e.error === 'not-allowed') {
+      showToast('❌ يجب السماح بالميكروفون في المتصفح', 'error');
+    } else if (e.error === 'network') {
+      showToast('❌ تحتاج اتصال إنترنت للنص التلقائي', 'error');
+    } else if (e.error !== 'aborted') {
+      showToast('خطأ في النص: ' + e.error, 'error');
+    }
+    transcriptOn = false;
+    box.classList.remove('show');
+    if (btn) { btn.style.background = 'rgba(52,152,219,0.1)'; btn.style.borderColor = 'rgba(52,152,219,0.3)'; }
+  };
+
+  recognition.onend = () => {
+    // Auto-restart if still enabled
+    if (transcriptOn) {
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch(e) {
+    showToast('تعذّر تشغيل النص التلقائي: ' + e.message, 'error');
+  }
 }
 
 // ======================== RADIO SYSTEM ========================
 let radioAudio = null;
 let isRadioPlaying = false;
 let radioUnsubscribe = null;
+let ytPlayer = null;
+let ytReady = false;
+
+// Called automatically by YouTube IFrame API when ready
+window.onYouTubeIframeAPIReady = function() {
+  ytReady = true;
+};
+
+function extractYouTubeID(url) {
+  // Handle: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/live/ID, yt:ID
+  if (url.startsWith('yt:')) return url.slice(3);
+  const patterns = [
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/watch\?v=([^&\s]+)/,
+    /youtube\.com\/live\/([^?&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
 
 function toggleRadioPanel() {
   document.getElementById('radio-panel').classList.toggle('show');
@@ -4389,7 +4461,10 @@ function toggleRadioPanel() {
 async function startRadio() {
   const url = document.getElementById('radio-url-input').value.trim();
   if (!url) return showToast('أدخل رابط الأغنية أو الراديو', 'error');
-  await broadcastRadio(url, url);
+  const ytId = extractYouTubeID(url);
+  const broadcastUrl = ytId ? ('yt:' + ytId) : url;
+  const name = ytId ? '▶ يوتيوب' : url;
+  await broadcastRadio(broadcastUrl, name);
 }
 
 async function quickRadio(url, name) {
@@ -4398,7 +4473,6 @@ async function quickRadio(url, name) {
 
 async function broadcastRadio(url, name) {
   try {
-    // Save to Firebase so all members get it
     await db.collection('voiceChannels').doc(currentRoom)
       .collection('radio').doc('current').set({
         url, name,
@@ -4422,16 +4496,51 @@ async function stopRadio() {
 function setRadioVolume(val) {
   document.getElementById('radio-vol-val').innerText = val + '%';
   if (radioAudio) radioAudio.volume = val / 100;
+  if (ytPlayer?.setVolume) ytPlayer.setVolume(parseInt(val));
 }
 
 function playRadioLocally(url, name) {
-  if (radioAudio) { radioAudio.pause(); radioAudio.src = ''; }
-  radioAudio = document.getElementById('radio-audio');
-  radioAudio.src = url;
-  radioAudio.volume = (document.getElementById('radio-vol')?.value || 70) / 100;
-  radioAudio.play().catch(() => {});
-  isRadioPlaying = true;
+  const ytId = extractYouTubeID(url) || (url.startsWith('yt:') ? url.slice(3) : null);
 
+  if (ytId) {
+    // YouTube mode
+    if (radioAudio) { radioAudio.pause(); radioAudio.src = ''; }
+    document.getElementById('radio-audio').style.display = 'none';
+    const wrap = document.getElementById('yt-player-wrap');
+    wrap.style.display = 'block';
+
+    const vol = parseInt(document.getElementById('radio-vol')?.value || 70);
+
+    if (ytPlayer) {
+      ytPlayer.loadVideoById(ytId);
+      ytPlayer.setVolume(vol);
+    } else if (ytReady) {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '140', width: '100%',
+        videoId: ytId,
+        playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: e => { e.target.setVolume(vol); e.target.playVideo(); },
+          onError: () => showToast('خطأ في تشغيل الفيديو — تأكد من صحة الرابط', 'error')
+        }
+      });
+    } else {
+      // YT API not ready yet — retry
+      setTimeout(() => playRadioLocally(url, name), 800);
+      return;
+    }
+  } else {
+    // Direct stream / audio URL mode
+    document.getElementById('yt-player-wrap').style.display = 'none';
+    if (ytPlayer) { try { ytPlayer.stopVideo(); } catch(e){} }
+
+    radioAudio = document.getElementById('radio-audio');
+    radioAudio.src = url;
+    radioAudio.volume = (document.getElementById('radio-vol')?.value || 70) / 100;
+    radioAudio.play().catch(() => showToast('تعذّر تشغيل البث المباشر', 'error'));
+  }
+
+  isRadioPlaying = true;
   document.getElementById('radio-track-name').innerText = name;
   document.getElementById('radio-now-playing').style.display = 'block';
   document.getElementById('radio-disc').classList.add('spinning');
@@ -4440,10 +4549,13 @@ function playRadioLocally(url, name) {
 
 function stopRadioLocally() {
   if (radioAudio) { radioAudio.pause(); radioAudio.src = ''; }
+  if (ytPlayer) { try { ytPlayer.stopVideo(); } catch(e){} }
+  document.getElementById('yt-player-wrap').style.display = 'none';
   isRadioPlaying = false;
-  document.getElementById('radio-now-playing').style.display = 'none';
-  document.getElementById('radio-disc').classList.remove('spinning');
-  document.getElementById('btn-radio').classList.remove('playing');
+  const np = document.getElementById('radio-now-playing');
+  if (np) np.style.display = 'none';
+  document.getElementById('radio-disc')?.classList.remove('spinning');
+  document.getElementById('btn-radio')?.classList.remove('playing');
 }
 
 function listenRadio(roomId) {
