@@ -598,6 +598,75 @@ body {
 
 .bubble.me .reply-box { border-right-color: rgba(0,0,0,0.3); }
 
+/* Voice Reply */
+.voice-reply-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(46,204,113,0.08);
+  border: 1px solid rgba(46,204,113,0.2);
+  border-radius: 20px;
+  padding: 7px 12px;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.voice-reply-player:hover { background: rgba(46,204,113,0.15); }
+.voice-reply-play-btn {
+  width: 30px; height: 30px;
+  background: rgba(46,204,113,0.2);
+  border: 1px solid rgba(46,204,113,0.4);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #2ecc71;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.voice-reply-play-btn:hover { background: rgba(46,204,113,0.35); transform: scale(1.1); }
+.voice-reply-waveform {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow: hidden;
+}
+.voice-reply-wave-bar {
+  width: 3px;
+  background: rgba(46,204,113,0.5);
+  border-radius: 2px;
+  transition: height 0.1s;
+}
+.voice-reply-duration {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+/* Recording UI */
+#voice-record-bar {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(231,76,60,0.1);
+  border-top: 1px solid rgba(231,76,60,0.25);
+  flex-shrink: 0;
+  animation: slideUp 0.3s ease;
+}
+#voice-record-bar.show { display: flex; }
+.record-pulse {
+  width: 10px; height: 10px;
+  background: #e74c3c;
+  border-radius: 50%;
+  animation: pulse 0.8s infinite;
+  flex-shrink: 0;
+}
+
+
 .chat-img {
   max-width: 100%;
   border-radius: 10px;
@@ -756,9 +825,10 @@ body {
 
 #reply-preview {
   background: rgba(212,175,55,0.08);
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-right: 3px solid var(--gold);
   display: none;
+  gap: 8px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
@@ -2181,8 +2251,9 @@ body {
       </div>
       <div class="header-actions">
         <button class="header-btn" onclick="toggleSearch()" title="بحث"><i class="fas fa-search"></i></button>
-        <button class="header-btn" onclick="document.getElementById('poll-creator').style.display='flex'" title="تصويت">
-          <i class="fas fa-vote-yea"></i>
+        <button class="header-btn" id="poll-bell-btn" onclick="togglePollBar()" title="التصويت" style="position:relative">
+          <i class="fas fa-bell"></i>
+          <span id="poll-bell-dot" style="display:none;position:absolute;top:4px;right:4px;width:7px;height:7px;background:#e74c3c;border-radius:50%;animation:pulse 1s infinite"></span>
         </button>
         <button class="header-btn" onclick="auth.signOut().then(()=>location.reload())" title="خروج">
           <i class="fas fa-sign-out-alt"></i>
@@ -2199,11 +2270,18 @@ body {
     <!-- Poll Bar -->
     <div id="poll-bar">
       <div class="poll-header">
-        <div class="poll-title-text" id="displayPollTitle"></div>
-        <div class="poll-timer-badge" id="poll-timer"><i class="fas fa-clock"></i> --:--</div>
+        <div class="poll-title-text" id="displayPollTitle">📊 التصويت</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="poll-timer-badge" id="poll-timer"><i class="fas fa-clock"></i> --:--</div>
+          <button onclick="togglePollBar()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.9rem;padding:2px 6px"><i class="fas fa-times"></i></button>
+        </div>
       </div>
       <div id="poll-options-container"></div>
-      <div style="font-size:0.6rem;color:var(--text-muted);margin-top:6px;text-align:center">
+      <div id="poll-empty-state" style="text-align:center;padding:10px 0;color:rgba(255,255,255,0.3);font-size:0.78rem">
+        لا يوجد تصويت نشط حالياً
+        <div style="margin-top:8px" id="poll-create-btn-wrap"></div>
+      </div>
+      <div style="font-size:0.6rem;color:var(--text-muted);margin-top:6px;text-align:center" id="poll-hint" style="display:none">
         <i class="fas fa-info-circle"></i> صوتك لا يُعدّل بعد الإدلاء به
       </div>
     </div>
@@ -2310,13 +2388,27 @@ body {
     <div id="voice-join-bar"></div>
 
     <!-- Input -->
+    <!-- Voice Record Bar -->
+    <div id="voice-record-bar">
+      <div class="record-pulse"></div>
+      <span style="font-size:0.78rem;color:#e74c3c;font-weight:700">جارٍ التسجيل...</span>
+      <span id="record-timer" style="font-family:monospace;font-size:0.78rem;color:rgba(255,255,255,0.5)">0:00</span>
+      <div style="flex:1"></div>
+      <button onclick="cancelVoiceRecord()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.85rem;padding:4px 8px"><i class="fas fa-times"></i> إلغاء</button>
+      <button onclick="sendVoiceRecord()" style="background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-family:'Tajawal',sans-serif"><i class="fas fa-paper-plane"></i> إرسال</button>
+    </div>
+
     <footer class="input-bar" style="position:relative">
       <div id="mention-list" class="mention-list"></div>
       <div id="emoji-panel"></div>
 
       <div id="reply-preview">
-        <div id="reply-text" style="font-size:0.7rem;color:var(--text-muted)"></div>
-        <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer;color:var(--red);font-size:0.8rem"></i>
+        <i class="fas fa-reply" style="color:var(--gold);font-size:0.7rem;flex-shrink:0"></i>
+        <div id="reply-text" style="font-size:0.7rem;color:var(--text-muted);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></div>
+        <button onclick="startVoiceReply()" title="رد صوتي" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:0.65rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer;color:var(--red);font-size:0.8rem;flex-shrink:0"></i>
       </div>
 
       <div class="input-extra">
@@ -2331,6 +2423,9 @@ body {
           <i class="fas fa-image"></i>
         </button>
         <textarea id="msgInput" placeholder="اكتب رسالة..." rows="1" oninput="handleInput(this)" autocomplete="off"></textarea>
+        <button id="voice-rec-btn" onmousedown="startVoiceRecord()" onmouseup="sendVoiceRecord()" ontouchstart="startVoiceRecord(event)" ontouchend="sendVoiceRecord(event)" title="رسالة صوتية" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 12px;border-radius:50%;width:42px;height:42px;flex-shrink:0;cursor:pointer;transition:all 0.2s">
+          <i class="fas fa-microphone" id="voice-rec-icon"></i>
+        </button>
         <button class="btn-gold" onclick="send()" title="إرسال" style="padding:10px 12px;border-radius:50%;width:42px;height:42px;flex-shrink:0">
           <i class="fas fa-paper-plane"></i>
         </button>
@@ -3140,6 +3235,16 @@ function renderMessage(m, docId) {
       const parsed = parseText(m.text);
       content += `<div>${parsed}</div>`;
     }
+    if (m.voiceUrl) {
+      const dur = m.voiceDuration ? formatVoiceDur(m.voiceDuration) : '0:00';
+      const bars = Array.from({length: 24}, (_,i) =>
+        `<div class="voice-reply-wave-bar" style="height:${4 + Math.random()*16}px"></div>`).join('');
+      content += `<div class="voice-reply-player" onclick="playVoiceMsg('${docId}','${m.voiceUrl}')">
+        <div class="voice-reply-play-btn" id="vplay-${docId}"><i class="fas fa-play" id="vplay-icon-${docId}"></i></div>
+        <div class="voice-reply-waveform">${bars}</div>
+        <span class="voice-reply-duration" id="vdur-${docId}">${dur}</span>
+      </div>`;
+    }
     if (m.image) {
       content += `<img src="${m.image}" class="chat-img" onclick="openLightbox('${m.image}')" onerror="this.src='https://via.placeholder.com/300x200/1a1a1a/666?text=صورة+غير+متاحة'" alt="صورة">`;
     }
@@ -3173,7 +3278,8 @@ function renderMessage(m, docId) {
   if (!isSys && !isDeleted) {
     const actionsAlign = isMe ? 'right' : 'left';
     let actions = `<div class="msg-actions ${actionsAlign}">
-      <button class="msg-action-btn" onclick="setReply('${(m.name||'').replace(/'/g,"\\'")}','${(m.text||'صورة').replace(/'/g,"\\'")}')"><i class="fas fa-reply"></i></button>`;
+      <button class="msg-action-btn" onclick="setReply('${(m.name||'').replace(/'/g,"\\'")}','${(m.text||'صورة').replace(/'/g,"\\'")}')"><i class="fas fa-reply"></i></button>
+      <button class="msg-action-btn" onclick="startVoiceReply('${docId}','${(m.name||'').replace(/'/g,"\\'")}')"><i class="fas fa-microphone"></i></button>`;
     if (isMe) {
       actions += `<button class="msg-action-btn" onclick="editMessage('${docId}','${(m.text||'').replace(/'/g,"\\'")}')"><i class="fas fa-edit"></i></button>`;
       actions += `<button class="msg-action-btn" onclick="deleteMyMessage('${docId}')" style="color:var(--red)"><i class="fas fa-trash"></i></button>`;
@@ -3188,15 +3294,6 @@ function renderMessage(m, docId) {
 
   div.innerHTML = content;
   msgBox.appendChild(div);
-}
-
-// ======================== PARSE TEXT (MENTIONS) ========================
-function parseText(text) {
-  if (!text) return '';
-  text = parseSpoiler(text);
-  text = text.replace(/@(\S+)/g, '<span class="mention">@$1</span>');
-  text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--blue);word-break:break-all">$1</a>');
-  return text;
 }
 
 // ======================== REACTIONS ========================
@@ -3587,16 +3684,43 @@ async function startPoll() {
   } catch (e) { showToast('خطأ: ' + e.message, 'error'); }
 }
 
+let pollBarVisible = false;
+
+function togglePollBar() {
+  const bar = document.getElementById('poll-bar');
+  pollBarVisible = !pollBarVisible;
+  bar.style.display = pollBarVisible ? 'block' : 'none';
+  // أخفِ النقطة الحمراء عند الفتح
+  if (pollBarVisible) {
+    const dot = document.getElementById('poll-bell-dot');
+    if (dot) dot.style.display = 'none';
+  }
+}
+
 function startPollListener() {
   db.collection('currentPoll').doc('active').onSnapshot(doc => {
-    const pollBar = document.getElementById('poll-bar');
     const container = document.getElementById('poll-options-container');
+    const emptyState = document.getElementById('poll-empty-state');
+    const hint = document.getElementById('poll-hint');
+    const bellDot = document.getElementById('poll-bell-dot');
+    const bellBtn = document.getElementById('poll-bell-btn');
     clearInterval(pollInterval);
 
     if (doc.exists && doc.data().active) {
       const data = doc.data();
-      pollBar.style.display = 'block';
+
+      // أظهر نقطة حمراء على الجرس + اهتزاز
+      if (bellDot) { bellDot.style.display = 'block'; }
+      if (bellBtn) {
+        bellBtn.style.color = '#e74c3c';
+        bellBtn.style.animation = 'shake 0.5s';
+        setTimeout(() => { bellBtn.style.animation = ''; bellBtn.style.color = ''; }, 600);
+      }
+
+      // إذا كان مفتوحاً اعرض المحتوى
       document.getElementById('displayPollTitle').innerText = '🗳️ ' + data.title;
+      if (emptyState) emptyState.style.display = 'none';
+      if (hint) hint.style.display = 'block';
       container.innerHTML = '';
 
       const totalVotes = Object.values(data.votes).reduce((a, b) => a + b, 0);
@@ -3614,6 +3738,9 @@ function startPollListener() {
         container.appendChild(btn);
       });
 
+      // إشعار toast للمستخدمين
+      showToast('🗳️ تصويت جديد: ' + data.title + ' — اضغط 🔔', 'gold', 4000);
+
       pollInterval = setInterval(() => {
         const left = Math.round((data.endTime - Date.now()) / 1000);
         if (left <= 0) {
@@ -3624,8 +3751,23 @@ function startPollListener() {
             `<i class="fas fa-clock"></i> ${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
         }
       }, 1000);
+
     } else {
-      pollBar.style.display = 'none';
+      // لا يوجد تصويت — أظهر الحالة الفارغة
+      if (bellDot) bellDot.style.display = 'none';
+      document.getElementById('displayPollTitle').innerText = '📊 التصويت';
+      container.innerHTML = '';
+      if (emptyState) {
+        emptyState.style.display = 'block';
+        const wrap = document.getElementById('poll-create-btn-wrap');
+        if (wrap && auth.currentUser?.email === FOUNDER_ID) {
+          wrap.innerHTML = `<button onclick="document.getElementById('poll-creator').style.display='flex';togglePollBar()" style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.3);color:var(--gold);padding:6px 16px;border-radius:20px;cursor:pointer;font-size:0.75rem;font-family:'Tajawal',sans-serif"><i class="fas fa-plus"></i> إنشاء تصويت</button>`;
+        }
+      }
+      if (hint) hint.style.display = 'none';
+      document.getElementById('poll-timer').innerHTML = '<i class="fas fa-clock"></i> --:--';
+      // أخفِ البار إذا كان مفتوحاً وانتهى التصويت
+      if (pollBarVisible) togglePollBar();
     }
   });
 }
@@ -4323,26 +4465,32 @@ function stopAllAmbient() {
 let reactUnsubscribe = null;
 
 async function sendVoiceReaction(emoji) {
-  // Show locally immediately
-  showReactionBurst(emoji);
-  // Broadcast to all
-  if (inVoiceChannel) {
-    await db.collection('voiceChannels').doc(currentRoom)
-      .collection('reactions').add({
-        emoji, sender: myData.name,
-        time: firebase.firestore.FieldValue.serverTimestamp()
-      });
+  if (!inVoiceChannel) {
+    // حتى لو مش في القناة، اعرض محلياً فقط
+    showReactionBurst(emoji);
+    return;
   }
+  // أرسل لـ Firebase — المستمع سيعرضها للجميع بما فيهم أنت
+  await db.collection('voiceChannels').doc(currentRoom)
+    .collection('reactions').add({
+      emoji, sender: myData.name,
+      time: firebase.firestore.FieldValue.serverTimestamp()
+    });
 }
 
 function showReactionBurst(emoji) {
-  const el = document.createElement('div');
-  el.className = 'reaction-burst';
-  el.innerText = emoji;
-  el.style.left = (20 + Math.random() * 60) + 'vw';
-  el.style.bottom = '120px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1500);
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'reaction-burst';
+      el.innerText = emoji;
+      el.style.left = (10 + Math.random() * 80) + 'vw';
+      el.style.bottom = '140px';
+      el.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
+    }, i * 100);
+  }
 }
 
 function listenVoiceReactions(roomId) {
@@ -4353,8 +4501,8 @@ function listenVoiceReactions(roomId) {
     .onSnapshot(snap => {
       snap.docChanges().forEach(change => {
         if (change.type === 'added') {
-          const d = change.doc.data();
-          if (d.sender !== myData?.name) showReactionBurst(d.emoji);
+          // اعرض للجميع بما فيهم المرسل
+          showReactionBurst(change.doc.data().emoji);
         }
       });
     });
@@ -4481,6 +4629,199 @@ function resetSpeechBtn() {
 // Keep old toggleTranscript as no-op to avoid errors
 function toggleTranscript() { startSpeechToSend(); }
 
+// ======================== VOICE RECORD (Push-to-Record) ========================
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingStream = null;
+let recordTimer = null;
+let recordSeconds = 0;
+let isRecording = false;
+let voiceReplyTargetId = null; // إذا كان رداً على رسالة
+let voiceReplyTargetName = null;
+let currentVoiceAudio = null; // للتشغيل
+
+async function startVoiceRecord(e) {
+  if (e) e.preventDefault();
+  if (isRecording) return;
+
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(recordingStream);
+    audioChunks = [];
+    isRecording = true;
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(100);
+
+    // UI
+    const btn = document.getElementById('voice-rec-btn');
+    const icon = document.getElementById('voice-rec-icon');
+    if (btn) { btn.style.background = 'rgba(231,76,60,0.3)'; btn.style.borderColor = '#e74c3c'; btn.style.color = '#e74c3c'; }
+    if (icon) icon.className = 'fas fa-circle';
+    document.getElementById('voice-record-bar').classList.add('show');
+
+    // Timer
+    recordSeconds = 0;
+    document.getElementById('record-timer').innerText = '0:00';
+    recordTimer = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60);
+      const s = recordSeconds % 60;
+      document.getElementById('record-timer').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+      if (recordSeconds >= 60) sendVoiceRecord(); // حد أقصى دقيقة
+    }, 1000);
+
+  } catch(e) {
+    showToast('❌ فعّل الميكروفون في المتصفح', 'error');
+  }
+}
+
+async function sendVoiceRecord(e) {
+  if (e) e.preventDefault();
+  if (!isRecording || !mediaRecorder) return;
+
+  clearInterval(recordTimer);
+  isRecording = false;
+  mediaRecorder.stop();
+  recordingStream.getTracks().forEach(t => t.stop());
+
+  // Reset UI
+  const btn = document.getElementById('voice-rec-btn');
+  const icon = document.getElementById('voice-rec-icon');
+  if (btn) { btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = '#2ecc71'; }
+  if (icon) icon.className = 'fas fa-microphone';
+  document.getElementById('voice-record-bar').classList.remove('show');
+
+  if (recordSeconds < 1) { showToast('التسجيل قصير جداً', 'info'); return; }
+
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const duration = recordSeconds;
+
+    showToast('📤 جارٍ رفع الرسالة الصوتية...', 'info', 2000);
+
+    try {
+      // رفع على Firebase Storage
+      const fileName = `voice-${Date.now()}-${auth.currentUser.email}.webm`;
+      const ref = firebase.storage().ref(`voice-messages/${fileName}`);
+      await ref.put(blob);
+      const url = await ref.getDownloadURL();
+
+      // حفظ في Firestore
+      const msgData = {
+        voiceUrl: url,
+        voiceDuration: duration,
+        sender: auth.currentUser.email,
+        name: myData.name,
+        joinDate: myData.joinDate,
+        xp: myData.xp || 0,
+        room: currentRoom,
+        time: firebase.firestore.FieldValue.serverTimestamp(),
+        reactions: {}
+      };
+
+      // إذا كان رداً
+      if (voiceReplyTargetId) {
+        msgData.reply = { name: voiceReplyTargetName, text: '🎙️ رسالة صوتية' };
+        voiceReplyTargetId = null;
+        voiceReplyTargetName = null;
+        clearReply();
+      }
+
+      await db.collection('messages').add(msgData);
+      showToast('🎙️ تم إرسال الرسالة الصوتية!', 'success');
+    } catch(err) {
+      showToast('❌ خطأ في الرفع: ' + err.message, 'error');
+    }
+    audioChunks = [];
+  };
+}
+
+function cancelVoiceRecord() {
+  if (!isRecording) return;
+  clearInterval(recordTimer);
+  isRecording = false;
+  mediaRecorder?.stop();
+  recordingStream?.getTracks().forEach(t => t.stop());
+  audioChunks = [];
+  voiceReplyTargetId = null;
+  voiceReplyTargetName = null;
+  document.getElementById('voice-record-bar').classList.remove('show');
+  const btn = document.getElementById('voice-rec-btn');
+  const icon = document.getElementById('voice-rec-icon');
+  if (btn) { btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = '#2ecc71'; }
+  if (icon) icon.className = 'fas fa-microphone';
+  showToast('تم إلغاء التسجيل', 'info', 1500);
+}
+
+function startVoiceReply(docId, senderName) {
+  // إذا استُدعيت من زر الرسالة — اضبط الرد أولاً
+  if (docId && senderName) {
+    setReply(senderName, '🎙️ رسالة صوتية');
+    voiceReplyTargetName = senderName;
+  }
+  // إذا استُدعيت من شريط الرد — استخدم replyData الحالية
+  if (!voiceReplyTargetName && replyData) {
+    voiceReplyTargetName = replyData.name;
+  }
+  showToast('🎙️ اضغط مع الاستمرار على 🎤 لتسجيل ردك الصوتي', 'info', 3000);
+  // فعّل التسجيل مباشرة
+  startVoiceRecord();
+}
+
+// تشغيل رسالة صوتية
+function playVoiceMsg(docId, url) {
+  const icon = document.getElementById('vplay-icon-' + docId);
+  const durEl = document.getElementById('vdur-' + docId);
+
+  if (currentVoiceAudio) {
+    currentVoiceAudio.pause();
+    currentVoiceAudio = null;
+  }
+
+  const audio = new Audio(url);
+  currentVoiceAudio = audio;
+  if (icon) icon.className = 'fas fa-pause';
+
+  audio.ontimeupdate = () => {
+    if (durEl) {
+      const left = Math.max(0, Math.floor(audio.duration - audio.currentTime));
+      const m = Math.floor(left / 60);
+      const s = left % 60;
+      durEl.innerText = `${m}:${s.toString().padStart(2,'0')}`;
+    }
+  };
+  audio.onended = () => {
+    if (icon) icon.className = 'fas fa-play';
+    currentVoiceAudio = null;
+  };
+  audio.play().catch(() => showToast('تعذّر التشغيل', 'error'));
+}
+
+function formatVoiceDur(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// إصلاح مشكلة مستعرض الروابط - استبدال parseText
+function parseText(text) {
+  if (!text) return '';
+  text = parseSpoiler(text);
+  text = text.replace(/@(\S+)/g, '<span class="mention">@$1</span>');
+  // روابط يوتيوب - تُحوَّل لـ embed
+  text = text.replace(/(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})([^\s]*))/g, (match, url, id) => {
+    return `<a href="${url}" target="_blank" style="color:var(--blue);word-break:break-all">${url}</a>
+    <div style="margin-top:6px;border-radius:10px;overflow:hidden;max-width:280px">
+      <iframe width="280" height="157" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:10px;display:block"></iframe>
+    </div>`;
+  });
+  // باقي الروابط
+  text = text.replace(/((?<!src="|href=")https?:\/\/(?!(?:www\.)?(?:youtube\.com\/watch|youtu\.be\/))[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener" style="color:var(--blue);word-break:break-all">$1</a>');
+  return text;
+}
+
 // ======================== RADIO SYSTEM ========================
 let radioAudio = null;
 let isRadioPlaying = false;
@@ -4588,40 +4929,70 @@ function playRadioLocally(url, name) {
 
     const vol = parseInt(document.getElementById('radio-vol')?.value || 70);
 
-    if (ytPlayer) {
-      ytPlayer.loadVideoById(ytId);
-      ytPlayer.setVolume(vol);
-    } else if (ytReady) {
-      ytPlayer = new YT.Player('yt-player', {
-        height: '140', width: '100%',
-        videoId: ytId,
-        playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1 },
-        events: {
-          onReady: e => { e.target.setVolume(vol); e.target.playVideo(); },
-          onError: () => showToast('خطأ في تشغيل الفيديو — تأكد من صحة الرابط', 'error')
+    const tryYTPlayer = () => {
+      if (ytPlayer) {
+        try { ytPlayer.loadVideoById(ytId); ytPlayer.setVolume(vol); return; } catch(e) {}
+      }
+      if (window.YT && window.YT.Player) {
+        ytPlayer = new YT.Player('yt-player', {
+          height: '140', width: '100%',
+          videoId: ytId,
+          playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
+          events: {
+            onReady: e => { e.target.setVolume(vol); e.target.playVideo(); },
+            onError: err => {
+              // fallback: iframe مباشر
+              wrap.innerHTML = `<iframe id="yt-player" width="100%" height="140"
+                src="https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1"
+                frameborder="0" allow="autoplay;encrypted-media" allowfullscreen
+                style="border-radius:10px;display:block"></iframe>`;
+              showToast('▶️ تشغيل عبر المتصفح المباشر', 'info', 2000);
+            }
+          }
+        });
+      } else {
+        // YT API لم تُحمَّل — استخدم iframe مباشرة
+        wrap.innerHTML = `<div id="yt-player"></div>`;
+        wrap.innerHTML = `<iframe id="yt-iframe-fallback" width="100%" height="140"
+          src="https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1"
+          frameborder="0" allow="autoplay;encrypted-media" allowfullscreen
+          style="border-radius:10px;display:block"></iframe>`;
+        showToast('▶️ جارٍ تشغيل يوتيوب...', 'info', 2000);
+        // حاول تحميل API للمرة القادمة
+        if (!document.getElementById('yt-api-script')) {
+          const s = document.createElement('script');
+          s.id = 'yt-api-script';
+          s.src = 'https://www.youtube.com/iframe_api';
+          document.head.appendChild(s);
         }
-      });
-    } else {
-      // YT API not ready yet — retry
-      setTimeout(() => playRadioLocally(url, name), 800);
-      return;
+      }
+    };
+
+    // أعد بناء حاوية الـ player إذا لزم
+    if (!document.getElementById('yt-player')) {
+      wrap.innerHTML = '<div id="yt-player"></div>';
+      ytPlayer = null;
     }
+    tryYTPlayer();
+
   } else {
     // Direct stream / audio URL mode
-    document.getElementById('yt-player-wrap').style.display = 'none';
+    const wrap = document.getElementById('yt-player-wrap');
+    wrap.style.display = 'none';
     if (ytPlayer) { try { ytPlayer.stopVideo(); } catch(e){} }
 
     radioAudio = document.getElementById('radio-audio');
     radioAudio.src = url;
     radioAudio.volume = (document.getElementById('radio-vol')?.value || 70) / 100;
-    radioAudio.play().catch(() => showToast('تعذّر تشغيل البث المباشر', 'error'));
+    radioAudio.style.display = 'block';
+    radioAudio.play().catch(() => showToast('تعذّر تشغيل البث — قد يكون الرابط محمياً', 'error'));
   }
 
   isRadioPlaying = true;
   document.getElementById('radio-track-name').innerText = name;
   document.getElementById('radio-now-playing').style.display = 'block';
   document.getElementById('radio-disc').classList.add('spinning');
-  document.getElementById('btn-radio').classList.add('playing');
+  document.getElementById('btn-radio')?.classList.add('playing');
 }
 
 function stopRadioLocally() {
@@ -4703,28 +5074,25 @@ const SFX_URLS = {
 };
 
 async function playSFX(emoji, type) {
-  if (!inVoiceChannel) return showToast('انضم للقناة الصوتية لإرسال المؤثرات', 'error');
-  // Broadcast SFX to all via Firebase
+  if (!inVoiceChannel) return showToast('انضم للقناة الصوتية أولاً', 'info');
+  // أرسل لـ Firebase — المستمع سيشغلها للجميع بما فيهم أنت
   await db.collection('voiceChannels').doc(currentRoom)
     .collection('sfx').add({
       type, emoji,
       sender: myData.name,
       time: firebase.firestore.FieldValue.serverTimestamp()
     });
-  playAudioLocally(type);
-  showToast(`${emoji} تم إرسال المؤثر للجميع!`, 'success', 1500);
 }
 
 function playAudioLocally(type) {
   const url = SFX_URLS[type];
   if (!url) return;
   const audio = new Audio(url);
-  audio.volume = 0.7;
+  audio.volume = 0.8;
   audio.play().catch(() => {});
 }
 
 function listenSFX(roomId) {
-  // Listen for SFX broadcasts
   db.collection('voiceChannels').doc(roomId)
     .collection('sfx')
     .orderBy('time', 'desc').limit(1)
@@ -4732,10 +5100,9 @@ function listenSFX(roomId) {
       snap.docChanges().forEach(change => {
         if (change.type === 'added') {
           const d = change.doc.data();
-          if (d.sender !== myData?.name) { // Don't replay own SFX
-            playAudioLocally(d.type);
-            showToast(`${d.emoji} ${d.sender} أرسل مؤثراً`, 'info', 1500);
-          }
+          // اشغل للجميع بما فيهم المرسل
+          playAudioLocally(d.type);
+          showToast(`${d.emoji} ${d.sender === myData?.name ? 'أنت' : d.sender} أرسل مؤثراً`, 'info', 1500);
         }
       });
     });
@@ -4856,9 +5223,17 @@ async function joinVoice(roomId) {
 
     // 5. Create mic track
     localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
-      encoderConfig: 'music_standard',
-      AEC: true, ANS: true, AGC: true,
+      encoderConfig: {
+        sampleRate: 48000,
+        stereo: false,
+        bitrate: 128,
+      },
+      AEC: true,  // إلغاء الصدى
+      ANS: true,  // تقليل الضوضاء
+      AGC: true,  // رفع الصوت تلقائياً
     });
+    // رفع مستوى الصوت للحد الأقصى
+    localAudioTrack.setVolume(100);
     await agoraClient.publish([localAudioTrack]);
 
     inVoiceChannel = true;
@@ -4889,6 +5264,8 @@ async function joinVoice(roomId) {
     listenRadio(roomId);
     listenSFX(roomId);
     listenVoiceReactions(roomId);
+    startVoiceHeartbeat(roomId);
+    watchStaleMembers(roomId);
 
     // 9. Waveform
     try {
@@ -4948,6 +5325,7 @@ async function leaveVoice() {
   stopRadioLocally();
   stopWaveform();
   stopAllAmbient();
+  stopVoiceHeartbeat();
   if (stsRecognition) { try { stsRecognition.stop(); } catch(e){} stsActive = false; }
   if (radioUnsubscribe) { radioUnsubscribe(); radioUnsubscribe = null; }
   if (reactUnsubscribe) { reactUnsubscribe(); reactUnsubscribe = null; }
@@ -5157,13 +5535,44 @@ function updateMicUI() {
 // Listen to voice members in Firebase
 function listenVoiceMembers(roomId) {
   if (window._voiceMembersUnsub) window._voiceMembersUnsub();
+  let firstLoad = true;
   window._voiceMembersUnsub = db.collection('voiceChannels').doc(roomId)
     .collection('members').onSnapshot(snap => {
-      voiceMembers = {};
-      snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
+
+      // تتبع التغييرات (دخول / خروج)
+      snap.docChanges().forEach(change => {
+        if (firstLoad) return; // تجاهل الحالة الأولية
+        const d = change.doc.data();
+        const isMe = change.doc.id === auth.currentUser?.email;
+        if (change.type === 'added' && !isMe) {
+          showToast(`🟢 ${d.name} انضم للقناة الصوتية`, 'success', 2500);
+          // أضفه للقائمة فوراً
+          voiceMembers[change.doc.id] = d;
+        }
+        if (change.type === 'removed') {
+          showToast(`🔴 ${d.name || change.doc.id} غادر القناة الصوتية`, 'info', 2500);
+          // أزله من القائمة فوراً
+          delete voiceMembers[change.doc.id];
+        }
+        if (change.type === 'modified') {
+          voiceMembers[change.doc.id] = d;
+        }
+      });
+
+      if (firstLoad) {
+        // بناء القائمة الأولية بدون إشعارات
+        voiceMembers = {};
+        snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
+        firstLoad = false;
+      }
+
       updateVoiceMembersUI();
       updateVoiceJoinBar();
-      const vcC1=document.getElementById('voice-member-count'); if(vcC1) vcC1.innerText=snap.size+' في القناة'; const vcC2=document.getElementById('vc-count'); if(vcC2) vcC2.innerText=snap.size+' متصل';
+      const cnt = Object.keys(voiceMembers).length;
+      const vcC1 = document.getElementById('voice-member-count');
+      if (vcC1) vcC1.innerText = cnt + ' في القناة';
+      const vcC2 = document.getElementById('vc-count');
+      if (vcC2) vcC2.innerText = cnt + ' متصل';
     });
 }
 
@@ -5247,6 +5656,41 @@ window.addEventListener('beforeunload', async () => {
       .collection('members').doc(auth.currentUser.email).delete().catch(()=>{});
   }
 });
+
+// ======================== VOICE HEARTBEAT ========================
+// نبضة كل 20 ثانية — إذا توقفت النبضة يُعتبر الشخص غائباً وتُحذف بياناته
+let voiceHeartbeatInterval = null;
+
+function startVoiceHeartbeat(roomId) {
+  stopVoiceHeartbeat();
+  voiceHeartbeatInterval = setInterval(async () => {
+    if (!inVoiceChannel || !auth.currentUser) return;
+    try {
+      await db.collection('voiceChannels').doc(roomId)
+        .collection('members').doc(auth.currentUser.email)
+        .update({ lastSeen: Date.now() });
+    } catch(e) {}
+  }, 20000);
+}
+
+function stopVoiceHeartbeat() {
+  if (voiceHeartbeatInterval) { clearInterval(voiceHeartbeatInterval); voiceHeartbeatInterval = null; }
+}
+
+// مراقب لإزالة الأعضاء المنقطعين (lastSeen > 60 ثانية) — يعمل للمؤسس فقط لتفادي التعارض
+function watchStaleMembers(roomId) {
+  setInterval(async () => {
+    if (!inVoiceChannel || auth.currentUser?.email !== FOUNDER_ID) return;
+    const now = Date.now();
+    const snap = await db.collection('voiceChannels').doc(roomId).collection('members').get();
+    snap.forEach(async doc => {
+      const d = doc.data();
+      if (d.lastSeen && (now - d.lastSeen) > 60000) {
+        await doc.ref.delete().catch(()=>{});
+      }
+    });
+  }, 30000);
+}
 
 // Keyboard shortcut: M = toggle mic, ESC = close screen share
 document.addEventListener('keydown', e => {
