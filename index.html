@@ -2389,13 +2389,48 @@ body {
 
     <!-- Input -->
     <!-- Voice Record Bar -->
-    <div id="voice-record-bar">
-      <div class="record-pulse"></div>
-      <span style="font-size:0.78rem;color:#e74c3c;font-weight:700">جارٍ التسجيل...</span>
-      <span id="record-timer" style="font-family:monospace;font-size:0.78rem;color:rgba(255,255,255,0.5)">0:00</span>
-      <div style="flex:1"></div>
-      <button onclick="cancelVoiceRecord()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.85rem;padding:4px 8px"><i class="fas fa-times"></i> إلغاء</button>
-      <button onclick="sendVoiceRecord()" style="background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-family:'Tajawal',sans-serif"><i class="fas fa-paper-plane"></i> إرسال</button>
+    <!-- Voice Record Modal -->
+    <div id="voice-record-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:env(safe-area-inset-bottom)">
+      <div style="width:100%;max-width:480px;background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 32px;display:flex;flex-direction:column;gap:16px">
+
+        <!-- Reply context -->
+        <div id="vr-reply-ctx" style="display:none;background:rgba(212,175,55,0.08);border-right:3px solid var(--gold);border-radius:6px;padding:7px 12px;font-size:0.72rem;color:var(--text-muted)"></div>
+
+        <!-- State: Recording -->
+        <div id="vr-recording" style="display:none;flex-direction:column;align-items:center;gap:12px">
+          <div style="font-size:0.78rem;color:#e74c3c;font-weight:700">🔴 جارٍ التسجيل</div>
+          <div id="vr-waveform" style="display:flex;align-items:center;gap:3px;height:48px;width:100%;background:rgba(255,255,255,0.03);border-radius:12px;padding:0 12px;overflow:hidden"></div>
+          <div id="vr-timer" style="font-family:monospace;font-size:1.4rem;font-weight:700;color:white">0:00</div>
+          <button onclick="stopAndPreview()" style="background:rgba(231,76,60,0.2);border:2px solid #e74c3c;color:#e74c3c;width:64px;height:64px;border-radius:50%;font-size:1.4rem;cursor:pointer">
+            <i class="fas fa-stop"></i>
+          </button>
+          <button onclick="cancelVoiceRecord()" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.75rem">إلغاء</button>
+        </div>
+
+        <!-- State: Preview -->
+        <div id="vr-preview" style="display:none;flex-direction:column;align-items:center;gap:14px">
+          <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);font-weight:600">معاينة الرسالة الصوتية</div>
+          <!-- player -->
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:20px;padding:10px 16px;width:100%">
+            <button id="vr-play-btn" onclick="togglePreviewPlay()" style="background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:0.9rem;flex-shrink:0">
+              <i class="fas fa-play" id="vr-play-icon"></i>
+            </button>
+            <div id="vr-preview-wave" style="flex:1;height:28px;display:flex;align-items:center;gap:2px;overflow:hidden"></div>
+            <span id="vr-preview-dur" style="font-family:monospace;font-size:0.78rem;color:rgba(255,255,255,0.5)">0:00</span>
+          </div>
+          <!-- actions -->
+          <div style="display:flex;gap:10px;width:100%">
+            <button onclick="redoVoiceRecord()" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);padding:12px;border-radius:14px;cursor:pointer;font-size:0.8rem;font-family:'Tajawal',sans-serif">
+              <i class="fas fa-redo"></i> إعادة
+            </button>
+            <button onclick="confirmSendVoice()" style="flex:2;background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;color:white;padding:12px;border-radius:14px;cursor:pointer;font-size:0.85rem;font-weight:700;font-family:'Tajawal',sans-serif">
+              <i class="fas fa-paper-plane"></i> إرسال
+            </button>
+          </div>
+          <button onclick="cancelVoiceRecord()" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.75rem">إلغاء</button>
+        </div>
+
+      </div>
     </div>
 
     <footer class="input-bar" style="position:relative">
@@ -2423,7 +2458,7 @@ body {
           <i class="fas fa-image"></i>
         </button>
         <textarea id="msgInput" placeholder="اكتب رسالة..." rows="1" oninput="handleInput(this)" autocomplete="off"></textarea>
-        <button id="voice-rec-btn" onmousedown="startVoiceRecord()" onmouseup="sendVoiceRecord()" ontouchstart="startVoiceRecord(event)" ontouchend="sendVoiceRecord(event)" title="رسالة صوتية" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 12px;border-radius:50%;width:42px;height:42px;flex-shrink:0;cursor:pointer;transition:all 0.2s">
+        <button id="voice-rec-btn" onclick="openVoiceRecordModal()" title="رسالة صوتية" style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 12px;border-radius:50%;width:42px;height:42px;flex-shrink:0;cursor:pointer;transition:all 0.2s">
           <i class="fas fa-microphone" id="voice-rec-icon"></i>
         </button>
         <button class="btn-gold" onclick="send()" title="إرسال" style="padding:10px 12px;border-radius:50%;width:42px;height:42px;flex-shrink:0">
@@ -3425,31 +3460,28 @@ async function sendPhoto() {
 
     showToast('⬆️ جارٍ رفع الصورة...', 'info', 5000);
     try {
-      const storageRef = storage.ref(`chat-images/${Date.now()}_${file.name}`);
+      const storageRef = firebase.storage().ref(`chat-images/${Date.now()}_${file.name}`);
       const snapshot = await storageRef.put(file);
       const url = await snapshot.ref.getDownloadURL();
 
-      await db.collection('messages').add({
+      const msgData = {
         image: url,
-        sender: myData.email,
+        sender: auth.currentUser.email,
         name: myData.name,
         joinDate: myData.joinDate || null,
         xp: myData.xp || 0,
         room: currentRoom,
         time: firebase.firestore.FieldValue.serverTimestamp(),
         reactions: {}
-      });
-      showToast('تم رفع الصورة ✅', 'success');
-    } catch (e) {
-      // Fallback to URL
-      const url = prompt('تعذر الرفع المباشر. أدخل رابط الصورة:');
-      if (url) {
-        await db.collection('messages').add({
-          image: url, sender: myData.email, name: myData.name,
-          joinDate: myData.joinDate || null, xp: myData.xp || 0, room: currentRoom,
-          time: firebase.firestore.FieldValue.serverTimestamp(), reactions: {}
-        });
+      };
+      if (replyData) {
+        msgData.reply = { name: replyData.name, text: replyData.text?.substring(0,40) || '📷 صورة' };
+        cancelReply();
       }
+      await db.collection('messages').add(msgData);
+      showToast('تم رفع الصورة ✅', 'success');
+    } catch (err) {
+      showToast('❌ خطأ في رفع الصورة: ' + err.message, 'error');
     }
   };
   input.click();
@@ -4633,166 +4665,223 @@ function resetSpeechBtn() {
 // Keep old toggleTranscript as no-op to avoid errors
 function toggleTranscript() { startSpeechToSend(); }
 
-// ======================== VOICE RECORD (Push-to-Record) ========================
+// ======================== VOICE RECORD MODAL ========================
 let mediaRecorder = null;
 let audioChunks = [];
 let recordingStream = null;
 let recordTimer = null;
 let recordSeconds = 0;
 let isRecording = false;
-let voiceReplyTargetId = null; // إذا كان رداً على رسالة
+let voiceReplyTargetId = null;
 let voiceReplyTargetName = null;
-let currentVoiceAudio = null; // للتشغيل
+let currentVoiceAudio = null;
+let previewBlob = null;     // الـ blob بعد الإيقاف
+let previewAudio = null;    // Audio object للمعاينة
+let vrAnimFrame = null;     // animation frame للموجة
+let vrAnalyser = null;
 
-async function startVoiceRecord(e) {
-  if (e) e.preventDefault();
-  if (isRecording) return;
+function openVoiceRecordModal() {
+  const modal = document.getElementById('voice-record-modal');
+  modal.style.display = 'flex';
+  // إذا في replyData اعرضه
+  const ctx = document.getElementById('vr-reply-ctx');
+  if (replyData) {
+    ctx.style.display = 'block';
+    ctx.innerHTML = `<i class="fas fa-reply" style="color:var(--gold);margin-left:6px"></i> رد على <b>${replyData.name}</b>: ${replyData.text?.substring(0,35)}...`;
+  } else {
+    ctx.style.display = 'none';
+  }
+  // أظهر حالة التسجيل
+  showVRState('recording');
+  startRecording();
+}
 
+function showVRState(state) {
+  document.getElementById('vr-recording').style.display = state === 'recording' ? 'flex' : 'none';
+  document.getElementById('vr-preview').style.display  = state === 'preview'   ? 'flex' : 'none';
+}
+
+async function startRecording() {
   try {
     recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(recordingStream);
+    mediaRecorder = new MediaRecorder(recordingStream, { mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm' });
     audioChunks = [];
     isRecording = true;
-
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
     mediaRecorder.start(100);
 
-    // UI
-    const btn = document.getElementById('voice-rec-btn');
-    const icon = document.getElementById('voice-rec-icon');
-    if (btn) { btn.style.background = 'rgba(231,76,60,0.3)'; btn.style.borderColor = '#e74c3c'; btn.style.color = '#e74c3c'; }
-    if (icon) icon.className = 'fas fa-circle';
-    document.getElementById('voice-record-bar').classList.add('show');
-
     // Timer
     recordSeconds = 0;
-    document.getElementById('record-timer').innerText = '0:00';
+    document.getElementById('vr-timer').innerText = '0:00';
     recordTimer = setInterval(() => {
       recordSeconds++;
       const m = Math.floor(recordSeconds / 60);
       const s = recordSeconds % 60;
-      document.getElementById('record-timer').innerText = `${m}:${s.toString().padStart(2,'0')}`;
-      if (recordSeconds >= 60) sendVoiceRecord(); // حد أقصى دقيقة
+      document.getElementById('vr-timer').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+      if (recordSeconds >= 120) stopAndPreview();
     }, 1000);
 
+    // Live waveform
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(recordingStream);
+    vrAnalyser = ctx.createAnalyser();
+    vrAnalyser.fftSize = 64;
+    src.connect(vrAnalyser);
+    animateRecordWave();
+
   } catch(e) {
+    closeVoiceRecordModal();
     showToast('❌ فعّل الميكروفون في المتصفح', 'error');
   }
 }
 
-async function sendVoiceRecord(e) {
-  if (e) e.preventDefault();
-  if (!isRecording || !mediaRecorder) return;
+function animateRecordWave() {
+  const container = document.getElementById('vr-waveform');
+  if (!container || !vrAnalyser) return;
+  const data = new Uint8Array(vrAnalyser.frequencyBinCount);
+  const draw = () => {
+    if (!isRecording) return;
+    vrAnalyser.getByteFrequencyData(data);
+    container.innerHTML = '';
+    const barW = Math.floor(container.offsetWidth / data.length) || 4;
+    data.forEach(v => {
+      const bar = document.createElement('div');
+      const h = Math.max(4, (v / 255) * 44);
+      bar.style.cssText = `width:${barW}px;height:${h}px;background:rgba(231,76,60,0.8);border-radius:2px;flex-shrink:0`;
+      container.appendChild(bar);
+    });
+    vrAnimFrame = requestAnimationFrame(draw);
+  };
+  draw();
+}
 
+function stopAndPreview() {
+  if (!isRecording || !mediaRecorder) return;
   clearInterval(recordTimer);
   isRecording = false;
-  mediaRecorder.stop();
+  cancelAnimationFrame(vrAnimFrame);
   recordingStream.getTracks().forEach(t => t.stop());
 
-  // Reset UI
-  const btn = document.getElementById('voice-rec-btn');
-  const icon = document.getElementById('voice-rec-icon');
-  if (btn) { btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = '#2ecc71'; }
-  if (icon) icon.className = 'fas fa-microphone';
-  document.getElementById('voice-record-bar').classList.remove('show');
-
-  if (recordSeconds < 1) { showToast('التسجيل قصير جداً', 'info'); return; }
-
-  mediaRecorder.onstop = async () => {
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    const duration = recordSeconds;
-
-    showToast('📤 جارٍ رفع الرسالة الصوتية...', 'info', 2000);
-
-    try {
-      const fileName = `voice-${Date.now()}-${auth.currentUser.email}.webm`;
-      const ref = firebase.storage().ref(`voice-messages/${fileName}`);
-      await ref.put(blob);
-      const url = await ref.getDownloadURL();
-
-      const msgData = {
-        voiceUrl: url,
-        voiceDuration: duration,
-        sender: auth.currentUser.email,
-        name: myData.name,
-        joinDate: myData.joinDate,
-        xp: myData.xp || 0,
-        room: currentRoom,
-        time: firebase.firestore.FieldValue.serverTimestamp(),
-        reactions: {}
-      };
-
-      // ربط بالرد الحالي (نصي أو صوتي)
-      if (replyData) {
-        msgData.reply = { name: replyData.name, text: replyData.text?.substring(0,40) || '🎙️ رسالة صوتية' };
-      } else if (voiceReplyTargetName) {
-        msgData.reply = { name: voiceReplyTargetName, text: '🎙️ رسالة صوتية' };
-      }
-      voiceReplyTargetId = null;
-      voiceReplyTargetName = null;
-      cancelReply();
-
-      await db.collection('messages').add(msgData);
-      showToast('🎙️ تم إرسال الرسالة الصوتية!', 'success');
-    } catch(err) {
-      showToast('❌ خطأ في الرفع: ' + err.message, 'error');
+  mediaRecorder.onstop = () => {
+    previewBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    if (recordSeconds < 1) { cancelVoiceRecord(); showToast('التسجيل قصير جداً', 'info'); return; }
+    // بناء موجة المعاينة (static bars)
+    const wave = document.getElementById('vr-preview-wave');
+    wave.innerHTML = '';
+    for (let i = 0; i < 32; i++) {
+      const bar = document.createElement('div');
+      const h = 4 + Math.random() * 20;
+      bar.style.cssText = `width:3px;height:${h}px;background:rgba(46,204,113,0.6);border-radius:2px;flex-shrink:0`;
+      wave.appendChild(bar);
     }
-    audioChunks = [];
+    document.getElementById('vr-preview-dur').innerText = formatVoiceDur(recordSeconds);
+    // أنشئ Audio للمعاينة
+    previewAudio = new Audio(URL.createObjectURL(previewBlob));
+    previewAudio.onended = () => {
+      document.getElementById('vr-play-icon').className = 'fas fa-play';
+    };
+    showVRState('preview');
   };
+  mediaRecorder.stop();
+}
+
+function togglePreviewPlay() {
+  if (!previewAudio) return;
+  const icon = document.getElementById('vr-play-icon');
+  if (previewAudio.paused) {
+    previewAudio.play();
+    icon.className = 'fas fa-pause';
+  } else {
+    previewAudio.pause();
+    icon.className = 'fas fa-play';
+  }
+}
+
+function redoVoiceRecord() {
+  if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+  previewBlob = null;
+  audioChunks = [];
+  showVRState('recording');
+  startRecording();
+}
+
+async function confirmSendVoice() {
+  if (!previewBlob) return;
+  if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+  closeVoiceRecordModal();
+  showToast('📤 جارٍ رفع الرسالة الصوتية...', 'info', 3000);
+  try {
+    const fileName = `voice-${Date.now()}-${auth.currentUser.email}.webm`;
+    const ref = firebase.storage().ref(`voice-messages/${fileName}`);
+    await ref.put(previewBlob);
+    const url = await ref.getDownloadURL();
+    const msgData = {
+      voiceUrl: url,
+      voiceDuration: recordSeconds,
+      sender: auth.currentUser.email,
+      name: myData.name,
+      joinDate: myData.joinDate,
+      xp: myData.xp || 0,
+      room: currentRoom,
+      time: firebase.firestore.FieldValue.serverTimestamp(),
+      reactions: {}
+    };
+    if (replyData) {
+      msgData.reply = { name: replyData.name, text: replyData.text?.substring(0,40) || '🎙️ رسالة صوتية' };
+      cancelReply();
+    }
+    await db.collection('messages').add(msgData);
+    showToast('🎙️ تم إرسال الرسالة الصوتية!', 'success');
+  } catch(err) {
+    showToast('❌ خطأ في الرفع: ' + err.message, 'error');
+  }
+  previewBlob = null;
 }
 
 function cancelVoiceRecord() {
-  if (!isRecording) return;
   clearInterval(recordTimer);
+  cancelAnimationFrame(vrAnimFrame);
   isRecording = false;
   mediaRecorder?.stop();
   recordingStream?.getTracks().forEach(t => t.stop());
+  if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+  previewBlob = null;
   audioChunks = [];
   voiceReplyTargetId = null;
   voiceReplyTargetName = null;
-  document.getElementById('voice-record-bar').classList.remove('show');
-  const btn = document.getElementById('voice-rec-btn');
-  const icon = document.getElementById('voice-rec-icon');
-  if (btn) { btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = '#2ecc71'; }
-  if (icon) icon.className = 'fas fa-microphone';
-  showToast('تم إلغاء التسجيل', 'info', 1500);
+  closeVoiceRecordModal();
+}
+
+function closeVoiceRecordModal() {
+  document.getElementById('voice-record-modal').style.display = 'none';
 }
 
 function startVoiceReply(docId, senderName) {
-  // إذا استُدعيت من زر الرسالة — اضبط الرد أولاً
   if (docId && senderName) {
     setReply(senderName, '🎙️ رسالة صوتية');
     voiceReplyTargetName = senderName;
   }
-  // إذا استُدعيت من شريط الرد — استخدم replyData الحالية
-  if (!voiceReplyTargetName && replyData) {
-    voiceReplyTargetName = replyData.name;
-  }
-  showToast('🎙️ اضغط مع الاستمرار على 🎤 لتسجيل ردك الصوتي', 'info', 3000);
-  // فعّل التسجيل مباشرة
-  startVoiceRecord();
+  openVoiceRecordModal();
 }
 
-// تشغيل رسالة صوتية
+// تشغيل رسالة صوتية في المحادثة
 function playVoiceMsg(docId, url) {
-  const icon = document.getElementById('vplay-icon-' + docId);
-  const durEl = document.getElementById('vdur-' + docId);
-
+  // أوقف أي تشغيل سابق
   if (currentVoiceAudio) {
     currentVoiceAudio.pause();
     currentVoiceAudio = null;
+    // أعد كل أيقونات التشغيل
+    document.querySelectorAll('[id^="vplay-icon-"]').forEach(el => el.className = 'fas fa-play');
   }
-
+  const icon = document.getElementById('vplay-icon-' + docId);
+  const durEl = document.getElementById('vdur-' + docId);
   const audio = new Audio(url);
   currentVoiceAudio = audio;
   if (icon) icon.className = 'fas fa-pause';
-
   audio.ontimeupdate = () => {
     if (durEl) {
       const left = Math.max(0, Math.floor(audio.duration - audio.currentTime));
-      const m = Math.floor(left / 60);
-      const s = left % 60;
-      durEl.innerText = `${m}:${s.toString().padStart(2,'0')}`;
+      durEl.innerText = formatVoiceDur(left);
     }
   };
   audio.onended = () => {
