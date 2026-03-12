@@ -2493,7 +2493,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-const storage = firebase.storage();
+// Firebase Storage — يجرب الـ bucket الصحيح تلقائياً
+let storage;
+try {
+  storage = firebase.storage();
+  // تحقق من الاتصال بـ Storage
+  storage.ref('_test_').getDownloadURL().catch(e => {
+    if (e.code === 'storage/object-not-found') {
+      // Storage يعمل! الملف فقط غير موجود وهذا طبيعي
+    } else if (e.code === 'storage/unauthorized') {
+      console.warn('Storage Rules مغلقة — افتح Firebase Console > Storage > Rules وانشر: allow read, write: if true;');
+    }
+  });
+} catch(e) {
+  storage = firebase.app().storage('gs://game-zone-chat1.appspot.com');
+}
 
 // ======================== STATE ========================
 let myData = null;
@@ -2501,6 +2515,7 @@ let isMuted = false;
 let replyData = null;
 let pollInterval = null;
 let currentRoom = 'general';
+let currentVoiceRoom = null;
 let allMessages = [];
 let onlineUsers = {};
 let presenceInterval = null;
@@ -3460,10 +3475,9 @@ async function sendPhoto() {
 
     showToast('⬆️ جارٍ رفع الصورة...', 'info', 5000);
     try {
-      const storageRef = firebase.storage().ref(`chat-images/${Date.now()}_${file.name}`);
-      const snapshot = await storageRef.put(file);
-      const url = await snapshot.ref.getDownloadURL();
-
+      const path = `chat-images/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._]/g, '_')}`;
+      const snap = await storage.ref(path).put(file);
+      const url = await snap.ref.getDownloadURL();
       const msgData = {
         image: url,
         sender: auth.currentUser.email,
@@ -3479,9 +3493,14 @@ async function sendPhoto() {
         cancelReply();
       }
       await db.collection('messages').add(msgData);
-      showToast('تم رفع الصورة ✅', 'success');
+      showToast('✅ تم إرسال الصورة!', 'success');
     } catch (err) {
-      showToast('❌ خطأ في رفع الصورة: ' + err.message, 'error');
+      console.error('Photo upload error:', err);
+      if (err.code === 'storage/unauthorized') {
+        showToast('❌ خطأ في الصلاحيات — افتح Firebase Console وانشر Storage Rules', 'error', 5000);
+      } else {
+        showToast('❌ خطأ: ' + (err.message || err.code), 'error', 4000);
+      }
     }
   };
   input.click();
@@ -4811,8 +4830,8 @@ async function confirmSendVoice() {
   closeVoiceRecordModal();
   showToast('📤 جارٍ رفع الرسالة الصوتية...', 'info', 3000);
   try {
-    const fileName = `voice-${Date.now()}-${auth.currentUser.email}.webm`;
-    const ref = firebase.storage().ref(`voice-messages/${fileName}`);
+    const fileName = `voice-${Date.now()}-${auth.currentUser.email.replace(/[^a-zA-Z0-9]/g,'_')}.webm`;
+    const ref = storage.ref(`voice-messages/${fileName}`);
     await ref.put(previewBlob);
     const url = await ref.getDownloadURL();
     const msgData = {
@@ -4833,7 +4852,12 @@ async function confirmSendVoice() {
     await db.collection('messages').add(msgData);
     showToast('🎙️ تم إرسال الرسالة الصوتية!', 'success');
   } catch(err) {
-    showToast('❌ خطأ في الرفع: ' + err.message, 'error');
+    console.error('Voice upload error:', err);
+    if (err.code === 'storage/unauthorized') {
+      showToast('❌ خطأ في الصلاحيات — افتح Firebase Console وانشر Storage Rules', 'error', 5000);
+    } else {
+      showToast('❌ خطأ: ' + (err.message || err.code), 'error', 4000);
+    }
   }
   previewBlob = null;
 }
@@ -5226,7 +5250,15 @@ function initAgora() {
   });
 
   agoraClient.on('user-left', (user) => {
-    delete voiceMembers[user.uid];
+    // ابحث عن العضو بالـ uid وليس بالـ email
+    const email = Object.keys(voiceMembers).find(k => voiceMembers[k].uid === String(user.uid));
+    if (email) {
+      const name = voiceMembers[email]?.name || 'مستخدم';
+      delete voiceMembers[email];
+      // احذفه من Firebase أيضاً (للتأكد)
+      db.collection('voiceChannels').doc(currentVoiceRoom || currentRoom)
+        .collection('members').doc(email).delete().catch(()=>{});
+    }
     updateVoiceMembersUI();
     updateVoiceJoinBar();
   });
@@ -5298,6 +5330,7 @@ async function joinVoice(roomId) {
     inVoiceChannel = true;
     isMicMuted = false;
     isDeafened = false;
+    currentVoiceRoom = roomId;
 
     // 6. Save to Firebase
     await db.collection('voiceChannels').doc(roomId).collection('members')
