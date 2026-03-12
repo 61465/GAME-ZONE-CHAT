@@ -1184,7 +1184,215 @@ body {
   align-items: center;
   gap: 12px;
 }
-/* ======================== ROOM FEATURES ======================== */
+/* ======================== VOICE CHANNEL ======================== */
+#voice-panel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(8,8,8,0.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--room-border);
+  z-index: 5000;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+}
+#voice-panel.open { transform: translateY(0); }
+
+.voice-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.voice-channel-name {
+  flex: 1;
+  font-weight: 800;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.voice-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  color: var(--green);
+  font-weight: 700;
+}
+.voice-live-dot {
+  width: 7px; height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 1.2s infinite;
+}
+
+.voice-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.voice-btn {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  position: relative;
+}
+.voice-btn:active { transform: scale(0.92); }
+
+.vbtn-mic { background: rgba(255,255,255,0.08); color: var(--text); }
+.vbtn-mic.muted { background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid rgba(231,76,60,0.4); }
+.vbtn-mic:hover { background: rgba(255,255,255,0.14); }
+
+.vbtn-screen { background: rgba(52,152,219,0.12); color: var(--blue); }
+.vbtn-screen.active { background: rgba(52,152,219,0.3); border: 1px solid rgba(52,152,219,0.5); }
+.vbtn-screen:hover { background: rgba(52,152,219,0.2); }
+
+.vbtn-deafen { background: rgba(255,255,255,0.08); color: var(--text); }
+.vbtn-deafen.active { background: rgba(231,76,60,0.2); color: var(--red); }
+
+.vbtn-leave {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  box-shadow: 0 4px 15px rgba(231,76,60,0.3);
+}
+.vbtn-leave:hover { box-shadow: 0 6px 20px rgba(231,76,60,0.5); }
+
+.vbtn-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.voice-members {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-content: flex-start;
+}
+
+.voice-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 70px;
+}
+.voice-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  position: relative;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+.voice-avatar.speaking {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(46,204,113,0.25);
+  animation: speakPulse 0.8s ease infinite alternate;
+}
+@keyframes speakPulse {
+  from { box-shadow: 0 0 0 2px rgba(46,204,113,0.2); }
+  to   { box-shadow: 0 0 0 6px rgba(46,204,113,0.05); }
+}
+.voice-avatar.muted-member::after {
+  content: '🔇';
+  position: absolute;
+  bottom: -2px; right: -2px;
+  font-size: 0.65rem;
+  background: var(--panel2);
+  border-radius: 50%;
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.voice-member-name {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Voice channel join bar (bottom of chat) */
+#voice-join-bar {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(46,204,113,0.06);
+  border-top: 1px solid rgba(46,204,113,0.2);
+  flex-shrink: 0;
+  animation: slideUp 0.3s ease;
+}
+#voice-join-bar.show { display: flex; }
+
+/* Screen share overlay */
+#screen-share-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#screen-share-overlay.show { display: flex; }
+#screen-video {
+  max-width: 95vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  border: 2px solid var(--blue);
+}
+
+/* Voice channel button in toolbar */
+.voice-channel-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(46,204,113,0.08);
+  border: 1px solid rgba(46,204,113,0.25);
+  color: var(--green);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.voice-channel-btn:hover { background: rgba(46,204,113,0.15); box-shadow: 0 0 12px rgba(46,204,113,0.2); }
+.voice-channel-btn.in-call { background: rgba(46,204,113,0.2); border-color: var(--green); }
+
+/* Volume visualizer bars */
+.vol-bars {
+  display: flex; gap: 2px; align-items: flex-end; height: 14px;
+}
+.vol-bar {
+  width: 3px; background: var(--green); border-radius: 2px;
+  transition: height 0.1s;
+}
+
 
 /* Daily Challenge / Topic Bar */
 #daily-bar {
@@ -1440,6 +1648,79 @@ body {
   </div>
 </div>
 
+<!-- ======= VOICE CHANNEL PANEL ======= -->
+<div id="voice-panel">
+  <div class="voice-header">
+    <div class="voice-channel-name">
+      <i class="fas fa-volume-up" style="color:var(--green)"></i>
+      <span id="voice-room-name">قناة صوتية</span>
+      <div class="voice-live-indicator" id="voice-live-ind" style="display:none">
+        <div class="voice-live-dot"></div> LIVE
+      </div>
+    </div>
+    <div id="voice-member-count" style="font-size:0.7rem;color:var(--text-muted)">0 في القناة</div>
+    <button onclick="toggleVoicePanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px">
+      <i class="fas fa-chevron-down"></i>
+    </button>
+  </div>
+
+  <div class="voice-controls">
+    <!-- Mic -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()" title="كتم الميكروفون">
+        <i class="fas fa-microphone" id="mic-icon"></i>
+      </button>
+      <span class="vbtn-label">ميكروفون</span>
+    </div>
+    <!-- Deafen -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()" title="كتم الصوت">
+        <i class="fas fa-headphones" id="deafen-icon"></i>
+      </button>
+      <span class="vbtn-label">الصوت</span>
+    </div>
+    <!-- Screen Share -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()" title="مشاركة الشاشة">
+        <i class="fas fa-desktop" id="screen-icon"></i>
+      </button>
+      <span class="vbtn-label">الشاشة</span>
+    </div>
+    <!-- Leave -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn vbtn-leave" onclick="leaveVoice()" title="مغادرة القناة">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+      <span class="vbtn-label" style="color:var(--red)">مغادرة</span>
+    </div>
+  </div>
+
+  <div class="voice-members" id="voice-members-list">
+    <div style="color:var(--text-muted);font-size:0.75rem;width:100%;text-align:center;padding:10px">
+      لا أحد في القناة بعد...
+    </div>
+  </div>
+</div>
+
+<!-- ======= SCREEN SHARE OVERLAY ======= -->
+<div id="screen-share-overlay">
+  <div style="display:flex;justify-content:space-between;align-items:center;width:95vw;margin-bottom:10px">
+    <div style="color:var(--blue);font-weight:700;font-size:0.9rem">
+      <i class="fas fa-desktop"></i> <span id="screen-sharer-name">مشاركة الشاشة</span>
+    </div>
+    <button onclick="closeScreenOverlay()" style="background:rgba(255,255,255,0.1);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif">
+      <i class="fas fa-times"></i> إغلاق
+    </button>
+  </div>
+  <video id="screen-video" autoplay playsinline muted></video>
+  <div style="color:var(--text-muted);font-size:0.72rem;margin-top:8px">اضغط ESC أو أغلق للخروج</div>
+</div>
+
+<!-- ======= VOICE JOIN BAR (shown in chat when someone is in voice) ======= -->
+<div id="voice-join-bar" style="display:none">
+  <!-- injected dynamically -->
+</div>
+
 <!-- ======= PRIVATE MESSAGE MODAL ======= -->
 <div id="pm-modal">
   <div class="pm-box" style="max-width:480px">
@@ -1512,6 +1793,35 @@ body {
   <!-- ======= MAIN CHAT ======= -->
   <main class="chat-main">
 
+    <!-- Header (MUST BE FIRST) -->
+    <header class="header" id="main-header">
+      <button onclick="openSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="header-center" onclick="toggleRoomPanel()" style="cursor:pointer">
+        <div class="header-title" id="room-title">🌐 المجتمع</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;justify-content:center">
+          <span id="room-desc">نقاشات عامة للجميع</span>
+          <i class="fas fa-chevron-down" id="panel-arrow" style="font-size:0.5rem;transition:0.2s"></i>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="toggleSearch()" title="بحث"><i class="fas fa-search"></i></button>
+        <button class="header-btn" onclick="document.getElementById('poll-creator').style.display='flex'" title="تصويت">
+          <i class="fas fa-vote-yea"></i>
+        </button>
+        <button class="header-btn" onclick="auth.signOut().then(()=>location.reload())" title="خروج">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Room Info Panel (dropdown under header) -->
+    <div id="room-panel"></div>
+
+    <!-- Room Toolbar -->
+    <div id="room-toolbar"></div>
+
     <!-- Poll Bar -->
     <div id="poll-bar">
       <div class="poll-header">
@@ -1531,6 +1841,19 @@ body {
       <div class="stat-item"><i class="fas fa-hashtag" style="font-size:0.6rem;color:var(--blue)"></i><span id="stat-room">عام</span></div>
     </div>
 
+    <!-- Search Bar -->
+    <div id="search-bar">
+      <input class="form-input" type="text" id="searchInput" placeholder="🔍 ابحث في الرسائل..." oninput="searchMessages(this.value)" autocomplete="off">
+      <div id="search-results" style="margin-top:8px;max-height:150px;overflow-y:auto"></div>
+    </div>
+
+    <!-- Pinned Message -->
+    <div id="pinned-msg" onclick="scrollToPinned()">
+      <i class="fas fa-thumbtack"></i>
+      <div id="pinned-msg-text">لا توجد رسالة مثبتة</div>
+      <i class="fas fa-chevron-left" style="color:var(--text-muted);font-size:0.65rem"></i>
+    </div>
+
     <!-- Daily / Topic Bar -->
     <div id="daily-bar">
       <div class="daily-icon" id="daily-icon">🎯</div>
@@ -1540,9 +1863,6 @@ body {
       </div>
       <div class="daily-badge" id="daily-badge">جديد</div>
     </div>
-
-    <!-- Room Toolbar (feature buttons per room) -->
-    <div id="room-toolbar"></div>
 
     <!-- Gaming: Live Sessions -->
     <div id="live-sessions"></div>
@@ -1606,50 +1926,14 @@ body {
       </div>
     </div>
 
-    <!-- Pinned Message -->
-    <div id="pinned-msg" onclick="scrollToPinned()">
-      <i class="fas fa-thumbtack"></i>
-      <div id="pinned-msg-text">لا توجد رسالة مثبتة</div>
-      <i class="fas fa-chevron-left" style="color:var(--text-muted);font-size:0.65rem"></i>
-    </div>
-
-    <!-- Search Bar -->
-    <div id="search-bar">
-      <input class="form-input" type="text" id="searchInput" placeholder="🔍 ابحث في الرسائل..." oninput="searchMessages(this.value)" autocomplete="off">
-      <div id="search-results" style="margin-top:8px;max-height:150px;overflow-y:auto"></div>
-    </div>
-
-    <!-- Header -->
-    <header class="header" id="main-header">
-      <button onclick="openSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px">
-        <i class="fas fa-bars"></i>
-      </button>
-      <div class="header-center" onclick="toggleRoomPanel()" style="cursor:pointer">
-        <div class="header-title" id="room-title">🌐 المجتمع</div>
-        <div style="font-size:0.6rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;justify-content:center">
-          <span id="room-desc">نقاشات عامة للجميع</span>
-          <i class="fas fa-chevron-down" id="panel-arrow" style="font-size:0.5rem;transition:0.2s"></i>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button class="header-btn" onclick="toggleSearch()" title="بحث"><i class="fas fa-search"></i></button>
-        <button class="header-btn" onclick="document.getElementById('poll-creator').style.display='flex'" title="تصويت">
-          <i class="fas fa-vote-yea"></i>
-        </button>
-        <button class="header-btn" onclick="auth.signOut().then(()=>location.reload())" title="خروج">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- Room Info Panel -->
-    <div id="room-panel"></div>
-
     <!-- Messages -->
     <div class="msg-area" id="msgBox"></div>
 
     <!-- Typing Indicator -->
     <div id="typing-indicator"></div>
+
+    <!-- Voice Join Bar (above input) -->
+    <div id="voice-join-bar"></div>
 
     <!-- Input -->
     <footer class="input-bar" style="position:relative">
@@ -2398,7 +2682,7 @@ function loadMessages() {
         msgBox.appendChild(welcome);
       }
 
-      let msgCount = 0;
+      let snapMsgCount = 0;
       let lastDate = null;
 
       snap.forEach(doc => {
@@ -2408,7 +2692,7 @@ function loadMessages() {
         if (msgRoom !== roomToLoad) return;
 
         allMessages.push(m);
-        msgCount++;
+        snapMsgCount++;
 
         const time = m.time?.toDate ? m.time.toDate() : new Date();
         const dateStr = time.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -2424,7 +2708,7 @@ function loadMessages() {
         renderMessage(m, doc.id);
       });
 
-      document.getElementById('stat-msgs').innerText = msgCount;
+      document.getElementById('stat-msgs').innerText = snapMsgCount;
       msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
       loadTypingIndicator();
     });
@@ -3207,6 +3491,7 @@ function initRoomFeatures(roomId) {
 
   if (roomId === 'gaming') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة صوتية', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'🔴', label:'جلسة مباشرة', fn:'toggleLiveSession()' },
       { icon:'📊', label:'بول الأسبوع', fn:'showWeeklyPoll()' },
       { icon:'🎯', label:'تحدي اليوم', fn:'toggleDailyBar()' },
@@ -3218,6 +3503,7 @@ function initRoomFeatures(roomId) {
 
   else if (roomId === 'anime') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة صوتية', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'🌸', label:'كلمة اليوم', fn:'toggleAnimeWord()' },
       { icon:'🗳️', label:'بول الشخصيات', fn:'showAnimePoll()' },
       { icon:'⚠️', label:'Spoiler Tag', fn:'insertSpoilerTag()' },
@@ -3229,6 +3515,7 @@ function initRoomFeatures(roomId) {
 
   else if (roomId === 'movies') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة صوتية', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'⭐', label:'قيّم عمل', fn:'openRating()' },
       { icon:'🎬', label:'فيلم الأسبوع', fn:'showMovieOfWeek()' },
       { icon:'🔮', label:'Spoiler Tag', fn:'insertSpoilerTag()' },
@@ -3239,6 +3526,7 @@ function initRoomFeatures(roomId) {
 
   else if (roomId === 'general') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة صوتية', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'📰', label:'موضوع اليوم', fn:'toggleDailyBar()' },
       { icon:'🎵', label:'أنا أسمع...', fn:'sendSpotifyStatus()' },
       { icon:'🌐', label:'ترجمة', fn:'showTranslateHelp()' },
@@ -3248,6 +3536,7 @@ function initRoomFeatures(roomId) {
 
   else if (roomId === 'random') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة صوتية', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'🎲', label:'سؤال عشوائي', fn:'toggleRandomQ()' },
       { icon:'🎭', label:'Truth or Dare', fn:'toggleTOD()' },
       { icon:'🎰', label:'لعبة الأرقام', fn:'toggleNumGame()' },
@@ -3258,12 +3547,16 @@ function initRoomFeatures(roomId) {
 
   else if (roomId === 'vip') {
     buildToolbar([
+      { icon:'🎙️', label:'قناة VIP 👑', fn:`joinVoice('${roomId}')`, voice:true },
       { icon:'👑', label:'نصيحة VIP', fn:'toggleDailyBar()' },
       { icon:'💎', label:'إحصائياتي', fn:'showMyStats()' },
       { icon:'🎁', label:'XP مضاعف', fn:'showVIPReward()' },
     ]);
     showDailyBar(roomId);
   }
+
+  // Always watch voice channel for this room
+  watchAllVoiceChannels();
 }
 
 function buildToolbar(buttons) {
@@ -3271,7 +3564,12 @@ function buildToolbar(buttons) {
   toolbar.innerHTML = '';
   buttons.forEach(b => {
     const btn = document.createElement('button');
-    btn.className = 'toolbar-btn';
+    if (b.voice) {
+      btn.className = 'voice-channel-btn';
+      btn.id = 'voice-toolbar-btn';
+    } else {
+      btn.className = 'toolbar-btn';
+    }
     btn.innerHTML = `${b.icon} ${b.label}`;
     btn.setAttribute('onclick', b.fn);
     toolbar.appendChild(btn);
@@ -3539,6 +3837,387 @@ async function sendSystemLike(text) {
     });
   } catch (e) { showToast('خطأ في الإرسال', 'error'); }
 }
+
+// ======================== VOICE CHANNEL (AGORA) ========================
+const AGORA_APP_ID = '7513b06e94f048d9a4b95fc2531a2f6a';
+const AGORA_TOKEN = null;
+let agoraClient = null;
+let localAudioTrack = null;
+let localScreenTrack = null;
+let isMicMuted = false;
+let isDeafened = false;
+let isSharingScreen = false;
+let inVoiceChannel = false;
+let voiceMembers = {};
+let volInterval = null;
+
+// Load Agora SDK lazily (only when joining voice)
+function loadAgoraSDK() {
+  return new Promise((resolve, reject) => {
+    if (window.AgoraRTC) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('فشل تحميل Agora SDK'));
+    document.head.appendChild(s);
+  });
+}
+
+// Init Agora client (called after SDK loads)
+function initAgora() {
+  // Always create a fresh client
+  if (agoraClient) {
+    try { agoraClient.removeAllListeners(); } catch(e) {}
+  }
+  agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  AgoraRTC.setLogLevel(4); // suppress logs
+
+  // Remote user events
+  agoraClient.on('user-published', async (user, mediaType) => {
+    await agoraClient.subscribe(user, mediaType);
+    if (mediaType === 'audio' && !isDeafened) {
+      user.audioTrack?.play();
+    }
+    if (mediaType === 'video') {
+      // Screen share from remote
+      const overlay = document.getElementById('screen-share-overlay');
+      const video = document.getElementById('screen-video');
+      document.getElementById('screen-sharer-name').innerText = voiceMembers[user.uid]?.name || 'مستخدم';
+      user.videoTrack?.play(video);
+      overlay.classList.add('show');
+    }
+    updateVoiceMembersUI();
+  });
+
+  agoraClient.on('user-unpublished', (user, mediaType) => {
+    if (mediaType === 'video') {
+      document.getElementById('screen-share-overlay').classList.remove('show');
+    }
+    updateVoiceMembersUI();
+  });
+
+  agoraClient.on('user-left', (user) => {
+    delete voiceMembers[user.uid];
+    updateVoiceMembersUI();
+    updateVoiceJoinBar();
+  });
+
+  agoraClient.on('user-joined', (user) => {
+    updateVoiceMembersUI();
+    updateVoiceJoinBar();
+  });
+
+  // Volume indicator
+  agoraClient.enableAudioVolumeIndicator();
+  agoraClient.on('volume-indicator', (volumes) => {
+    volumes.forEach(({ uid, level }) => {
+      const avatar = document.getElementById('va-' + uid);
+      if (avatar) avatar.classList.toggle('speaking', level > 5);
+    });
+    // local
+    const localAvatar = document.getElementById('va-local');
+    if (localAvatar && localAudioTrack) {
+      const localVol = localAudioTrack.getVolumeLevel() * 100;
+      localAvatar.classList.toggle('speaking', localVol > 5 && !isMicMuted);
+    }
+  });
+}
+
+// Join voice channel
+async function joinVoice(roomId) {
+  if (inVoiceChannel) { toggleVoicePanel(); return; }
+
+  showToast('🔄 جارٍ تحميل القناة الصوتية...', 'info', 2000);
+
+  try {
+    // Load Agora SDK first
+    await loadAgoraSDK();
+
+    // Force leave any existing session
+    if (agoraClient) {
+      try {
+        localAudioTrack?.stop(); localAudioTrack?.close();
+        localScreenTrack?.stop(); localScreenTrack?.close();
+        await agoraClient.leave();
+      } catch(e) {}
+      localAudioTrack = null;
+      localScreenTrack = null;
+    }
+
+    initAgora();
+    const channelName = 'gamezone-' + roomId;
+    const uid = await agoraClient.join(AGORA_APP_ID, channelName, AGORA_TOKEN, null);
+
+    // Create & publish mic
+    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    await agoraClient.publish([localAudioTrack]);
+
+    inVoiceChannel = true;
+    isMicMuted = false;
+    isDeafened = false;
+
+    // Store myself in Firebase voice presence
+    await db.collection('voiceChannels').doc(roomId).collection('members')
+      .doc(auth.currentUser.email).set({
+        name: myData.name,
+        email: auth.currentUser.email,
+        uid: uid,
+        muted: false,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    // Announce in chat
+    await db.collection('messages').add({
+      text: `🎙️ ${myData.name} انضم إلى القناة الصوتية`,
+      sender: 'SYSTEM', name: 'النظام',
+      room: roomId, time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Show panel
+    const room = ROOMS.find(r => r.id === roomId);
+    document.getElementById('voice-room-name').innerText = `🎙️ ${room?.name || roomId}`;
+    document.getElementById('voice-live-ind').style.display = 'flex';
+    openVoicePanel();
+    updateMicUI();
+    listenVoiceMembers(roomId);
+    showToast('🎙️ انضممت للقناة الصوتية!', 'success');
+
+  } catch (e) {
+    showToast('خطأ في الاتصال: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+// Leave voice
+async function leaveVoice() {
+  if (!inVoiceChannel) return;
+  try {
+    localAudioTrack?.stop();
+    localAudioTrack?.close();
+    localScreenTrack?.stop();
+    localScreenTrack?.close();
+    await agoraClient?.leave();
+
+    // Remove from Firebase
+    await db.collection('voiceChannels').doc(currentRoom)
+      .collection('members').doc(auth.currentUser.email).delete();
+
+    // Announce
+    await db.collection('messages').add({
+      text: `📴 ${myData.name} غادر القناة الصوتية`,
+      sender: 'SYSTEM', name: 'النظام',
+      room: currentRoom, time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    inVoiceChannel = false;
+    isMicMuted = false;
+    isDeafened = false;
+    isSharingScreen = false;
+    voiceMembers = {};
+    localAudioTrack = null;
+    localScreenTrack = null;
+
+    closeVoicePanel();
+    updateVoiceMembersUI();
+    updateVoiceJoinBar();
+    if (window._voiceMembersUnsub) window._voiceMembersUnsub();
+    showToast('📴 غادرت القناة الصوتية', 'info');
+
+  } catch (e) { showToast('خطأ: ' + e.message, 'error'); }
+}
+
+// Toggle mic
+async function toggleMic() {
+  if (!localAudioTrack) return;
+  isMicMuted = !isMicMuted;
+  await localAudioTrack.setMuted(isMicMuted);
+  updateMicUI();
+  // Update Firebase
+  await db.collection('voiceChannels').doc(currentRoom)
+    .collection('members').doc(auth.currentUser.email)
+    .update({ muted: isMicMuted });
+  showToast(isMicMuted ? '🔇 ميكروفونك مكتوم' : '🎙️ ميكروفونك مفعّل', 'info', 1500);
+}
+
+// Toggle deafen
+function toggleDeafen() {
+  isDeafened = !isDeafened;
+  // Mute/unmute all remote tracks
+  agoraClient?.remoteUsers.forEach(user => {
+    if (isDeafened) user.audioTrack?.stop();
+    else user.audioTrack?.play();
+  });
+  const btn = document.getElementById('btn-deafen');
+  const icon = document.getElementById('deafen-icon');
+  btn.classList.toggle('active', isDeafened);
+  icon.className = isDeafened ? 'fas fa-headphones-alt' : 'fas fa-headphones';
+  showToast(isDeafened ? '🔕 الصوت مكتوم' : '🔊 الصوت مفعّل', 'info', 1500);
+}
+
+// Toggle screen share
+async function toggleScreenShare() {
+  if (!inVoiceChannel) return showToast('انضم للقناة الصوتية أولاً', 'error');
+  try {
+    if (!isSharingScreen) {
+      localScreenTrack = await AgoraRTC.createScreenVideoTrack({}, 'disable');
+      await agoraClient.publish(localScreenTrack);
+      isSharingScreen = true;
+      document.getElementById('btn-screen').classList.add('active');
+      document.getElementById('screen-icon').className = 'fas fa-stop-circle';
+      showToast('📺 جارٍ مشاركة شاشتك', 'success');
+
+      // Show local preview
+      const overlay = document.getElementById('screen-share-overlay');
+      const video = document.getElementById('screen-video');
+      document.getElementById('screen-sharer-name').innerText = 'أنت - مشاركة شاشتك';
+      localScreenTrack.play(video);
+      overlay.classList.add('show');
+
+      localScreenTrack.on('track-ended', stopScreenShare);
+    } else {
+      await stopScreenShare();
+    }
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') showToast('خطأ في مشاركة الشاشة: ' + e.message, 'error');
+  }
+}
+
+async function stopScreenShare() {
+  if (!localScreenTrack) return;
+  await agoraClient.unpublish(localScreenTrack);
+  localScreenTrack.stop();
+  localScreenTrack.close();
+  localScreenTrack = null;
+  isSharingScreen = false;
+  document.getElementById('btn-screen').classList.remove('active');
+  document.getElementById('screen-icon').className = 'fas fa-desktop';
+  document.getElementById('screen-share-overlay').classList.remove('show');
+  showToast('📺 انتهت مشاركة الشاشة', 'info');
+}
+
+function closeScreenOverlay() {
+  document.getElementById('screen-share-overlay').classList.remove('show');
+}
+
+// Panel controls
+function openVoicePanel() {
+  document.getElementById('voice-panel').classList.add('open');
+}
+function closeVoicePanel() {
+  document.getElementById('voice-panel').classList.remove('open');
+}
+function toggleVoicePanel() {
+  document.getElementById('voice-panel').classList.toggle('open');
+}
+
+// Update mic UI
+function updateMicUI() {
+  const btn = document.getElementById('btn-mic');
+  const icon = document.getElementById('mic-icon');
+  if (!btn) return;
+  btn.classList.toggle('muted', isMicMuted);
+  icon.className = isMicMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+}
+
+// Listen to voice members in Firebase
+function listenVoiceMembers(roomId) {
+  if (window._voiceMembersUnsub) window._voiceMembersUnsub();
+  window._voiceMembersUnsub = db.collection('voiceChannels').doc(roomId)
+    .collection('members').onSnapshot(snap => {
+      voiceMembers = {};
+      snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
+      updateVoiceMembersUI();
+      updateVoiceJoinBar();
+      document.getElementById('voice-member-count').innerText = snap.size + ' في القناة';
+    });
+}
+
+// Watch all rooms' voice for join bar
+function watchAllVoiceChannels() {
+  if (!db || !currentRoom) return;
+  if (window._voiceWatchUnsub) window._voiceWatchUnsub();
+  window._voiceWatchUnsub = db.collection('voiceChannels').doc(currentRoom)
+    .collection('members').onSnapshot(snap => {
+      if (inVoiceChannel) return; // already managing from joinVoice
+      voiceMembers = {};
+      snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
+      updateVoiceJoinBar();
+    });
+}
+
+// Update members UI in panel
+function updateVoiceMembersUI() {
+  const list = document.getElementById('voice-members-list');
+  if (!list) return;
+  const members = Object.values(voiceMembers);
+  if (members.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:0.75rem;width:100%;text-align:center;padding:20px">لا أحد في القناة بعد...</div>';
+    return;
+  }
+  list.innerHTML = '';
+  members.forEach(m => {
+    const color = getAvatarColor(m.name);
+    const isMe = m.email === auth.currentUser.email;
+    const div = document.createElement('div');
+    div.className = 'voice-member';
+    div.innerHTML = `
+      <div class="voice-avatar ${m.muted ? 'muted-member' : ''}" id="va-${m.uid || m.email}" 
+           style="background:${color}22;border-color:${color}44;color:${color}">
+        ${(m.name||'?').charAt(0).toUpperCase()}
+      </div>
+      <div class="voice-member-name" style="color:${isMe ? 'var(--gold)' : ''}">
+        ${m.name}${isMe ? ' (أنت)' : ''}
+      </div>
+      <div style="display:flex;gap:2px;align-items:center">
+        ${m.muted
+          ? '<span style="font-size:0.6rem;color:var(--red)">🔇</span>'
+          : '<div class="vol-bars"><div class="vol-bar" style="height:4px"></div><div class="vol-bar" style="height:8px"></div><div class="vol-bar" style="height:4px"></div></div>'
+        }
+      </div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('voice-member-count').innerText = members.length + ' في القناة';
+}
+
+// Update join bar shown above input
+function updateVoiceJoinBar() {
+  const bar = document.getElementById('voice-join-bar');
+  const members = Object.values(voiceMembers);
+  if (members.length === 0 || inVoiceChannel) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  const names = members.slice(0, 3).map(m => m.name).join('، ');
+  const more = members.length > 3 ? ` و${members.length - 3} آخرين` : '';
+  bar.innerHTML = `
+    <div class="voice-live-dot"></div>
+    <div style="flex:1;font-size:0.72rem">
+      <b style="color:var(--green)">${names}${more}</b>
+      <span style="color:var(--text-muted)"> في القناة الصوتية</span>
+    </div>
+    <button onclick="joinVoice('${currentRoom}')" class="voice-channel-btn" style="padding:5px 12px;font-size:0.7rem">
+      <i class="fas fa-phone"></i> انضم
+    </button>`;
+}
+
+// Cleanup on leave page
+window.addEventListener('beforeunload', async () => {
+  if (inVoiceChannel) {
+    localAudioTrack?.stop(); localAudioTrack?.close();
+    localScreenTrack?.stop(); localScreenTrack?.close();
+    await agoraClient?.leave().catch(()=>{});
+    await db.collection('voiceChannels').doc(currentRoom)
+      .collection('members').doc(auth.currentUser.email).delete().catch(()=>{});
+  }
+});
+
+// Keyboard shortcut: M = toggle mic, ESC = close screen share
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'm' || e.key === 'M') toggleMic();
+  if (e.key === 'Escape') closeScreenOverlay();
+});
 
 // ======================== PWA ========================
 let deferredPrompt = null;
