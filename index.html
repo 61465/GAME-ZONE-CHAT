@@ -1393,6 +1393,207 @@ body {
   transition: height 0.1s;
 }
 
+/* ======================== UNIQUE VOICE FEATURES ======================== */
+
+/* Mood System */
+.mood-ring {
+  display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.mood-chip {
+  padding: 4px 10px; border-radius: 20px; font-size: 0.72rem;
+  border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+  background: transparent; font-family: 'Tajawal', sans-serif;
+  white-space: nowrap;
+}
+.mood-chip:hover, .mood-chip.active {
+  transform: scale(1.08);
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Voice Visualizer - Waveform */
+#voice-visualizer {
+  height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 3px; padding: 0 14px;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.wave-bar {
+  width: 4px; border-radius: 4px;
+  background: linear-gradient(to top, var(--green), rgba(46,204,113,0.3));
+  transition: height 0.08s ease;
+  min-height: 3px;
+}
+
+/* Voice Rooms (sub-rooms) */
+.vroom-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  cursor: pointer; transition: 0.2s; margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+.vroom-item:hover { background: rgba(255,255,255,0.05); border-color: var(--border); }
+.vroom-item.active { background: var(--room-bg); border-color: var(--room-border); }
+
+/* Reaction Burst */
+.reaction-burst {
+  position: fixed;
+  font-size: 2rem;
+  pointer-events: none;
+  z-index: 99999;
+  animation: burst 1.5s ease-out forwards;
+}
+@keyframes burst {
+  0%   { transform: translateY(0) scale(0.5); opacity: 1; }
+  100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
+}
+
+/* AI Transcription */
+#ai-transcript {
+  display: none;
+  padding: 8px 14px;
+  background: rgba(52,152,219,0.06);
+  border-bottom: 1px solid rgba(52,152,219,0.2);
+  font-size: 0.72rem; color: var(--text-muted);
+  min-height: 30px; max-height: 60px; overflow-y: auto;
+}
+#ai-transcript.show { display: block; }
+#ai-transcript b { color: var(--blue); }
+
+/* Ambient Sound */
+.ambient-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+  transition: 0.2s; min-width: 54px;
+}
+.ambient-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+.ambient-btn.active { background: rgba(46,204,113,0.1); border-color: rgba(46,204,113,0.4); }
+.ambient-icon { font-size: 1.4rem; }
+.ambient-label { font-size: 0.55rem; color: var(--text-muted); font-family: 'Tajawal', sans-serif; }
+
+/* Voice Quote - save memorable quotes */
+.voice-quote {
+  background: rgba(212,175,55,0.06); border-right: 3px solid var(--gold);
+  padding: 8px 12px; border-radius: 8px; margin: 4px 0;
+  font-size: 0.75rem; font-style: italic; color: var(--text);
+}
+
+/* Energy Meter */
+#energy-meter {
+  height: 3px; background: var(--border); border-radius: 3px;
+  overflow: hidden; margin: 0 14px 8px;
+}
+#energy-fill {
+  height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--green), #ffd700, var(--red));
+  transition: width 0.3s ease;
+}
+.radio-btn {
+  position: relative;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #1a1a2e, #0d0d1a);
+  border: 2px solid rgba(99,179,237,0.4);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 2px;
+  transition: all 0.3s;
+  box-shadow: 0 0 15px rgba(99,179,237,0.15), inset 0 0 10px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+.radio-btn::before {
+  content: '';
+  position: absolute; inset: 3px;
+  border-radius: 50%;
+  border: 1px solid rgba(99,179,237,0.2);
+}
+.radio-btn::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  background: #63b3ed; border-radius: 50%;
+  top: 8px; right: 10px;
+  box-shadow: 0 0 6px #63b3ed;
+  animation: radioBlink 2s infinite;
+}
+@keyframes radioBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.radio-btn.playing {
+  border-color: rgba(99,179,237,0.9);
+  animation: radioGlow 1.5s ease-in-out infinite alternate;
+}
+@keyframes radioGlow {
+  from { box-shadow: 0 0 20px rgba(99,179,237,0.3); }
+  to   { box-shadow: 0 0 45px rgba(99,179,237,0.7), 0 0 80px rgba(99,179,237,0.2); }
+}
+.radio-btn i { font-size: 1.2rem; color: #63b3ed; z-index: 1; }
+.radio-btn .r-label { font-size: 0.45rem; color: rgba(99,179,237,0.7); letter-spacing: 1px; font-weight: 700; z-index: 1; }
+.radio-wave { position:absolute; inset:-8px; border-radius:50%; border:1px solid rgba(99,179,237,0.3); animation:radioWave 2s ease-out infinite; pointer-events:none; }
+.radio-wave:nth-child(2){animation-delay:0.6s;inset:-16px;opacity:0.5}
+.radio-wave:nth-child(3){animation-delay:1.2s;inset:-24px;opacity:0.25}
+@keyframes radioWave { 0%{transform:scale(0.9);opacity:0.6} 100%{transform:scale(1.4);opacity:0} }
+
+#radio-panel {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(5,5,20,0.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(99,179,237,0.3);
+  z-index: 6000; padding: 16px;
+  animation: slideUp 0.3s ease;
+}
+#radio-panel.show { display: block; }
+
+.radio-disc {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle, #1a1a3e, #0d0d1a);
+  border: 2px solid rgba(99,179,237,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.radio-disc.spinning { animation: spin 3s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.radio-vol-slider {
+  flex: 1; height: 4px; -webkit-appearance: none;
+  background: rgba(99,179,237,0.2); border-radius: 4px; outline: none; cursor: pointer;
+}
+.radio-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: #63b3ed;
+  box-shadow: 0 0 6px rgba(99,179,237,0.6);
+}
+
+.sfx-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 8px; }
+.sfx-btn {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 4px; text-align: center;
+  cursor: pointer; transition: 0.2s; font-family: 'Tajawal',sans-serif;
+}
+.sfx-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
+.sfx-btn:active { transform: scale(0.95); }
+.sfx-icon { font-size: 1.4rem; display: block; }
+.sfx-label { font-size: 0.55rem; color: var(--text-muted); margin-top: 2px; }
+
+.ptt-btn {
+  width: 100%; padding: 14px;
+  background: rgba(46,204,113,0.08);
+  border: 2px solid rgba(46,204,113,0.3);
+  border-radius: 14px; color: var(--green);
+  font-family: 'Tajawal',sans-serif; font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.ptt-btn.pressing {
+  background: rgba(46,204,113,0.25); border-color: var(--green);
+  box-shadow: 0 0 20px rgba(46,204,113,0.3); transform: scale(0.98);
+}
+.hand-raised { position:absolute; top:-8px; right:-8px; font-size:0.9rem; animation: handWave 0.5s ease infinite alternate; }
+@keyframes handWave { from{transform:rotate(-15deg)} to{transform:rotate(15deg)} }
+
 
 /* Daily Challenge / Topic Bar */
 #daily-bar {
@@ -1667,39 +1868,197 @@ body {
   <div class="voice-controls">
     <!-- Mic -->
     <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()" title="كتم الميكروفون">
+      <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()">
         <i class="fas fa-microphone" id="mic-icon"></i>
       </button>
       <span class="vbtn-label">ميكروفون</span>
     </div>
     <!-- Deafen -->
     <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()" title="كتم الصوت">
+      <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()">
         <i class="fas fa-headphones" id="deafen-icon"></i>
       </button>
       <span class="vbtn-label">الصوت</span>
     </div>
+    <!-- Raise Hand -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn" id="btn-hand" onclick="toggleRaiseHand()"
+        style="background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.3);color:#ffc800">
+        <i class="fas fa-hand-paper" id="hand-icon"></i>
+        <span id="hand-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ffc800;color:#000;font-size:0.5rem;font-weight:900;padding:1px 4px;border-radius:8px" id="hands-count">0</span>
+      </button>
+      <span class="vbtn-label">ارفع يدك</span>
+    </div>
+    <!-- Radio -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="radio-btn" id="btn-radio" onclick="toggleRadioPanel()">
+        <div class="radio-wave"></div>
+        <div class="radio-wave"></div>
+        <div class="radio-wave"></div>
+        <i class="fas fa-broadcast-tower"></i>
+        <span class="r-label">RADIO</span>
+      </button>
+      <span class="vbtn-label" style="color:#63b3ed">راديو</span>
+    </div>
     <!-- Screen Share -->
     <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()" title="مشاركة الشاشة">
+      <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()">
         <i class="fas fa-desktop" id="screen-icon"></i>
       </button>
       <span class="vbtn-label">الشاشة</span>
     </div>
+    <!-- Transcript -->
+    <div style="position:relative;margin-bottom:20px">
+      <button class="voice-btn" id="btn-transcript" onclick="toggleTranscript()"
+        style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:var(--blue)">
+        <i class="fas fa-closed-captioning"></i>
+      </button>
+      <span class="vbtn-label" style="color:var(--blue)">نص تلقائي</span>
+    </div>
     <!-- Leave -->
     <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-leave" onclick="leaveVoice()" title="مغادرة القناة">
+      <button class="voice-btn vbtn-leave" onclick="leaveVoice()">
         <i class="fas fa-phone-slash"></i>
       </button>
       <span class="vbtn-label" style="color:var(--red)">مغادرة</span>
     </div>
   </div>
 
+  <!-- Push to Talk -->
+  <div style="padding:0 14px 10px">
+    <button class="ptt-btn" id="ptt-btn"
+      onmousedown="startPTT()" onmouseup="stopPTT()"
+      ontouchstart="startPTT()" ontouchend="stopPTT()">
+      <i class="fas fa-microphone-alt"></i>
+      اضغط مع الاستمرار للتحدث (PTT)
+    </button>
+  </div>
+
+  <!-- Sound Effects -->
+  <div style="padding:0 14px 12px">
+    <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:6px;font-weight:700">🎵 مؤثرات صوتية للجميع</div>
+    <div class="sfx-grid">
+      <div class="sfx-btn" onclick="playSFX('👏','applause')"><span class="sfx-icon">👏</span><div class="sfx-label">تصفيق</div></div>
+      <div class="sfx-btn" onclick="playSFX('😂','laugh')"><span class="sfx-icon">😂</span><div class="sfx-label">ضحك</div></div>
+      <div class="sfx-btn" onclick="playSFX('🥁','drum')"><span class="sfx-icon">🥁</span><div class="sfx-label">طبل</div></div>
+      <div class="sfx-btn" onclick="playSFX('🎉','party')"><span class="sfx-icon">🎉</span><div class="sfx-label">احتفال</div></div>
+      <div class="sfx-btn" onclick="playSFX('😱','scream')"><span class="sfx-icon">😱</span><div class="sfx-label">صرخة</div></div>
+      <div class="sfx-btn" onclick="playSFX('🔔','bell')"><span class="sfx-icon">🔔</span><div class="sfx-label">جرس</div></div>
+      <div class="sfx-btn" onclick="playSFX('💥','boom')"><span class="sfx-icon">💥</span><div class="sfx-label">انفجار</div></div>
+      <div class="sfx-btn" onclick="playSFX('🎺','trumpet')"><span class="sfx-icon">🎺</span><div class="sfx-label">ترامبيت</div></div>
+    </div>
+  </div>
+
+  <!-- Live Waveform Visualizer -->
+  <div id="voice-visualizer">
+    <div style="color:var(--text-muted);font-size:0.65rem">انضم للقناة لرؤية المؤشر الصوتي 🎙️</div>
+  </div>
+
+  <!-- Energy Meter -->
+  <div id="energy-meter"><div id="energy-fill"></div></div>
+
+  <!-- AI Transcript -->
+  <div id="ai-transcript">
+    <b>📝 النص:</b> <span id="transcript-text">جارٍ الاستماع...</span>
+  </div>
+
+  <!-- Mood Ring -->
+  <div class="mood-ring" id="mood-ring">
+    <div style="font-size:0.6rem;color:var(--text-muted);width:100%;margin-bottom:4px;font-weight:700">✨ مزاجك الآن</div>
+    <div class="mood-chip" onclick="setMood('🔥','نار','#e74c3c')" style="color:#e74c3c;border-color:#e74c3c44">🔥 نار</div>
+    <div class="mood-chip" onclick="setMood('😂','ضاحك','#ffd700')" style="color:#ffd700;border-color:#ffd70044">😂 ضاحك</div>
+    <div class="mood-chip" onclick="setMood('🎮','قيمر','#00d4ff')" style="color:#00d4ff;border-color:#00d4ff44">🎮 قيمر</div>
+    <div class="mood-chip" onclick="setMood('🎵','موسيقي','#a29bfe')" style="color:#a29bfe;border-color:#a29bfe44">🎵 موسيقي</div>
+    <div class="mood-chip" onclick="setMood('😴','نايم','#636e72')" style="color:#636e72;border-color:#63636244">😴 نايم</div>
+    <div class="mood-chip" onclick="setMood('👑','ملك','#D4AF37')" style="color:#D4AF37;border-color:#D4AF3744">👑 ملك</div>
+    <div class="mood-chip" onclick="setMood('🤫','صامت','#74b9ff')" style="color:#74b9ff;border-color:#74b9ff44">🤫 صامت</div>
+  </div>
+
+  <!-- Ambient Sounds -->
+  <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
+    <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">🌿 أصوات بيئية (تُسمع لك أنت فقط)</div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
+      <div class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain','🌧️')"><div class="ambient-icon">🌧️</div><div class="ambient-label">مطر</div></div>
+      <div class="ambient-btn" id="amb-fire" onclick="toggleAmbient('fire','🔥')"><div class="ambient-icon">🔥</div><div class="ambient-label">نار</div></div>
+      <div class="ambient-btn" id="amb-cafe" onclick="toggleAmbient('cafe','☕')"><div class="ambient-icon">☕</div><div class="ambient-label">كافيه</div></div>
+      <div class="ambient-btn" id="amb-sea" onclick="toggleAmbient('sea','🌊')"><div class="ambient-icon">🌊</div><div class="ambient-label">بحر</div></div>
+      <div class="ambient-btn" id="amb-forest" onclick="toggleAmbient('forest','🌲')"><div class="ambient-icon">🌲</div><div class="ambient-label">غابة</div></div>
+      <div class="ambient-btn" id="amb-space" onclick="toggleAmbient('space','🚀')"><div class="ambient-icon">🚀</div><div class="ambient-label">فضاء</div></div>
+    </div>
+  </div>
+
+  <!-- Voice Reactions (quick emoji burst) -->
+  <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
+    <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">⚡ ردود فعل سريعة (تظهر للجميع)</div>
+    <div style="display:flex;gap:8px;justify-content:space-around">
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('👍')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('❤️')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('😂')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😂</span>
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('🔥')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🔥</span>
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('😮')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
+      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('👏')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👏</span>
+    </div>
+  </div>
+
+  <!-- Members -->
   <div class="voice-members" id="voice-members-list">
     <div style="color:var(--text-muted);font-size:0.75rem;width:100%;text-align:center;padding:10px">
       لا أحد في القناة بعد...
     </div>
   </div>
+</div>
+
+<!-- ======= RADIO PANEL ======= -->
+<div id="radio-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-weight:800;color:#63b3ed;display:flex;align-items:center;gap:8px">
+      <i class="fas fa-broadcast-tower"></i> راديو المجموعة
+    </div>
+    <button onclick="toggleRadioPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- Now Playing -->
+  <div id="radio-now-playing" style="display:none;background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.2);border-radius:14px;padding:10px 14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="radio-disc spinning" id="radio-disc">📻</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.82rem;font-weight:700;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="radio-track-name">جارٍ التشغيل...</div>
+        <div style="font-size:0.65rem;color:rgba(99,179,237,0.7);margin-top:2px" id="radio-track-sub">راديو المجموعة 📡</div>
+      </div>
+      <button onclick="stopRadio()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:var(--red);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;font-family:'Tajawal',sans-serif">
+        <i class="fas fa-stop"></i> إيقاف
+      </button>
+    </div>
+    <!-- Volume control (local only) -->
+    <div style="display:flex;align-items:center;gap:8px">
+      <i class="fas fa-volume-down" style="color:rgba(99,179,237,0.6);font-size:0.8rem"></i>
+      <input type="range" class="radio-vol-slider" id="radio-vol" min="0" max="100" value="70" oninput="setRadioVolume(this.value)">
+      <i class="fas fa-volume-up" style="color:rgba(99,179,237,0.6);font-size:0.8rem"></i>
+      <span id="radio-vol-val" style="font-size:0.65rem;color:rgba(99,179,237,0.8);min-width:28px">70%</span>
+    </div>
+    <div style="font-size:0.58rem;color:var(--text-muted);margin-top:4px;text-align:center">🔊 التحكم بالصوت يعمل عندك فقط — لا يؤثر على الآخرين</div>
+  </div>
+
+  <!-- URL Input -->
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input class="form-input" id="radio-url-input" placeholder="🔗 الصق رابط أغنية أو يوتيوب أو راديو مباشر..." style="flex:1;font-size:0.78rem">
+    <button class="btn-gold" onclick="startRadio()" style="padding:8px 14px;white-space:nowrap;font-size:0.78rem">
+      <i class="fas fa-play"></i> بث
+    </button>
+  </div>
+
+  <!-- Quick Radio Stations -->
+  <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">📻 محطات جاهزة</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/0r0xa792kwzuv','🎵 Lofi Hip Hop')">🎵 Lofi</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/yn65fueryquuv','🎸 Rock Classic')">🎸 Rock</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/f3wvbbqmdg8uv','🎺 Jazz')">🎺 Jazz</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/4d1gndwka08uv','🌊 Chill')">🌊 Chill</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/rbw6q4xq5s8uv','⚡ EDM')">⚡ EDM</button>
+  </div>
+
+  <!-- Hidden audio element -->
+  <audio id="radio-audio" style="display:none" crossorigin="anonymous"></audio>
 </div>
 
 <!-- ======= SCREEN SHARE OVERLAY ======= -->
@@ -3838,6 +4197,360 @@ async function sendSystemLike(text) {
   } catch (e) { showToast('خطأ في الإرسال', 'error'); }
 }
 
+// ======================== UNIQUE VOICE FEATURES ========================
+
+// --- LIVE WAVEFORM VISUALIZER ---
+let audioContext = null;
+let analyser = null;
+let vizInterval = null;
+const WAVE_BARS = 28;
+
+function startWaveform(stream) {
+  const viz = document.getElementById('voice-visualizer');
+  viz.innerHTML = '';
+  for (let i = 0; i < WAVE_BARS; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.height = '3px';
+    viz.appendChild(bar);
+  }
+
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 64;
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    const bars = viz.querySelectorAll('.wave-bar');
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    vizInterval = setInterval(() => {
+      analyser.getByteFrequencyData(data);
+      bars.forEach((bar, i) => {
+        const val = data[i] || 0;
+        const h = Math.max(3, (val / 255) * 46);
+        bar.style.height = h + 'px';
+        // Color based on energy
+        const hue = 120 - (val / 255) * 80;
+        bar.style.background = `hsl(${hue}, 80%, 55%)`;
+      });
+      // Energy meter
+      const avg = data.reduce((a, b) => a + b, 0) / data.length;
+      const pct = Math.min(100, (avg / 255) * 200);
+      const fill = document.getElementById('energy-fill');
+      if (fill) fill.style.width = pct + '%';
+    }, 60);
+  } catch(e) {
+    viz.innerHTML = '<div style="color:var(--text-muted);font-size:0.65rem">🎙️ الوضع الصوتي نشط</div>';
+  }
+}
+
+function stopWaveform() {
+  if (vizInterval) clearInterval(vizInterval);
+  if (audioContext) { audioContext.close(); audioContext = null; }
+  const viz = document.getElementById('voice-visualizer');
+  if (viz) viz.innerHTML = '<div style="color:var(--text-muted);font-size:0.65rem">انضم للقناة لرؤية المؤشر الصوتي 🎙️</div>';
+  const fill = document.getElementById('energy-fill');
+  if (fill) fill.style.width = '0%';
+}
+
+// --- MOOD SYSTEM ---
+let currentMood = null;
+async function setMood(emoji, label, color) {
+  currentMood = { emoji, label, color };
+  document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
+  event?.target?.classList.add('active');
+  if (!inVoiceChannel) return;
+  await db.collection('voiceChannels').doc(currentRoom)
+    .collection('members').doc(auth.currentUser.email)
+    .update({ mood: emoji + ' ' + label });
+  showToast(`${emoji} مزاجك: ${label}`, 'info', 1500);
+}
+
+// --- AMBIENT SOUNDS ---
+const AMBIENT_URLS = {
+  rain:   'https://assets.mixkit.co/active_storage/sfx/2522/2522-preview.mp3',
+  fire:   'https://assets.mixkit.co/active_storage/sfx/608/608-preview.mp3',
+  cafe:   'https://assets.mixkit.co/active_storage/sfx/2796/2796-preview.mp3',
+  sea:    'https://assets.mixkit.co/active_storage/sfx/2517/2517-preview.mp3',
+  forest: 'https://assets.mixkit.co/active_storage/sfx/2519/2519-preview.mp3',
+  space:  'https://assets.mixkit.co/active_storage/sfx/2510/2510-preview.mp3',
+};
+let ambientAudios = {};
+
+function toggleAmbient(type, emoji) {
+  const btn = document.getElementById('amb-' + type);
+  if (ambientAudios[type]) {
+    ambientAudios[type].pause();
+    delete ambientAudios[type];
+    btn?.classList.remove('active');
+    showToast(`${emoji} تم إيقاف الصوت البيئي`, 'info', 1200);
+    return;
+  }
+  const audio = new Audio(AMBIENT_URLS[type]);
+  audio.loop = true;
+  audio.volume = 0.25;
+  audio.play().catch(() => showToast('تعذّر تشغيل الصوت', 'error'));
+  ambientAudios[type] = audio;
+  btn?.classList.add('active');
+  showToast(`${emoji} صوت بيئي نشط — يُسمع لك فقط`, 'success', 2000);
+}
+
+function stopAllAmbient() {
+  Object.values(ambientAudios).forEach(a => { a.pause(); });
+  ambientAudios = {};
+  document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
+}
+
+// --- VOICE REACTIONS (emoji burst) ---
+let reactUnsubscribe = null;
+
+async function sendVoiceReaction(emoji) {
+  // Show locally immediately
+  showReactionBurst(emoji);
+  // Broadcast to all
+  if (inVoiceChannel) {
+    await db.collection('voiceChannels').doc(currentRoom)
+      .collection('reactions').add({
+        emoji, sender: myData.name,
+        time: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  }
+}
+
+function showReactionBurst(emoji) {
+  const el = document.createElement('div');
+  el.className = 'reaction-burst';
+  el.innerText = emoji;
+  el.style.left = (20 + Math.random() * 60) + 'vw';
+  el.style.bottom = '120px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+function listenVoiceReactions(roomId) {
+  if (reactUnsubscribe) reactUnsubscribe();
+  reactUnsubscribe = db.collection('voiceChannels').doc(roomId)
+    .collection('reactions')
+    .orderBy('time', 'desc').limit(1)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const d = change.doc.data();
+          if (d.sender !== myData?.name) showReactionBurst(d.emoji);
+        }
+      });
+    });
+}
+
+// --- SPEECH-TO-TEXT TRANSCRIPTION ---
+let recognition = null;
+let transcriptOn = false;
+
+function toggleTranscript() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    return showToast('متصفحك لا يدعم النص التلقائي', 'error');
+  }
+  const box = document.getElementById('ai-transcript');
+  if (transcriptOn) {
+    recognition?.stop();
+    transcriptOn = false;
+    box.classList.remove('show');
+    return;
+  }
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = 'ar-SA';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onresult = e => {
+    let text = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      text += e.results[i][0].transcript;
+    }
+    document.getElementById('transcript-text').innerText = text;
+  };
+  recognition.onerror = () => { transcriptOn = false; box.classList.remove('show'); };
+  recognition.start();
+  transcriptOn = true;
+  box.classList.add('show');
+  showToast('📝 النص التلقائي مفعّل', 'success');
+}
+
+// ======================== RADIO SYSTEM ========================
+let radioAudio = null;
+let isRadioPlaying = false;
+let radioUnsubscribe = null;
+
+function toggleRadioPanel() {
+  document.getElementById('radio-panel').classList.toggle('show');
+}
+
+async function startRadio() {
+  const url = document.getElementById('radio-url-input').value.trim();
+  if (!url) return showToast('أدخل رابط الأغنية أو الراديو', 'error');
+  await broadcastRadio(url, url);
+}
+
+async function quickRadio(url, name) {
+  await broadcastRadio(url, name);
+}
+
+async function broadcastRadio(url, name) {
+  try {
+    // Save to Firebase so all members get it
+    await db.collection('voiceChannels').doc(currentRoom)
+      .collection('radio').doc('current').set({
+        url, name,
+        startedBy: myData.name,
+        startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        active: true
+      });
+    showToast('📻 جارٍ البث للجميع!', 'success');
+    sendSystemLike(`📻 ${myData.name} يبث الآن: ${name}`);
+  } catch(e) { showToast('خطأ في البث: ' + e.message, 'error'); }
+}
+
+async function stopRadio() {
+  try {
+    await db.collection('voiceChannels').doc(currentRoom)
+      .collection('radio').doc('current').set({ active: false });
+    showToast('📻 تم إيقاف الراديو', 'info');
+  } catch(e) {}
+}
+
+function setRadioVolume(val) {
+  document.getElementById('radio-vol-val').innerText = val + '%';
+  if (radioAudio) radioAudio.volume = val / 100;
+}
+
+function playRadioLocally(url, name) {
+  if (radioAudio) { radioAudio.pause(); radioAudio.src = ''; }
+  radioAudio = document.getElementById('radio-audio');
+  radioAudio.src = url;
+  radioAudio.volume = (document.getElementById('radio-vol')?.value || 70) / 100;
+  radioAudio.play().catch(() => {});
+  isRadioPlaying = true;
+
+  document.getElementById('radio-track-name').innerText = name;
+  document.getElementById('radio-now-playing').style.display = 'block';
+  document.getElementById('radio-disc').classList.add('spinning');
+  document.getElementById('btn-radio').classList.add('playing');
+}
+
+function stopRadioLocally() {
+  if (radioAudio) { radioAudio.pause(); radioAudio.src = ''; }
+  isRadioPlaying = false;
+  document.getElementById('radio-now-playing').style.display = 'none';
+  document.getElementById('radio-disc').classList.remove('spinning');
+  document.getElementById('btn-radio').classList.remove('playing');
+}
+
+function listenRadio(roomId) {
+  if (radioUnsubscribe) radioUnsubscribe();
+  radioUnsubscribe = db.collection('voiceChannels').doc(roomId)
+    .collection('radio').doc('current').onSnapshot(doc => {
+      if (!doc.exists) return;
+      const data = doc.data();
+      if (data.active && data.url) {
+        playRadioLocally(data.url, data.name || data.url);
+        document.getElementById('radio-panel').classList.add('show');
+      } else {
+        stopRadioLocally();
+      }
+    });
+}
+
+// ======================== RAISE HAND ========================
+let handRaised = false;
+
+async function toggleRaiseHand() {
+  if (!inVoiceChannel) return showToast('انضم للقناة الصوتية أولاً', 'error');
+  handRaised = !handRaised;
+  const btn = document.getElementById('btn-hand');
+  const icon = document.getElementById('hand-icon');
+  btn.style.background = handRaised ? 'rgba(255,200,0,0.25)' : 'rgba(255,200,0,0.08)';
+  btn.style.borderColor = handRaised ? '#ffc800' : 'rgba(255,200,0,0.3)';
+  icon.style.color = handRaised ? '#ffc800' : '#ffc800';
+
+  await db.collection('voiceChannels').doc(currentRoom)
+    .collection('members').doc(auth.currentUser.email)
+    .update({ handRaised });
+
+  if (handRaised) {
+    showToast('✋ رفعت يدك — المتحدث سيلاحظك!', 'gold', 2000);
+    sendSystemLike(`✋ ${myData.name} يرفع يده للتحدث`);
+  }
+}
+
+// ======================== PUSH TO TALK ========================
+async function startPTT() {
+  if (!inVoiceChannel) return;
+  if (isMicMuted) {
+    await localAudioTrack?.setMuted(false);
+    document.getElementById('ptt-btn').classList.add('pressing');
+  }
+}
+
+async function stopPTT() {
+  if (!inVoiceChannel) return;
+  if (isMicMuted) {
+    await localAudioTrack?.setMuted(true);
+    document.getElementById('ptt-btn').classList.remove('pressing');
+  }
+}
+
+// ======================== SOUND EFFECTS ========================
+const SFX_URLS = {
+  applause: 'https://assets.mixkit.co/active_storage/sfx/2508/2508-preview.mp3',
+  laugh:    'https://assets.mixkit.co/active_storage/sfx/2630/2630-preview.mp3',
+  drum:     'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+  party:    'https://assets.mixkit.co/active_storage/sfx/2609/2609-preview.mp3',
+  scream:   'https://assets.mixkit.co/active_storage/sfx/2628/2628-preview.mp3',
+  bell:     'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+  boom:     'https://assets.mixkit.co/active_storage/sfx/2890/2890-preview.mp3',
+  trumpet:  'https://assets.mixkit.co/active_storage/sfx/2632/2632-preview.mp3',
+};
+
+async function playSFX(emoji, type) {
+  if (!inVoiceChannel) return showToast('انضم للقناة الصوتية لإرسال المؤثرات', 'error');
+  // Broadcast SFX to all via Firebase
+  await db.collection('voiceChannels').doc(currentRoom)
+    .collection('sfx').add({
+      type, emoji,
+      sender: myData.name,
+      time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  playAudioLocally(type);
+  showToast(`${emoji} تم إرسال المؤثر للجميع!`, 'success', 1500);
+}
+
+function playAudioLocally(type) {
+  const url = SFX_URLS[type];
+  if (!url) return;
+  const audio = new Audio(url);
+  audio.volume = 0.7;
+  audio.play().catch(() => {});
+}
+
+function listenSFX(roomId) {
+  // Listen for SFX broadcasts
+  db.collection('voiceChannels').doc(roomId)
+    .collection('sfx')
+    .orderBy('time', 'desc').limit(1)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const d = change.doc.data();
+          if (d.sender !== myData?.name) { // Don't replay own SFX
+            playAudioLocally(d.type);
+            showToast(`${d.emoji} ${d.sender} أرسل مؤثراً`, 'info', 1500);
+          }
+        }
+      });
+    });
+}
+
 // ======================== VOICE CHANNEL (AGORA) ========================
 const AGORA_APP_ID = '7513b06e94f048d9a4b95fc2531a2f6a';
 const AGORA_TOKEN = null;
@@ -3949,7 +4662,14 @@ async function joinVoice(roomId) {
     const uid = await agoraClient.join(AGORA_APP_ID, channelName, AGORA_TOKEN, null);
 
     // Create & publish mic
-    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
+      encoderConfig: 'music_standard',
+      AEC: true,   // Acoustic Echo Cancellation
+      ANS: true,   // Automatic Noise Suppression  
+      AGC: true,   // Automatic Gain Control
+    });
+    // Prevent local playback (causes echo)
+    localAudioTrack.setPlaybackDevice && localAudioTrack.setPlaybackDevice('default');
     await agoraClient.publish([localAudioTrack]);
 
     inVoiceChannel = true;
@@ -3980,6 +4700,14 @@ async function joinVoice(roomId) {
     openVoicePanel();
     updateMicUI();
     listenVoiceMembers(roomId);
+    listenRadio(roomId);
+    listenSFX(roomId);
+    listenVoiceReactions(roomId);
+
+    // Start waveform visualizer
+    const micStream = new MediaStream([localAudioTrack.getMediaStreamTrack()]);
+    startWaveform(micStream);
+
     showToast('🎙️ انضممت للقناة الصوتية!', 'success');
 
   } catch (e) {
@@ -4013,9 +4741,17 @@ async function leaveVoice() {
     isMicMuted = false;
     isDeafened = false;
     isSharingScreen = false;
+    handRaised = false;
     voiceMembers = {};
     localAudioTrack = null;
     localScreenTrack = null;
+    stopRadioLocally();
+    stopWaveform();
+    stopAllAmbient();
+    if (recognition) { recognition.stop(); transcriptOn = false; }
+    if (radioUnsubscribe) { radioUnsubscribe(); radioUnsubscribe = null; }
+    if (reactUnsubscribe) { reactUnsubscribe(); reactUnsubscribe = null; }
+    document.getElementById('ai-transcript')?.classList.remove('show');
 
     closeVoicePanel();
     updateVoiceMembersUI();
@@ -4164,6 +4900,7 @@ function updateVoiceMembersUI() {
       <div class="voice-avatar ${m.muted ? 'muted-member' : ''}" id="va-${m.uid || m.email}" 
            style="background:${color}22;border-color:${color}44;color:${color}">
         ${(m.name||'?').charAt(0).toUpperCase()}
+        ${m.handRaised ? '<span class="hand-raised">✋</span>' : ''}
       </div>
       <div class="voice-member-name" style="color:${isMe ? 'var(--gold)' : ''}">
         ${m.name}${isMe ? ' (أنت)' : ''}
