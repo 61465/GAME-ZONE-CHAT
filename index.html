@@ -1186,21 +1186,8 @@ body {
 }
 /* ======================== VOICE CHANNEL ======================== */
 #voice-panel {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(8,8,8,0.98);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--room-border);
-  z-index: 5000;
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-  height: 75vh;
-  max-height: 75vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: none !important;
 }
-#voice-panel.open { transform: translateY(0); }
 
 .voice-header {
   display: flex;
@@ -1234,11 +1221,16 @@ body {
 
 .voice-controls {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 14px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 14px 24px;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  flex-shrink: 0;
 }
+.voice-controls::-webkit-scrollbar { display: none; }
 .voice-btn {
   width: 52px; height: 52px;
   border-radius: 50%;
@@ -1600,7 +1592,8 @@ body {
 /* Voice tab system */
 .vtab { transition: color 0.2s; }
 .vtab.active { color: var(--gold) !important; border-bottom: 2px solid var(--gold); }
-.vcontent { padding-bottom: 20px; }
+.vcontent { display: none; padding-bottom: 20px; }
+.vcontent.active { display: block; }
 .voice-members { padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
 #daily-bar {
   display: none;
@@ -1855,394 +1848,203 @@ body {
   </div>
 </div>
 
-<!-- ======= VOICE CHANNEL PANEL ======= -->
-<div id="voice-panel">
+
+<!-- ======= VOICE CALL PAGE (Full Screen) ======= -->
+<div id="voice-call-page" style="display:none;position:fixed;inset:0;background:#050505;z-index:8000;flex-direction:column;overflow:hidden">
 
   <!-- Header -->
-  <div class="voice-header">
-    <div class="voice-channel-name">
-      <i class="fas fa-volume-up" style="color:var(--green)"></i>
-      <span id="voice-room-name">قناة صوتية</span>
-      <div class="voice-live-indicator" id="voice-live-ind" style="display:none">
-        <div class="voice-live-dot"></div> LIVE
-      </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.5);flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="vc-live-dot" style="width:8px;height:8px;background:#2ecc71;border-radius:50%;animation:pulse 1.2s infinite"></div>
+      <span style="font-weight:800;font-size:0.95rem" id="vc-room-name">قناة صوتية</span>
+      <span id="vc-timer" style="font-size:0.7rem;color:var(--text-muted);font-family:monospace">00:00</span>
     </div>
-    <div id="voice-member-count" style="font-size:0.7rem;color:var(--text-muted)">0 في القناة</div>
-    <button onclick="toggleVoicePanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px">
-      <i class="fas fa-chevron-down"></i>
-    </button>
-  </div>
-
-  <!-- Waveform + Energy -->
-  <div id="voice-visualizer" style="height:40px;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 14px;background:rgba(0,0,0,0.4);flex-shrink:0">
-    <div style="color:var(--text-muted);font-size:0.62rem">انضم للقناة لرؤية المؤشر الصوتي 🎙️</div>
-  </div>
-  <div id="energy-meter" style="flex-shrink:0"><div id="energy-fill"></div></div>
-
-  <!-- AI Transcript -->
-  <div id="ai-transcript"><b>📝</b> <span id="transcript-text">جارٍ الاستماع...</span></div>
-
-  <!-- Controls Row -->
-  <div class="voice-controls" style="flex-shrink:0;padding:10px 8px 20px">
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()"><i class="fas fa-microphone" id="mic-icon"></i></button>
-      <span class="vbtn-label">ميكروفون</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()"><i class="fas fa-headphones" id="deafen-icon"></i></button>
-      <span class="vbtn-label">الصوت</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn" id="btn-transcript"
-        onmousedown="startSpeechToSend()" onmouseup="stopSpeechToSend()"
-        ontouchstart="startSpeechToSend(event)" ontouchend="stopSpeechToSend()"
-        style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:var(--blue)">
-        <i class="fas fa-closed-captioning" id="transcript-icon"></i>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="vc-count" style="font-size:0.72rem;color:var(--text-muted)">0 متصل</span>
+      <button onclick="minimizeVoice()" style="background:rgba(255,255,255,0.08);border:none;color:var(--text-muted);cursor:pointer;padding:6px 12px;border-radius:8px;font-size:0.75rem;font-family:'Tajawal',sans-serif">
+        <i class="fas fa-compress-alt"></i> تصغير
       </button>
-      <span class="vbtn-label" style="color:var(--blue)">نص→إرسال</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()"><i class="fas fa-desktop" id="screen-icon"></i></button>
-      <span class="vbtn-label">الشاشة</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn" id="btn-hand" onclick="toggleRaiseHand()" style="background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.3);color:#ffc800">
-        <i class="fas fa-hand-paper" id="hand-icon"></i>
-      </button>
-      <span class="vbtn-label">يدك</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="radio-btn" id="btn-radio" onclick="switchVoiceTab('radio')">
-        <div class="radio-wave"></div><div class="radio-wave"></div><div class="radio-wave"></div>
-        <i class="fas fa-broadcast-tower"></i>
-        <span class="r-label">RADIO</span>
-      </button>
-      <span class="vbtn-label" style="color:#63b3ed">راديو</span>
-    </div>
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-leave" onclick="leaveVoice()"><i class="fas fa-phone-slash"></i></button>
-      <span class="vbtn-label" style="color:var(--red)">مغادرة</span>
     </div>
   </div>
 
-  <!-- Tab Navigation -->
-  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(0,0,0,0.3)">
-    <div class="vtab active" id="vtab-members" onclick="switchVoiceTab('members')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--gold);border-bottom:2px solid var(--gold)">
-      <i class="fas fa-users"></i> الأعضاء
-    </div>
-    <div class="vtab" id="vtab-mood" onclick="switchVoiceTab('mood')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--text-muted)">
-      ✨ المزاج
-    </div>
-    <div class="vtab" id="vtab-reactions" onclick="switchVoiceTab('reactions')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--text-muted)">
-      ⚡ ردود
-    </div>
-    <div class="vtab" id="vtab-sfx" onclick="switchVoiceTab('sfx')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--text-muted)">
-      🎵 مؤثرات
-    </div>
-    <div class="vtab" id="vtab-ambient" onclick="switchVoiceTab('ambient')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--text-muted)">
-      🌿 بيئي
-    </div>
-    <div class="vtab" id="vtab-radio" onclick="switchVoiceTab('radio')" style="flex:1;text-align:center;padding:8px;font-size:0.7rem;cursor:pointer;color:var(--text-muted)">
-      📻 راديو
-    </div>
+  <!-- Waveform -->
+  <div id="voice-visualizer" style="height:50px;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 20px;background:rgba(0,0,0,0.4);flex-shrink:0">
+    <div style="color:var(--text-muted);font-size:0.65rem">🎙️ المؤشر الصوتي سيظهر هنا</div>
   </div>
+  <div id="energy-meter" style="height:3px;background:var(--border);flex-shrink:0"><div id="energy-fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green),#ffd700,var(--red));transition:width 0.3s"></div></div>
 
-  <!-- Tab Content (scrollable) -->
-  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
-
-    <!-- Members Tab -->
-    <div id="vcontent-members" class="vcontent active">
-      <!-- PTT -->
-      <div style="padding:10px 14px 0">
-        <button class="ptt-btn" id="ptt-btn" onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT()" ontouchend="stopPTT()">
-          <i class="fas fa-microphone-alt"></i> اضغط مع الاستمرار للتحدث (PTT)
-        </button>
-      </div>
-      <div class="voice-members" id="voice-members-list" style="flex:none;max-height:none">
-        <div style="color:var(--text-muted);font-size:0.75rem;width:100%;text-align:center;padding:20px">
-          لا أحد في القناة بعد...
-        </div>
-      </div>
-    </div>
-
-    <!-- Mood Tab -->
-    <div id="vcontent-mood" class="vcontent" style="display:none">
-      <div style="padding:14px">
-        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:12px;font-weight:700">✨ اختر مزاجك — سيظهر على أفاتارك للجميع</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-          <div class="mood-chip" onclick="setMood('🔥','نار','#e74c3c')" style="color:#e74c3c;border-color:#e74c3c44;text-align:center;padding:10px 4px">🔥<br><span style="font-size:0.65rem">نار</span></div>
-          <div class="mood-chip" onclick="setMood('😂','ضاحك','#ffd700')" style="color:#ffd700;border-color:#ffd70044;text-align:center;padding:10px 4px">😂<br><span style="font-size:0.65rem">ضاحك</span></div>
-          <div class="mood-chip" onclick="setMood('🎮','قيمر','#00d4ff')" style="color:#00d4ff;border-color:#00d4ff44;text-align:center;padding:10px 4px">🎮<br><span style="font-size:0.65rem">قيمر</span></div>
-          <div class="mood-chip" onclick="setMood('🎵','موسيقي','#a29bfe')" style="color:#a29bfe;border-color:#a29bfe44;text-align:center;padding:10px 4px">🎵<br><span style="font-size:0.65rem">موسيقي</span></div>
-          <div class="mood-chip" onclick="setMood('😴','نايم','#636e72')" style="color:#aaa;border-color:#63636244;text-align:center;padding:10px 4px">😴<br><span style="font-size:0.65rem">نايم</span></div>
-          <div class="mood-chip" onclick="setMood('👑','ملك','#D4AF37')" style="color:#D4AF37;border-color:#D4AF3744;text-align:center;padding:10px 4px">👑<br><span style="font-size:0.65rem">ملك</span></div>
-          <div class="mood-chip" onclick="setMood('🤫','صامت','#74b9ff')" style="color:#74b9ff;border-color:#74b9ff44;text-align:center;padding:10px 4px">🤫<br><span style="font-size:0.65rem">صامت</span></div>
-          <div class="mood-chip" onclick="setMood('🤯','مذهول','#fd79a8')" style="color:#fd79a8;border-color:#fd79a844;text-align:center;padding:10px 4px">🤯<br><span style="font-size:0.65rem">مذهول</span></div>
-          <div class="mood-chip" onclick="setMood('💪','نشيط','#55efc4')" style="color:#55efc4;border-color:#55efc444;text-align:center;padding:10px 4px">💪<br><span style="font-size:0.65rem">نشيط</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reactions Tab -->
-    <div id="vcontent-reactions" class="vcontent" style="display:none">
-      <div style="padding:14px">
-        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:12px;font-weight:700">⚡ اضغط لإرسال رد فعل يطير على شاشة الجميع</div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
-          <div onclick="sendVoiceReaction('👍')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">👍</div>
-          <div onclick="sendVoiceReaction('❤️')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">❤️</div>
-          <div onclick="sendVoiceReaction('😂')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">😂</div>
-          <div onclick="sendVoiceReaction('🔥')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🔥</div>
-          <div onclick="sendVoiceReaction('😮')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">😮</div>
-          <div onclick="sendVoiceReaction('👏')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">👏</div>
-          <div onclick="sendVoiceReaction('🎉')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🎉</div>
-          <div onclick="sendVoiceReaction('💀')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">💀</div>
-          <div onclick="sendVoiceReaction('🤡')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🤡</div>
-          <div onclick="sendVoiceReaction('⚡')" style="font-size:2rem;text-align:center;cursor:pointer;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);transition:0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">⚡</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SFX Tab -->
-    <div id="vcontent-sfx" class="vcontent" style="display:none">
-      <div style="padding:14px">
-        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:12px;font-weight:700">🎵 مؤثرات صوتية — تُسمع للجميع في القناة</div>
-        <div class="sfx-grid">
-          <div class="sfx-btn" onclick="playSFX('👏','applause')"><span class="sfx-icon">👏</span><div class="sfx-label">تصفيق</div></div>
-          <div class="sfx-btn" onclick="playSFX('😂','laugh')"><span class="sfx-icon">😂</span><div class="sfx-label">ضحك</div></div>
-          <div class="sfx-btn" onclick="playSFX('🥁','drum')"><span class="sfx-icon">🥁</span><div class="sfx-label">طبل</div></div>
-          <div class="sfx-btn" onclick="playSFX('🎉','party')"><span class="sfx-icon">🎉</span><div class="sfx-label">احتفال</div></div>
-          <div class="sfx-btn" onclick="playSFX('😱','scream')"><span class="sfx-icon">😱</span><div class="sfx-label">صرخة</div></div>
-          <div class="sfx-btn" onclick="playSFX('🔔','bell')"><span class="sfx-icon">🔔</span><div class="sfx-label">جرس</div></div>
-          <div class="sfx-btn" onclick="playSFX('💥','boom')"><span class="sfx-icon">💥</span><div class="sfx-label">انفجار</div></div>
-          <div class="sfx-btn" onclick="playSFX('🎺','trumpet')"><span class="sfx-icon">🎺</span><div class="sfx-label">ترامبيت</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ambient Tab -->
-    <div id="vcontent-ambient" class="vcontent" style="display:none">
-      <div style="padding:14px">
-        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:12px;font-weight:700">🌿 أصوات بيئية — تُسمع لك أنت فقط</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-          <div class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain','🌧️')"><div class="ambient-icon">🌧️</div><div class="ambient-label">مطر</div></div>
-          <div class="ambient-btn" id="amb-fire" onclick="toggleAmbient('fire','🔥')"><div class="ambient-icon">🔥</div><div class="ambient-label">نار</div></div>
-          <div class="ambient-btn" id="amb-cafe" onclick="toggleAmbient('cafe','☕')"><div class="ambient-icon">☕</div><div class="ambient-label">كافيه</div></div>
-          <div class="ambient-btn" id="amb-sea" onclick="toggleAmbient('sea','🌊')"><div class="ambient-icon">🌊</div><div class="ambient-label">بحر</div></div>
-          <div class="ambient-btn" id="amb-forest" onclick="toggleAmbient('forest','🌲')"><div class="ambient-icon">🌲</div><div class="ambient-label">غابة</div></div>
-          <div class="ambient-btn" id="amb-space" onclick="toggleAmbient('space','🚀')"><div class="ambient-icon">🚀</div><div class="ambient-label">فضاء</div></div>
-        </div>
-        <div style="margin-top:14px">
-          <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:8px">🔊 مستوى الصوت البيئي</div>
-          <input type="range" class="radio-vol-slider" min="0" max="100" value="25" oninput="setAmbientVolume(this.value)" style="width:100%">
-        </div>
-      </div>
-    </div>
-
-    <!-- Radio Tab -->
-    <div id="vcontent-radio" class="vcontent" style="display:none">
-      <div style="padding:14px">
-        <!-- Now Playing -->
-        <div id="radio-now-playing" style="display:none;background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.2);border-radius:14px;padding:10px 14px;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div class="radio-disc" id="radio-disc">📻</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:0.82rem;font-weight:700;color:#e8e8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="radio-track-name">جارٍ التشغيل...</div>
-              <div style="font-size:0.65rem;color:rgba(99,179,237,0.7);margin-top:2px">📡 راديو المجموعة</div>
-            </div>
-            <button onclick="stopRadio()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:var(--red);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;font-family:'Tajawal',sans-serif">
-              <i class="fas fa-stop"></i> إيقاف
-            </button>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <i class="fas fa-volume-down" style="color:rgba(99,179,237,0.6);font-size:0.8rem"></i>
-            <input type="range" class="radio-vol-slider" id="radio-vol" min="0" max="100" value="70" oninput="setRadioVolume(this.value)" style="flex:1">
-            <i class="fas fa-volume-up" style="color:rgba(99,179,237,0.6);font-size:0.8rem"></i>
-            <span id="radio-vol-val" style="font-size:0.65rem;color:rgba(99,179,237,0.8);min-width:28px">70%</span>
-          </div>
-          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:6px;text-align:center">التحكم بالصوت يعمل عندك فقط</div>
-        </div>
-        <!-- YouTube Player -->
-        <div id="yt-player-wrap" style="display:none;border-radius:12px;overflow:hidden;margin-bottom:12px">
-          <div id="yt-player"></div>
-        </div>
-        <!-- URL Input -->
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input class="form-input" id="radio-url-input" placeholder="🔗 رابط يوتيوب أو راديو مباشر..." style="flex:1;font-size:0.78rem">
-          <button class="btn-gold" onclick="startRadio()" style="padding:8px 14px;white-space:nowrap;font-size:0.78rem">
-            <i class="fas fa-play"></i> بث
-          </button>
-        </div>
-        <!-- Quick Stations -->
-        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">📻 محطات جاهزة</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/0r0xa792kwzuv','🎵 Lofi')">🎵 Lofi</button>
-          <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/yn65fueryquuv','🎸 Rock')">🎸 Rock</button>
-          <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/f3wvbbqmdg8uv','🎺 Jazz')">🎺 Jazz</button>
-          <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/4d1gndwka08uv','🌊 Chill')">🌊 Chill</button>
-          <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/rbw6q4xq5s8uv','⚡ EDM')">⚡ EDM</button>
-          <button class="toolbar-btn" onclick="quickRadio('yt:jfKfPfyJRdk','▶ YT Lofi')" style="color:#ff6b6b;border-color:#ff6b6b44">▶ YT Lofi</button>
-        </div>
-        <audio id="radio-audio" style="display:none" crossorigin="anonymous"></audio>
-      </div>
-    </div>
-
-  </div><!-- end scrollable -->
-</div>
-  <div class="voice-header">
-    <div class="voice-channel-name">
-      <i class="fas fa-volume-up" style="color:var(--green)"></i>
-      <span id="voice-room-name">قناة صوتية</span>
-      <div class="voice-live-indicator" id="voice-live-ind" style="display:none">
-        <div class="voice-live-dot"></div> LIVE
-      </div>
-    </div>
-    <div id="voice-member-count" style="font-size:0.7rem;color:var(--text-muted)">0 في القناة</div>
-    <button onclick="toggleVoicePanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px">
-      <i class="fas fa-chevron-down"></i>
-    </button>
-  </div>
-
-  <div class="voice-controls">
-    <!-- Mic -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()">
-        <i class="fas fa-microphone" id="mic-icon"></i>
-      </button>
-      <span class="vbtn-label">ميكروفون</span>
-    </div>
-    <!-- Deafen -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()">
-        <i class="fas fa-headphones" id="deafen-icon"></i>
-      </button>
-      <span class="vbtn-label">الصوت</span>
-    </div>
-    <!-- Raise Hand -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn" id="btn-hand" onclick="toggleRaiseHand()"
-        style="background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.3);color:#ffc800">
-        <i class="fas fa-hand-paper" id="hand-icon"></i>
-        <span id="hand-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ffc800;color:#000;font-size:0.5rem;font-weight:900;padding:1px 4px;border-radius:8px" id="hands-count">0</span>
-      </button>
-      <span class="vbtn-label">ارفع يدك</span>
-    </div>
-    <!-- Radio -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="radio-btn" id="btn-radio" onclick="toggleRadioPanel()">
-        <div class="radio-wave"></div>
-        <div class="radio-wave"></div>
-        <div class="radio-wave"></div>
-        <i class="fas fa-broadcast-tower"></i>
-        <span class="r-label">RADIO</span>
-      </button>
-      <span class="vbtn-label" style="color:#63b3ed">راديو</span>
-    </div>
-    <!-- Screen Share -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()">
-        <i class="fas fa-desktop" id="screen-icon"></i>
-      </button>
-      <span class="vbtn-label">الشاشة</span>
-    </div>
-    <!-- Transcript -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn" id="btn-transcript" onclick="toggleTranscript()"
-        style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:var(--blue)">
-        <i class="fas fa-closed-captioning"></i>
-      </button>
-      <span class="vbtn-label" style="color:var(--blue)">نص تلقائي</span>
-    </div>
-    <!-- Leave -->
-    <div style="position:relative;margin-bottom:20px">
-      <button class="voice-btn vbtn-leave" onclick="leaveVoice()">
-        <i class="fas fa-phone-slash"></i>
-      </button>
-      <span class="vbtn-label" style="color:var(--red)">مغادرة</span>
-    </div>
-  </div>
-
-  <!-- Push to Talk -->
-  <div style="padding:0 14px 10px">
-    <button class="ptt-btn" id="ptt-btn"
-      onmousedown="startPTT()" onmouseup="stopPTT()"
-      ontouchstart="startPTT()" ontouchend="stopPTT()">
-      <i class="fas fa-microphone-alt"></i>
-      اضغط مع الاستمرار للتحدث (PTT)
-    </button>
-  </div>
-
-  <!-- Sound Effects -->
-  <div style="padding:0 14px 12px">
-    <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:6px;font-weight:700">🎵 مؤثرات صوتية للجميع</div>
-    <div class="sfx-grid">
-      <div class="sfx-btn" onclick="playSFX('👏','applause')"><span class="sfx-icon">👏</span><div class="sfx-label">تصفيق</div></div>
-      <div class="sfx-btn" onclick="playSFX('😂','laugh')"><span class="sfx-icon">😂</span><div class="sfx-label">ضحك</div></div>
-      <div class="sfx-btn" onclick="playSFX('🥁','drum')"><span class="sfx-icon">🥁</span><div class="sfx-label">طبل</div></div>
-      <div class="sfx-btn" onclick="playSFX('🎉','party')"><span class="sfx-icon">🎉</span><div class="sfx-label">احتفال</div></div>
-      <div class="sfx-btn" onclick="playSFX('😱','scream')"><span class="sfx-icon">😱</span><div class="sfx-label">صرخة</div></div>
-      <div class="sfx-btn" onclick="playSFX('🔔','bell')"><span class="sfx-icon">🔔</span><div class="sfx-label">جرس</div></div>
-      <div class="sfx-btn" onclick="playSFX('💥','boom')"><span class="sfx-icon">💥</span><div class="sfx-label">انفجار</div></div>
-      <div class="sfx-btn" onclick="playSFX('🎺','trumpet')"><span class="sfx-icon">🎺</span><div class="sfx-label">ترامبيت</div></div>
-    </div>
-  </div>
-
-  <!-- Live Waveform Visualizer -->
-  <div id="voice-visualizer">
-    <div style="color:var(--text-muted);font-size:0.65rem">انضم للقناة لرؤية المؤشر الصوتي 🎙️</div>
-  </div>
-
-  <!-- Energy Meter -->
-  <div id="energy-meter"><div id="energy-fill"></div></div>
-
-  <!-- AI Transcript -->
-  <div id="ai-transcript">
-    <b>📝 النص:</b> <span id="transcript-text">جارٍ الاستماع...</span>
-  </div>
-
-  <!-- Mood Ring -->
-  <div class="mood-ring" id="mood-ring">
-    <div style="font-size:0.6rem;color:var(--text-muted);width:100%;margin-bottom:4px;font-weight:700">✨ مزاجك الآن</div>
-    <div class="mood-chip" onclick="setMood('🔥','نار','#e74c3c')" style="color:#e74c3c;border-color:#e74c3c44">🔥 نار</div>
-    <div class="mood-chip" onclick="setMood('😂','ضاحك','#ffd700')" style="color:#ffd700;border-color:#ffd70044">😂 ضاحك</div>
-    <div class="mood-chip" onclick="setMood('🎮','قيمر','#00d4ff')" style="color:#00d4ff;border-color:#00d4ff44">🎮 قيمر</div>
-    <div class="mood-chip" onclick="setMood('🎵','موسيقي','#a29bfe')" style="color:#a29bfe;border-color:#a29bfe44">🎵 موسيقي</div>
-    <div class="mood-chip" onclick="setMood('😴','نايم','#636e72')" style="color:#636e72;border-color:#63636244">😴 نايم</div>
-    <div class="mood-chip" onclick="setMood('👑','ملك','#D4AF37')" style="color:#D4AF37;border-color:#D4AF3744">👑 ملك</div>
-    <div class="mood-chip" onclick="setMood('🤫','صامت','#74b9ff')" style="color:#74b9ff;border-color:#74b9ff44">🤫 صامت</div>
-  </div>
-
-  <!-- Ambient Sounds -->
-  <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
-    <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">🌿 أصوات بيئية (تُسمع لك أنت فقط)</div>
-    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
-      <div class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain','🌧️')"><div class="ambient-icon">🌧️</div><div class="ambient-label">مطر</div></div>
-      <div class="ambient-btn" id="amb-fire" onclick="toggleAmbient('fire','🔥')"><div class="ambient-icon">🔥</div><div class="ambient-label">نار</div></div>
-      <div class="ambient-btn" id="amb-cafe" onclick="toggleAmbient('cafe','☕')"><div class="ambient-icon">☕</div><div class="ambient-label">كافيه</div></div>
-      <div class="ambient-btn" id="amb-sea" onclick="toggleAmbient('sea','🌊')"><div class="ambient-icon">🌊</div><div class="ambient-label">بحر</div></div>
-      <div class="ambient-btn" id="amb-forest" onclick="toggleAmbient('forest','🌲')"><div class="ambient-icon">🌲</div><div class="ambient-label">غابة</div></div>
-      <div class="ambient-btn" id="amb-space" onclick="toggleAmbient('space','🚀')"><div class="ambient-icon">🚀</div><div class="ambient-label">فضاء</div></div>
-    </div>
-  </div>
-
-  <!-- Voice Reactions (quick emoji burst) -->
-  <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
-    <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">⚡ ردود فعل سريعة (تظهر للجميع)</div>
-    <div style="display:flex;gap:8px;justify-content:space-around">
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('👍')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👍</span>
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('❤️')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">❤️</span>
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('😂')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😂</span>
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('🔥')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">🔥</span>
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('😮')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">😮</span>
-      <span style="font-size:1.8rem;cursor:pointer;transition:transform 0.2s" onclick="sendVoiceReaction('👏')" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">👏</span>
-    </div>
-  </div>
-
-  <!-- Members -->
-  <div class="voice-members" id="voice-members-list">
-    <div style="color:var(--text-muted);font-size:0.75rem;width:100%;text-align:center;padding:10px">
+  <!-- Members Grid -->
+  <div id="voice-members-list" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-content:flex-start;justify-content:center">
+    <div style="color:var(--text-muted);font-size:0.8rem;width:100%;text-align:center;padding:40px">
       لا أحد في القناة بعد...
     </div>
   </div>
+
+  <!-- Speech to Text bar -->
+  <div id="ai-transcript" style="display:none;padding:8px 16px;background:rgba(52,152,219,0.08);border-top:1px solid rgba(52,152,219,0.2);font-size:0.78rem;color:var(--text)">
+    <b style="color:var(--blue)">📝</b> <span id="transcript-text"></span>
+  </div>
+
+  <!-- Controls Bar -->
+  <div style="padding:16px 20px 24px;background:rgba(0,0,0,0.6);border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0">
+
+    <!-- Main Controls -->
+    <div style="display:flex;justify-content:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+      <!-- Mic -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn vbtn-mic" id="btn-mic" onclick="toggleMic()"><i class="fas fa-microphone" id="mic-icon"></i></button>
+        <span style="font-size:0.58rem;color:var(--text-muted)">ميكروفون</span>
+      </div>
+      <!-- Deafen -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn vbtn-deafen" id="btn-deafen" onclick="toggleDeafen()"><i class="fas fa-headphones" id="deafen-icon"></i></button>
+        <span style="font-size:0.58rem;color:var(--text-muted)">الصوت</span>
+      </div>
+      <!-- Speech to Send -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn" id="btn-transcript"
+          onmousedown="startSpeechToSend()" onmouseup="stopSpeechToSend()"
+          ontouchstart="startSpeechToSend(event)" ontouchend="stopSpeechToSend()"
+          style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:var(--blue)">
+          <i class="fas fa-closed-captioning" id="transcript-icon"></i>
+        </button>
+        <span style="font-size:0.58rem;color:var(--blue)">نص→إرسال</span>
+      </div>
+      <!-- Raise Hand -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn" id="btn-hand" onclick="toggleRaiseHand()" style="background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.3);color:#ffc800">
+          <i class="fas fa-hand-paper" id="hand-icon"></i>
+        </button>
+        <span style="font-size:0.58rem;color:#ffc800">ارفع يدك</span>
+      </div>
+      <!-- Screen Share -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn vbtn-screen" id="btn-screen" onclick="toggleScreenShare()"><i class="fas fa-desktop" id="screen-icon"></i></button>
+        <span style="font-size:0.58rem;color:var(--text-muted)">الشاشة</span>
+      </div>
+      <!-- Radio -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="radio-btn" id="btn-radio" onclick="toggleRadioPanel()" style="width:52px;height:52px">
+          <div class="radio-wave"></div><div class="radio-wave"></div><div class="radio-wave"></div>
+          <i class="fas fa-broadcast-tower"></i>
+          <span class="r-label">RADIO</span>
+        </button>
+        <span style="font-size:0.58rem;color:#63b3ed">راديو</span>
+      </div>
+      <!-- Leave -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <button class="voice-btn vbtn-leave" onclick="leaveVoice()"><i class="fas fa-phone-slash"></i></button>
+        <span style="font-size:0.58rem;color:var(--red)">إنهاء</span>
+      </div>
+    </div>
+
+    <!-- Extra Rows: PTT + Quick Reactions + SFX + Ambient + Mood -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">
+      <!-- PTT -->
+      <button class="ptt-btn" id="ptt-btn" style="flex:1;min-width:180px;max-width:300px;padding:10px"
+        onmousedown="startPTT()" onmouseup="stopPTT()" ontouchstart="startPTT()" ontouchend="stopPTT()">
+        <i class="fas fa-microphone-alt"></i> اضغط للتحدث (PTT)
+      </button>
+    </div>
+
+    <!-- Quick Reactions Row -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('👍')">👍</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('❤️')">❤️</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('😂')">😂</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('🔥')">🔥</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('😮')">😮</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('👏')">👏</span>
+      <span style="font-size:1.6rem;cursor:pointer" onclick="sendVoiceReaction('🎉')">🎉</span>
+    </div>
+
+    <!-- Expandable extras toggle -->
+    <div style="text-align:center">
+      <button onclick="toggleVoiceExtras()" id="extras-toggle-btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-muted);padding:5px 18px;border-radius:20px;cursor:pointer;font-size:0.72rem;font-family:'Tajawal',sans-serif">
+        <i class="fas fa-ellipsis-h"></i> المزيد
+      </button>
+    </div>
+
+    <!-- Extras Panel (hidden by default) -->
+    <div id="voice-extras" style="display:none;margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px">
+
+      <!-- SFX -->
+      <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">🎵 مؤثرات صوتية للجميع</div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none">
+        <div class="sfx-btn" onclick="playSFX('👏','applause')"><span class="sfx-icon">👏</span><div class="sfx-label">تصفيق</div></div>
+        <div class="sfx-btn" onclick="playSFX('😂','laugh')"><span class="sfx-icon">😂</span><div class="sfx-label">ضحك</div></div>
+        <div class="sfx-btn" onclick="playSFX('🥁','drum')"><span class="sfx-icon">🥁</span><div class="sfx-label">طبل</div></div>
+        <div class="sfx-btn" onclick="playSFX('🎉','party')"><span class="sfx-icon">🎉</span><div class="sfx-label">احتفال</div></div>
+        <div class="sfx-btn" onclick="playSFX('😱','scream')"><span class="sfx-icon">😱</span><div class="sfx-label">صرخة</div></div>
+        <div class="sfx-btn" onclick="playSFX('🔔','bell')"><span class="sfx-icon">🔔</span><div class="sfx-label">جرس</div></div>
+        <div class="sfx-btn" onclick="playSFX('💥','boom')"><span class="sfx-icon">💥</span><div class="sfx-label">انفجار</div></div>
+        <div class="sfx-btn" onclick="playSFX('🎺','trumpet')"><span class="sfx-icon">🎺</span><div class="sfx-label">ترامبيت</div></div>
+      </div>
+
+      <!-- Ambient -->
+      <div style="font-size:0.62rem;color:var(--text-muted);margin:10px 0 8px;font-weight:700">🌿 أصوات بيئية (لك فقط)</div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none">
+        <div class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain','🌧️')"><div class="ambient-icon">🌧️</div><div class="ambient-label">مطر</div></div>
+        <div class="ambient-btn" id="amb-fire" onclick="toggleAmbient('fire','🔥')"><div class="ambient-icon">🔥</div><div class="ambient-label">نار</div></div>
+        <div class="ambient-btn" id="amb-cafe" onclick="toggleAmbient('cafe','☕')"><div class="ambient-icon">☕</div><div class="ambient-label">كافيه</div></div>
+        <div class="ambient-btn" id="amb-sea" onclick="toggleAmbient('sea','🌊')"><div class="ambient-icon">🌊</div><div class="ambient-label">بحر</div></div>
+        <div class="ambient-btn" id="amb-forest" onclick="toggleAmbient('forest','🌲')"><div class="ambient-icon">🌲</div><div class="ambient-label">غابة</div></div>
+        <div class="ambient-btn" id="amb-space" onclick="toggleAmbient('space','🚀')"><div class="ambient-icon">🚀</div><div class="ambient-label">فضاء</div></div>
+      </div>
+
+      <!-- Mood -->
+      <div style="font-size:0.62rem;color:var(--text-muted);margin:10px 0 8px;font-weight:700">✨ مزاجك</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="mood-chip" onclick="setMood('🔥','نار','#e74c3c')" style="color:#e74c3c;border-color:#e74c3c44">🔥 نار</div>
+        <div class="mood-chip" onclick="setMood('😂','ضاحك','#ffd700')" style="color:#ffd700;border-color:#ffd70044">😂 ضاحك</div>
+        <div class="mood-chip" onclick="setMood('🎮','قيمر','#00d4ff')" style="color:#00d4ff;border-color:#00d4ff44">🎮 قيمر</div>
+        <div class="mood-chip" onclick="setMood('🎵','موسيقي','#a29bfe')" style="color:#a29bfe;border-color:#a29bfe44">🎵 موسيقي</div>
+        <div class="mood-chip" onclick="setMood('😴','نايم','#636e72')" style="color:#aaa;border-color:#63636244">😴 نايم</div>
+        <div class="mood-chip" onclick="setMood('👑','ملك','#D4AF37')" style="color:#D4AF37;border-color:#D4AF3744">👑 ملك</div>
+      </div>
+    </div>
+
+  </div><!-- end controls -->
+</div>
+
+<!-- Radio Panel (floating over call page) -->
+<div id="radio-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(5,5,20,0.97);backdrop-filter:blur(20px);border-top:1px solid rgba(99,179,237,0.3);z-index:8500;padding:16px;animation:slideUp 0.3s ease">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-weight:800;color:#63b3ed;display:flex;align-items:center;gap:8px"><i class="fas fa-broadcast-tower"></i> راديو المجموعة</div>
+    <button onclick="toggleRadioPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem"><i class="fas fa-times"></i></button>
+  </div>
+  <div id="radio-now-playing" style="display:none;background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.2);border-radius:14px;padding:10px 14px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div class="radio-disc" id="radio-disc">📻</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.82rem;font-weight:700;color:#e8e8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="radio-track-name">جارٍ التشغيل...</div>
+        <div style="font-size:0.63rem;color:rgba(99,179,237,0.7);margin-top:2px">📡 راديو المجموعة</div>
+      </div>
+      <button onclick="stopRadio()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:var(--red);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;font-family:'Tajawal',sans-serif"><i class="fas fa-stop"></i> إيقاف</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <i class="fas fa-volume-down" style="color:rgba(99,179,237,0.5);font-size:0.8rem"></i>
+      <input type="range" class="radio-vol-slider" id="radio-vol" min="0" max="100" value="70" oninput="setRadioVolume(this.value)" style="flex:1">
+      <i class="fas fa-volume-up" style="color:rgba(99,179,237,0.5);font-size:0.8rem"></i>
+      <span id="radio-vol-val" style="font-size:0.65rem;color:rgba(99,179,237,0.8);min-width:28px">70%</span>
+    </div>
+    <div style="font-size:0.58rem;color:var(--text-muted);margin-top:4px;text-align:center">التحكم بالصوت يعمل عندك فقط</div>
+  </div>
+  <div id="yt-player-wrap" style="display:none;border-radius:12px;overflow:hidden;margin-bottom:12px"><div id="yt-player"></div></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input class="form-input" id="radio-url-input" placeholder="🔗 رابط يوتيوب أو راديو مباشر..." style="flex:1;font-size:0.78rem">
+    <button class="btn-gold" onclick="startRadio()" style="padding:8px 14px;white-space:nowrap;font-size:0.78rem"><i class="fas fa-play"></i> بث</button>
+  </div>
+  <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:8px;font-weight:700">📻 محطات جاهزة</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/0r0xa792kwzuv','🎵 Lofi')">🎵 Lofi</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/yn65fueryquuv','🎸 Rock')">🎸 Rock</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/f3wvbbqmdg8uv','🎺 Jazz')">🎺 Jazz</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/4d1gndwka08uv','🌊 Chill')">🌊 Chill</button>
+    <button class="toolbar-btn" onclick="quickRadio('https://stream.zeno.fm/rbw6q4xq5s8uv','⚡ EDM')">⚡ EDM</button>
+    <button class="toolbar-btn" onclick="quickRadio('yt:jfKfPfyJRdk','▶ YT Lofi')" style="color:#ff6b6b;border-color:#ff6b6b44">▶ YT Lofi</button>
+  </div>
+  <audio id="radio-audio" style="display:none" crossorigin="anonymous"></audio>
 </div>
 
 <!-- ======= SCREEN SHARE OVERLAY ======= -->
@@ -4680,19 +4482,19 @@ function extractYouTubeID(url) {
 }
 
 function switchVoiceTab(tab) {
-  // Update tabs
+  // Update tab headers
   document.querySelectorAll('.vtab').forEach(t => {
     t.classList.remove('active');
-    t.style.color = 'var(--text-muted)';
-    t.style.borderBottom = '';
   });
   const activeTab = document.getElementById('vtab-' + tab);
-  if (activeTab) { activeTab.classList.add('active'); }
+  if (activeTab) activeTab.classList.add('active');
 
-  // Show content
-  document.querySelectorAll('.vcontent').forEach(c => c.style.display = 'none');
+  // Show/hide content using CSS classes
+  document.querySelectorAll('.vcontent').forEach(c => {
+    c.classList.remove('active');
+  });
   const content = document.getElementById('vcontent-' + tab);
-  if (content) content.style.display = 'block';
+  if (content) content.classList.add('active');
 }
 
 function toggleRadioPanel() {
@@ -5114,6 +4916,7 @@ async function leaveVoice() {
     document.getElementById('ai-transcript')?.classList.remove('show');
 
     closeVoicePanel();
+    stopCallTimer();
     updateVoiceMembersUI();
     updateVoiceJoinBar();
     if (window._voiceMembersUnsub) window._voiceMembersUnsub();
@@ -5197,13 +5000,59 @@ function closeScreenOverlay() {
 
 // Panel controls
 function openVoicePanel() {
-  document.getElementById('voice-panel').classList.add('open');
+  const page = document.getElementById('voice-call-page');
+  page.style.display = 'flex';
+  // Update header info
+  const rooms = {general:'🌐 المجتمع',gaming:'🎮 قيمرز',anime:'⛩️ أنمي',movies:'🎬 أفلام',random:'🎲 عشوائي',vip:'👑 VIP'};
+  document.getElementById('vc-room-name').innerText = rooms[currentRoom] || 'قناة صوتية';
+  startCallTimer();
 }
+
 function closeVoicePanel() {
-  document.getElementById('voice-panel').classList.remove('open');
+  document.getElementById('voice-call-page').style.display = 'none';
+  stopCallTimer();
 }
+
 function toggleVoicePanel() {
-  document.getElementById('voice-panel').classList.toggle('open');
+  const page = document.getElementById('voice-call-page');
+  if (page.style.display === 'none' || !page.style.display) openVoicePanel();
+  else minimizeVoice();
+}
+
+function minimizeVoice() {
+  document.getElementById('voice-call-page').style.display = 'none';
+}
+
+function toggleRadioPanel() {
+  const panel = document.getElementById('radio-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleVoiceExtras() {
+  const el = document.getElementById('voice-extras');
+  const btn = document.getElementById('extras-toggle-btn');
+  const open = el.style.display === 'none' || !el.style.display;
+  el.style.display = open ? 'block' : 'none';
+  btn.innerHTML = open ? '<i class="fas fa-times"></i> إغلاق' : '<i class="fas fa-ellipsis-h"></i> المزيد';
+}
+
+// Call Timer
+let callTimerInterval = null;
+let callSeconds = 0;
+function startCallTimer() {
+  callSeconds = 0;
+  if (callTimerInterval) clearInterval(callTimerInterval);
+  callTimerInterval = setInterval(() => {
+    callSeconds++;
+    const m = String(Math.floor(callSeconds/60)).padStart(2,'0');
+    const s = String(callSeconds%60).padStart(2,'0');
+    const el = document.getElementById('vc-timer');
+    if (el) el.innerText = m+':'+s;
+  }, 1000);
+}
+function stopCallTimer() {
+  if (callTimerInterval) clearInterval(callTimerInterval);
+  callTimerInterval = null;
 }
 
 // Update mic UI
@@ -5224,7 +5073,7 @@ function listenVoiceMembers(roomId) {
       snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
       updateVoiceMembersUI();
       updateVoiceJoinBar();
-      document.getElementById('voice-member-count').innerText = snap.size + ' في القناة';
+      const vcC1=document.getElementById('voice-member-count'); if(vcC1) vcC1.innerText=snap.size+' في القناة'; const vcC2=document.getElementById('vc-count'); if(vcC2) vcC2.innerText=snap.size+' متصل';
     });
 }
 
@@ -5273,7 +5122,7 @@ function updateVoiceMembersUI() {
       </div>`;
     list.appendChild(div);
   });
-  document.getElementById('voice-member-count').innerText = members.length + ' في القناة';
+  const vcC3=document.getElementById('voice-member-count'); if(vcC3) vcC3.innerText=members.length+' في القناة'; const vcC4=document.getElementById('vc-count'); if(vcC4) vcC4.innerText=members.length+' متصل';
 }
 
 // Update join bar shown above input
