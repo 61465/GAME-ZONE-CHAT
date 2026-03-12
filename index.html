@@ -4531,18 +4531,16 @@ function stopAllAmbient() {
 let reactUnsubscribe = null;
 
 async function sendVoiceReaction(emoji) {
-  // اعرض فوراً لك أنت
   showReactionBurst(emoji);
-  // أرسل لـ Firebase للآخرين
-  if (inVoiceChannel) {
-    try {
-      await db.collection('voiceChannels').doc(currentRoom)
-        .collection('reactions').add({
-          emoji, sender: myData.name,
-          time: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    } catch(e) {}
-  }
+  if (!inVoiceChannel) return;
+  const vRoom = currentVoiceRoom || currentRoom;
+  try {
+    await db.collection('voiceChannels').doc(vRoom)
+      .collection('reactions').add({
+        emoji, sender: myData.name,
+        time: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  } catch(e) {}
 }
 
 function showReactionBurst(emoji) {
@@ -4999,16 +4997,19 @@ window.onYouTubeIframeAPIReady = function() {
 
 function extractYouTubeID(url) {
   // Handle: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/live/ID, yt:ID
+  if (!url) return null;
   if (url.startsWith('yt:')) return url.slice(3);
-  const patterns = [
-    /youtu\.be\/([^?&\s]+)/,
-    /youtube\.com\/watch\?v=([^&\s]+)/,
-    /youtube\.com\/live\/([^?&\s]+)/,
-    /youtube\.com\/embed\/([^?&\s]+)/,
-    /youtube\.com\/shorts\/([^?&\s]+)/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
+  // استخرج الـ ID من أي صيغة يوتيوب
+  try {
+    const u = new URL(url);
+    // youtube.com/watch?v=ID
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
+    // youtu.be/ID أو youtube.com/live/ID أو /embed/ID أو /shorts/ID
+    const m = u.pathname.match(/(?:\/embed\/|\/live\/|\/shorts\/|\/)([a-zA-Z0-9_-]{11})(?:[/?&]|$)/);
+    if (m) return m[1];
+  } catch(e) {
+    // رابط بدون بروتوكول
+    const m = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/live\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
     if (m) return m[1];
   }
   return null;
@@ -5053,8 +5054,9 @@ async function quickRadio(url, name) {
 }
 
 async function broadcastRadio(url, name) {
+  const vRoom = currentVoiceRoom || currentRoom;
   try {
-    await db.collection('voiceChannels').doc(currentRoom)
+    await db.collection('voiceChannels').doc(vRoom)
       .collection('radio').doc('current').set({
         url, name,
         startedBy: myData.name,
@@ -5067,8 +5069,9 @@ async function broadcastRadio(url, name) {
 }
 
 async function stopRadio() {
+  const vRoom = currentVoiceRoom || currentRoom;
   try {
-    await db.collection('voiceChannels').doc(currentRoom)
+    await db.collection('voiceChannels').doc(vRoom)
       .collection('radio').doc('current').set({ active: false });
     showToast('📻 تم إيقاف الراديو', 'info');
   } catch(e) {}
@@ -5196,12 +5199,11 @@ const SFX_URLS = {
 
 async function playSFX(emoji, type) {
   if (!inVoiceChannel) return showToast('انضم للقناة الصوتية أولاً', 'info');
-  // شغّل فوراً لك أنت
   playAudioLocally(type);
   showToast(`${emoji} أرسلت مؤثراً للجميع!`, 'success', 1500);
-  // أرسل لـ Firebase للآخرين
+  const vRoom = currentVoiceRoom || currentRoom;
   try {
-    await db.collection('voiceChannels').doc(currentRoom)
+    await db.collection('voiceChannels').doc(vRoom)
       .collection('sfx').add({
         type, emoji, sender: myData.name,
         time: firebase.firestore.FieldValue.serverTimestamp()
@@ -5699,12 +5701,12 @@ function listenVoiceMembers(roomId) {
         const isMe = change.doc.id === auth.currentUser?.email;
         if (change.type === 'added' && !isMe) {
           showToast(`🟢 ${d.name} انضم للقناة الصوتية`, 'success', 2500);
-          // أضفه للقائمة فوراً
+          playVoiceJoinSound();
           voiceMembers[change.doc.id] = d;
         }
         if (change.type === 'removed') {
           showToast(`🔴 ${d.name || change.doc.id} غادر القناة الصوتية`, 'info', 2500);
-          // أزله من القائمة فوراً
+          playVoiceLeaveSound();
           delete voiceMembers[change.doc.id];
         }
         if (change.type === 'modified') {
@@ -5727,6 +5729,44 @@ function listenVoiceMembers(roomId) {
       const vcC2 = document.getElementById('vc-count');
       if (vcC2) vcC2.innerText = cnt + ' متصل';
     });
+}
+
+function playVoiceJoinSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // نغمتان تصاعديتان
+    [0, 150].forEach((delay, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = i === 0 ? 660 : 880;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0, ctx.currentTime + delay/1000);
+      g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + delay/1000 + 0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + delay/1000 + 0.18);
+      o.start(ctx.currentTime + delay/1000);
+      o.stop(ctx.currentTime + delay/1000 + 0.2);
+    });
+  } catch(e) {}
+}
+
+function playVoiceLeaveSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // نغمتان تنازليتان
+    [0, 150].forEach((delay, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = i === 0 ? 550 : 380;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0, ctx.currentTime + delay/1000);
+      g.gain.linearRampToValueAtTime(0.15, ctx.currentTime + delay/1000 + 0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + delay/1000 + 0.2);
+      o.start(ctx.currentTime + delay/1000);
+      o.stop(ctx.currentTime + delay/1000 + 0.25);
+    });
+  } catch(e) {}
 }
 
 // Watch all rooms' voice for join bar
