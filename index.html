@@ -3473,11 +3473,20 @@ async function sendPhoto() {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) return showToast('حجم الصورة يجب أن يكون أقل من 5MB', 'error');
 
-    showToast('⬆️ جارٍ رفع الصورة...', 'info', 5000);
+    showToast('⬆️ جارٍ رفع الصورة...', 'info', 8000);
     try {
-      const path = `chat-images/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._]/g, '_')}`;
-      const snap = await storage.ref(path).put(file);
-      const url = await snap.ref.getDownloadURL();
+      // ضغط الصورة أولاً
+      const compressed = await compressImage(file, 1200, 0.82);
+      // رفع على ImgBB (مجاني)
+      const form = new FormData();
+      form.append('image', compressed.split(',')[1]);
+      const res = await fetch('https://api.imgbb.com/1/upload?key=2e4c8eb7f5f0ecddabe2f4e64c91a34e', {
+        method: 'POST', body: form
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message || 'فشل الرفع');
+      const url = data.data.url;
+
       const msgData = {
         image: url,
         sender: auth.currentUser.email,
@@ -3495,15 +3504,29 @@ async function sendPhoto() {
       await db.collection('messages').add(msgData);
       showToast('✅ تم إرسال الصورة!', 'success');
     } catch (err) {
-      console.error('Photo upload error:', err);
-      if (err.code === 'storage/unauthorized') {
-        showToast('❌ خطأ في الصلاحيات — افتح Firebase Console وانشر Storage Rules', 'error', 5000);
-      } else {
-        showToast('❌ خطأ: ' + (err.message || err.code), 'error', 4000);
-      }
+      console.error('Photo error:', err);
+      showToast('❌ خطأ في رفع الصورة: ' + err.message, 'error', 4000);
     }
   };
   input.click();
+}
+
+// ضغط الصورة قبل الرفع
+function compressImage(file, maxW, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = url;
+  });
 }
 
 // ======================== REPLY ========================
@@ -4828,14 +4851,16 @@ async function confirmSendVoice() {
   if (!previewBlob) return;
   if (previewAudio) { previewAudio.pause(); previewAudio = null; }
   closeVoiceRecordModal();
-  showToast('📤 جارٍ رفع الرسالة الصوتية...', 'info', 3000);
+  showToast('📤 جارٍ إرسال الرسالة الصوتية...', 'info', 3000);
   try {
-    const fileName = `voice-${Date.now()}-${auth.currentUser.email.replace(/[^a-zA-Z0-9]/g,'_')}.webm`;
-    const ref = storage.ref(`voice-messages/${fileName}`);
-    await ref.put(previewBlob);
-    const url = await ref.getDownloadURL();
+    // تحويل Blob لـ Base64 Data URL — لا يحتاج Storage
+    const base64 = await blobToBase64(previewBlob);
+    // تحقق من الحجم (Firestore حد 1MB للـ document)
+    if (base64.length > 900000) {
+      throw new Error('الرسالة الصوتية أكبر من المسموح (الحد 30 ثانية تقريباً) — قصّر التسجيل وحاول مجدداً');
+    }
     const msgData = {
-      voiceUrl: url,
+      voiceUrl: base64,           // data:audio/webm;base64,...
       voiceDuration: recordSeconds,
       sender: auth.currentUser.email,
       name: myData.name,
@@ -4852,14 +4877,19 @@ async function confirmSendVoice() {
     await db.collection('messages').add(msgData);
     showToast('🎙️ تم إرسال الرسالة الصوتية!', 'success');
   } catch(err) {
-    console.error('Voice upload error:', err);
-    if (err.code === 'storage/unauthorized') {
-      showToast('❌ خطأ في الصلاحيات — افتح Firebase Console وانشر Storage Rules', 'error', 5000);
-    } else {
-      showToast('❌ خطأ: ' + (err.message || err.code), 'error', 4000);
-    }
+    console.error('Voice send error:', err);
+    showToast('❌ خطأ: ' + (err.message || err), 'error', 4000);
   }
   previewBlob = null;
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 function cancelVoiceRecord() {
