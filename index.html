@@ -4633,9 +4633,33 @@ function startSpeechToSend(e) {
   };
 
   stsRecognition.onerror = err => {
-    if (err.error === 'not-allowed') showToast('❌ اسمح بالميكروفون في المتصفح', 'error');
-    else if (err.error !== 'aborted') showToast('خطأ: ' + err.error, 'error');
-    resetSpeechBtn();
+    if (err.error === 'not-allowed') {
+      showToast('❌ اسمح بالميكروفون في المتصفح', 'error');
+      resetSpeechBtn(); stsActive = false;
+    } else if (err.error === 'network') {
+      // إعادة المحاولة تلقائياً مرة واحدة
+      showToast('🔄 إعادة الاتصال...', 'info', 1500);
+      try { stsRecognition.stop(); } catch(e) {}
+      setTimeout(() => {
+        if (!stsActive) return;
+        try {
+          stsRecognition = new SpeechRec();
+          stsRecognition.lang = 'ar-SA';
+          stsRecognition.continuous = false;
+          stsRecognition.interimResults = true;
+          stsRecognition.start();
+        } catch(e) {
+          showToast('❌ تعذّر الاتصال — تأكد من الإنترنت', 'error');
+          resetSpeechBtn(); stsActive = false;
+        }
+      }, 1000);
+    } else if (err.error === 'no-speech') {
+      showToast('لم يُكتشف صوت — حاول مجدداً', 'info', 2000);
+      resetSpeechBtn(); stsActive = false;
+    } else if (err.error !== 'aborted') {
+      showToast('خطأ: ' + err.error, 'error');
+      resetSpeechBtn(); stsActive = false;
+    }
   };
 
   try { stsRecognition.start(); }
@@ -5312,6 +5336,20 @@ async function joinVoice(roomId) {
 
   showToast('🔄 جارٍ الاتصال...', 'info', 3000);
 
+  // تنظيف الأعضاء المنقطعين قبل الانضمام
+  try {
+    const now = Date.now();
+    const snap = await db.collection('voiceChannels').doc(roomId).collection('members').get();
+    const batch = db.batch();
+    snap.forEach(doc => {
+      const d = doc.data();
+      const isStale = d.lastSeen && (now - d.lastSeen) > 45000;
+      const noHB = !d.lastSeen;
+      if (isStale || noHB) batch.delete(doc.ref);
+    });
+    await batch.commit();
+  } catch(e) {}
+
   try {
     // 1. Load SDK
     await loadAgoraSDK();
@@ -5361,6 +5399,7 @@ async function joinVoice(roomId) {
         email: auth.currentUser.email,
         uid: String(uid),
         muted: false,
+        lastSeen: Date.now(),
         joinedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
@@ -5791,19 +5830,26 @@ function stopVoiceHeartbeat() {
   if (voiceHeartbeatInterval) { clearInterval(voiceHeartbeatInterval); voiceHeartbeatInterval = null; }
 }
 
-// مراقب لإزالة الأعضاء المنقطعين (lastSeen > 60 ثانية) — يعمل للمؤسس فقط لتفادي التعارض
+// كل عضو يراقب نفسه فقط ويحذف نفسه إذا انتهت نبضته
+// + كل عضو يحذف الأعضاء المنقطعين (لا يقتصر على المؤسس)
 function watchStaleMembers(roomId) {
   setInterval(async () => {
-    if (!inVoiceChannel || auth.currentUser?.email !== FOUNDER_ID) return;
+    if (!inVoiceChannel) return;
     const now = Date.now();
-    const snap = await db.collection('voiceChannels').doc(roomId).collection('members').get();
-    snap.forEach(async doc => {
-      const d = doc.data();
-      if (d.lastSeen && (now - d.lastSeen) > 60000) {
-        await doc.ref.delete().catch(()=>{});
-      }
-    });
-  }, 30000);
+    try {
+      const snap = await db.collection('voiceChannels').doc(roomId).collection('members').get();
+      snap.forEach(async doc => {
+        const d = doc.data();
+        // احذف إذا lastSeen قديم أكثر من 45 ثانية أو غير موجود أصلاً مع مرور 90 ثانية من الانضمام
+        const joinedAt = d.joinedAt?.toMillis ? d.joinedAt.toMillis() : 0;
+        const isOld = d.lastSeen && (now - d.lastSeen) > 45000;
+        const noHeartbeat = !d.lastSeen && (now - joinedAt) > 90000;
+        if (isOld || noHeartbeat) {
+          await doc.ref.delete().catch(() => {});
+        }
+      });
+    } catch(e) {}
+  }, 20000);
 }
 
 // Keyboard shortcut: M = toggle mic, ESC = close screen share
