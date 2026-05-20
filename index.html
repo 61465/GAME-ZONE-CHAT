@@ -1125,6 +1125,31 @@ body {
     backdrop-filter: blur(2px);
   }
   .sidebar-backdrop.show { display: block; }
+
+  /* Header */
+  .header { padding: 0 10px; }
+  .header-actions { gap: 10px; }
+
+  /* Stats bar */
+  #stats-bar { gap: 10px; padding: 4px 10px; font-size: 0.6rem; }
+
+  /* Room toolbar */
+  #room-toolbar { padding: 5px 8px; }
+
+  /* Voice join bar */
+  #voice-join-bar { flex-wrap: wrap; gap: 8px; }
+
+  /* Modals */
+  .win-box { padding: 22px 18px; }
+
+  /* Profile */
+  .profile-inner { padding: 22px 18px 18px; max-height: 90vh; overflow-y: auto; }
+
+  /* Toast */
+  #toast-container { max-width: 240px; right: 10px; top: 10px; }
+
+  /* Input */
+  .input-bar { padding: 8px 10px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 }
 
 /* ======================== ROOM PANEL ======================== */
@@ -2201,9 +2226,35 @@ kbd {
 @media (max-width: 480px) {
   .bubble { max-width: 92%; font-size: 0.85rem; }
   .header-title { font-size: 0.82rem; }
+  .header-sub { font-size: 0.55rem; }
+  .header-actions { gap: 8px; }
+  .header-btn { font-size: 0.95rem; }
   .msg-area { padding: 10px; gap: 8px; }
-  .input-bar { padding: 8px 10px; }
-  #msgInput { font-size: 0.85rem !important; }
+  .input-bar { padding: 7px 8px; padding-bottom: calc(7px + env(safe-area-inset-bottom)); }
+  #msgInput { font-size: 0.85rem !important; padding: 8px 12px; min-height: 38px; }
+  #stats-bar { gap: 8px; padding: 3px 8px; font-size: 0.58rem; }
+  #room-toolbar { gap: 5px; padding: 4px 6px; }
+  .toolbar-btn { padding: 4px 8px; font-size: 0.65rem; }
+  .win-box { padding: 18px 14px; }
+  .profile-inner { padding: 18px 14px 14px; }
+  .profile-avatar { width: 54px; height: 54px; font-size: 1.3rem; }
+  .profile-name { font-size: 1rem; }
+  #toast-container { max-width: 220px; }
+  .input-extra { gap: 6px; margin-bottom: 6px; }
+  .emoji-quick span { font-size: 1rem; }
+}
+
+@media (max-width: 360px) {
+  .header { padding: 0 8px; height: 54px; }
+  .header-title { font-size: 0.78rem; }
+  .header-actions { gap: 6px; }
+  .header-btn { font-size: 0.9rem; }
+  #stats-bar { gap: 6px; padding: 3px 6px; font-size: 0.55rem; }
+  .bubble { max-width: 95%; font-size: 0.82rem; }
+  .msg-area { padding: 8px; gap: 6px; }
+  .win-box { padding: 14px 12px; }
+  .profile-inner { padding: 14px 12px; }
+  .toolbar-btn { padding: 3px 7px; font-size: 0.62rem; }
 }
 
 /* ======================== SELECTION ======================== */
