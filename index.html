@@ -2337,12 +2337,16 @@ kbd {
   <div class="win-box">
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:2rem;margin-bottom:6px">⚔️</div>
-      <h3>اختر اسمك المستعار</h3>
+      <h3 id="nick-screen-title">اختر اسمك المستعار</h3>
       <p class="subtitle">سيظهر هذا الاسم للجميع</p>
     </div>
     <div class="form-group">
       <label>الاسم المستعار</label>
       <input class="form-input" type="text" id="nickInput" placeholder="اكتب اسمك هنا..." autocomplete="off" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label>نبذة عنك <span style="color:var(--text-muted);font-size:0.7rem">(اختياري)</span></label>
+      <input class="form-input" type="text" id="bioInput" placeholder="مثلاً: عاشق الأنمي والFPS ..." autocomplete="off" maxlength="60">
     </div>
     <button class="btn-gold" style="width:100%" onclick="updateNickname()">
       <i class="fas fa-check"></i> حفظ والبدء
@@ -2636,7 +2640,7 @@ kbd {
         <div style="font-weight:800;color:var(--gold);font-size:0.9rem"><i class="fas fa-gamepad"></i> GAME ZONE</div>
         <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">
           مرحباً، <span id="displayNick" style="color:var(--gold)"></span>
-          <span onclick="document.getElementById('nick-screen').style.display='flex'" style="cursor:pointer;opacity:0.6;margin-right:4px"><i class="fas fa-edit" style="font-size:0.6rem"></i></span>
+          <span onclick="openEditProfile()" style="cursor:pointer;opacity:0.6;margin-right:4px" title="تعديل الملف الشخصي"><i class="fas fa-edit" style="font-size:0.6rem"></i></span>
         </div>
         <div style="font-size:0.6rem;color:var(--text-muted);margin-top:1px" id="sidebar-online-count">جارٍ التحميل...</div>
       </div>
@@ -3418,21 +3422,41 @@ auth.onAuthStateChanged(async user => {
 async function updateNickname() {
   const n = document.getElementById('nickInput').value.trim();
   if (!n || n.length < 2) return showToast('الاسم يجب أن يكون حرفين على الأقل', 'error');
+  const bio = document.getElementById('bioInput').value.trim();
 
   const user = auth.currentUser;
-  const data = { name: n, email: user.email, joinDate: firebase.firestore.FieldValue.serverTimestamp(), xp: 0 };
+  const isEdit = !!myData?.name;
+  const oldName = myData?.name;
+
+  const data = { name: n, email: user.email, bio: bio || '', xp: myData?.xp || 0 };
+  if (!isEdit) { data.joinDate = firebase.firestore.FieldValue.serverTimestamp(); }
   await db.collection('users').doc(user.email).set(data, { merge: true });
 
-  await db.collection('messages').add({
-    text: `🏆 انضم المحارب الجديد "${n}" إلى GAME ZONE!`,
-    sender: "SYSTEM", name: "النظام", room: 'general',
-    time: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  if (!isEdit) {
+    await db.collection('messages').add({
+      text: `🏆 انضم المحارب الجديد "${n}" إلى GAME ZONE!`,
+      sender: "SYSTEM", name: "النظام", room: 'general',
+      time: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } else if (n !== oldName) {
+    showToast(`✅ تم تغيير الاسم إلى "${n}"`, 'success');
+  } else {
+    showToast('✅ تم حفظ الملف الشخصي', 'success');
+  }
 
   const updated = await db.collection('users').doc(user.email).get();
   myData = updated.data();
+  document.getElementById('displayNick').innerText = myData.name;
   document.getElementById('nick-screen').style.display = 'none';
-  showApp();
+  if (!isEdit) showApp();
+}
+
+function openEditProfile() {
+  if (!myData) return;
+  document.getElementById('nick-screen-title').textContent = 'تعديل الملف الشخصي';
+  document.getElementById('nickInput').value = myData.name || '';
+  document.getElementById('bioInput').value = myData.bio || '';
+  document.getElementById('nick-screen').style.display = 'flex';
 }
 
 // ======================== SHOW APP ========================
@@ -3713,6 +3737,8 @@ function loadMessages() {
   if (window._msgsUnsub) { window._msgsUnsub(); }
 
   const roomToLoad = currentRoom;
+  let prevRenderedCount = 0;
+
   window._msgsUnsub = db.collection('messages')
     .orderBy('time')
     .limitToLast(300)
@@ -3729,9 +3755,9 @@ function loadMessages() {
         msgBox.appendChild(welcome);
       }
 
+      const prevCount = prevRenderedCount;
       let snapMsgCount = 0;
       let lastDate = null;
-      const prevCount = allMessages.length;
 
       snap.forEach(doc => {
         const m = { ...doc.data(), id: doc.id };
@@ -3755,17 +3781,31 @@ function loadMessages() {
       });
 
       document.getElementById('stat-msgs').innerText = snapMsgCount;
+      prevRenderedCount = snapMsgCount;
 
       // If new messages arrived & user is scrolled up: show badge, play sound
       if (prevCount > 0 && snapMsgCount > prevCount) {
-        const newMsgs = snapMsgCount - prevCount;
+        const newMsgs = allMessages.slice(prevCount);
         if (isScrolledUp) {
-          unreadMsgCount += newMsgs;
+          unreadMsgCount += newMsgs.length;
           updateUnreadBadge();
           playNewMsgSound();
         } else {
           msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
           playNewMsgSound();
+        }
+        // @mention browser notification
+        const myName = myData?.name || '';
+        if (myName && Notification.permission === 'granted') {
+          newMsgs.forEach(m => {
+            if (m.sender !== auth.currentUser.email && m.text && m.text.toLowerCase().includes('@' + myName.toLowerCase())) {
+              new Notification('📢 ذكرك ' + (m.name || 'أحدهم'), {
+                body: m.text.substring(0, 80),
+                icon: '/GAME-ZONE-CHAT/icon-192.png',
+                tag: 'mention-' + m.id
+              });
+            }
+          });
         }
       } else {
         msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
@@ -4198,10 +4238,19 @@ async function showUserProfile(email, name) {
   document.getElementById('profile-rank').innerHTML = `<span class="rank ${rank.c}" style="font-size:0.72rem">${rank.n}</span>`;
   document.getElementById('profile-xp-fill').style.width = pct + '%';
   document.getElementById('profile-xp-label').textContent = `${xp.toLocaleString('ar')} XP — المستوى التالي: ${nextLevel.toLocaleString('ar')}`;
-  document.getElementById('profile-meta').textContent = `انضم: ${joinStr}`;
+  const bio = u.bio ? `<div style="font-style:italic;color:var(--text);margin-bottom:6px;font-size:0.72rem">"${u.bio}"</div>` : '';
+  document.getElementById('profile-meta').innerHTML = `${bio}<span>انضم: ${joinStr}</span>`;
 
   const actions = document.getElementById('profile-actions');
   actions.innerHTML = '';
+  if (isMe) {
+    const editBtn = document.createElement('button');
+    editBtn.className = 'profile-btn';
+    editBtn.style.cssText = 'background:rgba(212,175,55,0.15);color:var(--gold);border:1px solid rgba(212,175,55,0.3)';
+    editBtn.innerHTML = '<i class="fas fa-edit"></i> تعديل الملف';
+    editBtn.onclick = () => { closeProfile(); openEditProfile(); };
+    actions.appendChild(editBtn);
+  }
   if (!isMe) {
     const pmBtn = document.createElement('button');
     pmBtn.className = 'profile-btn';
