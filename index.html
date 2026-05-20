@@ -3592,10 +3592,7 @@ function loadMessages() {
       }
       loadTypingIndicator();
     }, err => {
-      if (err.code === 'failed-precondition' || err.message?.includes('index')) {
-        console.error('Firestore index required. Create it here:', err.message);
-        showToast('⚠️ Firestore index مطلوب — افتح Console للحصول على الرابط', 'error', 6000);
-      }
+      console.error('Messages listener error:', err.message);
     });
 
   // Pinned message
