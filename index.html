@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>GAME ZONE | PRO v8.0</title>
-<link rel="manifest" href="#" id="pwa-manifest">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -3248,6 +3248,10 @@ auth.onAuthStateChanged(async user => {
       setTimeout(() => document.getElementById('nickInput').focus(), 300);
     } else {
       myData = doc.data();
+      // Live listener so VIP status updates in real-time without refresh
+      db.collection('users').doc(user.email).onSnapshot(snap => {
+        if (snap.exists) { myData = snap.data(); updateSidebarXP(); }
+      });
       showApp();
     }
   }
@@ -3323,6 +3327,10 @@ function buildRoomsList() {
 
 function switchRoom(roomId) {
   if (roomId === currentRoom) { closeSidebar(); return; }
+  if (roomId === 'vip' && !myData?.vip && myData?.email !== FOUNDER_ID) {
+    showToast('👑 غرفة VIP حصرية — يمنحها المؤسس فقط لمن يستحق', 'error', 4000);
+    return;
+  }
   currentRoom = roomId;
   document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('room-' + roomId);
@@ -3526,7 +3534,9 @@ function loadMessages() {
 
   const roomToLoad = currentRoom;
   window._msgsUnsub = db.collection('messages')
+    .where('room', '==', roomToLoad)
     .orderBy('time')
+    .limitToLast(100)
     .onSnapshot(snap => {
       msgBox.innerHTML = '';
       allMessages = [];
@@ -3546,9 +3556,6 @@ function loadMessages() {
 
       snap.forEach(doc => {
         const m = { ...doc.data(), id: doc.id };
-        // Filter by room in JS - show messages with matching room OR messages with no room (old messages in general)
-        const msgRoom = m.room || 'general';
-        if (msgRoom !== roomToLoad) return;
 
         allMessages.push(m);
         snapMsgCount++;
@@ -3584,6 +3591,11 @@ function loadMessages() {
         msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
       }
       loadTypingIndicator();
+    }, err => {
+      if (err.code === 'failed-precondition' || err.message?.includes('index')) {
+        console.error('Firestore index required. Create it here:', err.message);
+        showToast('⚠️ Firestore index مطلوب — افتح Console للحصول على الرابط', 'error', 6000);
+      }
     });
 
   // Pinned message
@@ -4322,9 +4334,9 @@ async function toggleVIP(email) {
   const doc = await ref.get();
   if (!doc.exists) return;
   const u = doc.data();
-  const newXP = u.xp >= 1000 ? 0 : 1000;
-  await ref.update({ xp: newXP });
-  showToast(newXP >= 1000 ? 'تم منح رتبة VIP ⭐' : 'تم إلغاء VIP', 'gold');
+  const grantVIP = !u.vip;
+  await ref.update({ vip: grantVIP });
+  showToast(grantVIP ? '👑 تم منح VIP — صلاحية غرفة VIP مفعّلة' : '🚫 تم سحب VIP', grantVIP ? 'gold' : 'info');
 }
 
 async function banUser(email) {
@@ -6583,6 +6595,13 @@ document.addEventListener('visibilitychange', () => {
     updateUnreadBadge();
   }
 });
+
+// ======================== SERVICE WORKER ========================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 
 // ======================== INIT EXTRAS ========================
 window.addEventListener('DOMContentLoaded', () => {
