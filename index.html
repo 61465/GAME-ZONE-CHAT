@@ -3663,9 +3663,8 @@ function loadMessages() {
 
   const roomToLoad = currentRoom;
   window._msgsUnsub = db.collection('messages')
-    .where('room', '==', roomToLoad)
     .orderBy('time')
-    .limitToLast(100)
+    .limitToLast(300)
     .onSnapshot(snap => {
       msgBox.innerHTML = '';
       allMessages = [];
@@ -3685,6 +3684,7 @@ function loadMessages() {
 
       snap.forEach(doc => {
         const m = { ...doc.data(), id: doc.id };
+        if ((m.room || 'general') !== roomToLoad) return;
 
         allMessages.push(m);
         snapMsgCount++;
@@ -3720,8 +3720,6 @@ function loadMessages() {
         msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
       }
       loadTypingIndicator();
-    }, err => {
-      console.error('Messages listener error:', err.message);
     });
 
   // Pinned message
