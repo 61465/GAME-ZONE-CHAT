@@ -3882,6 +3882,29 @@ function scrollToPinned() {
   }
 }
 
+// ======================== CONTENT FILTER ========================
+const BAD_WORDS = [
+  // عربي
+  'كلب','حمار','غبي','احمق','أحمق','يلعن','تبا','عاهرة','شرموطة','زبالة','منيوك',
+  'كس','طيز','زب','نيك','خول','مخنث','ابن الحرام','ابن زنا','أبن زنا',
+  // انجليزي
+  'fuck','shit','bitch','asshole','bastard','nigger','faggot','cunt','whore','damn',
+];
+function flagContent(text) {
+  const lower = text.toLowerCase().replace(/\s+/g,'');
+  return BAD_WORDS.some(w => lower.includes(w.replace(/\s+/g,'')));
+}
+async function logAlert(type, msgData, extra = {}) {
+  try {
+    await db.collection('admin_alerts').add({
+      type, extra,
+      msg: msgData,
+      status: 'new',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) {}
+}
+
 // ======================== SEND MESSAGE ========================
 let lastMsgTime = 0;
 const MSG_COOLDOWN = 1500;
@@ -3893,6 +3916,8 @@ async function send() {
   const now = Date.now();
   if (now - lastMsgTime < MSG_COOLDOWN) {
     showToast('⏱️ انتظر لحظة قبل الإرسال', 'error', 1000);
+    // Log spam attempt
+    logAlert('spam', { sender: myData.email, name: myData.name, room: currentRoom, text: msgText });
     return;
   }
   lastMsgTime = now;
@@ -3911,6 +3936,11 @@ async function send() {
       time: firebase.firestore.FieldValue.serverTimestamp(),
       reactions: {}
     });
+
+    // Flag profanity for admin review
+    if (flagContent(msgText)) {
+      logAlert('profanity', { sender: myData.email, name: myData.name, room: currentRoom, text: msgText, msgId: ref.id });
+    }
 
     msgInput.value = '';
     msgInput.style.height = 'auto';

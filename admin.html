@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAME ZONE | لوحة المراقبة</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #D4AF37; --gold2: #f5d060;
+  --bg: #050505; --panel: #0d0d0d; --panel2: #111;
+  --border: #1e1e1e; --text: #e8e8e8; --muted: #555;
+  --red: #e74c3c; --green: #2ecc71; --blue: #3498db; --orange: #e67e22;
+  --radius: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; }
+body { background:var(--bg); color:var(--text); min-height:100dvh; }
+
+/* ---- AUTH ---- */
+#auth-screen {
+  min-height:100dvh; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at center, rgba(212,175,55,0.05) 0%, transparent 70%);
+}
+.auth-box {
+  background:var(--panel); border:1px solid rgba(212,175,55,0.2);
+  border-radius:20px; padding:36px 32px; width:100%; max-width:380px; text-align:center;
+}
+.auth-box h1 { font-size:1.4rem; color:var(--gold); margin-bottom:6px; }
+.auth-box p { font-size:0.8rem; color:var(--muted); margin-bottom:24px; }
+.auth-input {
+  width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  border-radius:10px; padding:12px 16px; color:var(--text); font-size:0.9rem;
+  font-family:'Tajawal',sans-serif; margin-bottom:10px;
+}
+.auth-input:focus { outline:none; border-color:rgba(212,175,55,0.4); }
+.auth-btn {
+  width:100%; background:var(--gold); color:#000; border:none; border-radius:10px;
+  padding:13px; font-size:1rem; font-weight:700; cursor:pointer;
+  font-family:'Tajawal',sans-serif; margin-top:4px;
+}
+.auth-err { color:var(--red); font-size:0.78rem; margin-top:8px; }
+
+/* ---- DASHBOARD ---- */
+#dashboard { display:none; }
+
+.topbar {
+  background:var(--panel); border-bottom:1px solid var(--border);
+  padding:14px 24px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:100;
+}
+.topbar h1 { font-size:1.1rem; color:var(--gold); flex:1; }
+.topbar-badge { font-size:0.65rem; background:var(--red); color:#fff; border-radius:6px; padding:2px 7px; font-weight:700; }
+.topbar-btn {
+  background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text);
+  border-radius:8px; padding:8px 14px; font-size:0.78rem; cursor:pointer;
+  font-family:'Tajawal',sans-serif; display:flex; align-items:center; gap:6px;
+}
+.topbar-btn:hover { background:rgba(255,255,255,0.1); }
+.topbar-btn.danger { border-color:rgba(231,76,60,0.3); color:var(--red); }
+
+.main { max-width:1200px; margin:0 auto; padding:20px 16px; }
+
+/* ---- STATS GRID ---- */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:20px; }
+.stat-card {
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+  padding:18px 16px; display:flex; flex-direction:column; gap:4px;
+}
+.stat-icon { font-size:1.4rem; margin-bottom:6px; }
+.stat-val { font-size:1.8rem; font-weight:900; color:var(--gold); line-height:1; }
+.stat-label { font-size:0.68rem; color:var(--muted); }
+.stat-card.danger .stat-val { color:var(--red); }
+.stat-card.success .stat-val { color:var(--green); }
+.stat-card.blue .stat-val { color:var(--blue); }
+
+/* ---- GRID ---- */
+.content-grid { display:grid; grid-template-columns:1fr 320px; gap:16px; }
+@media(max-width:800px) { .content-grid { grid-template-columns:1fr; } }
+
+/* ---- PANEL ---- */
+.panel {
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+}
+.panel-head {
+  padding:14px 18px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px; font-weight:700; font-size:0.9rem;
+}
+.panel-head .badge {
+  background:var(--red); color:#fff; border-radius:10px;
+  font-size:0.6rem; padding:2px 7px; font-weight:700; min-width:22px; text-align:center;
+}
+.panel-head .badge.green { background:var(--green); }
+.panel-head .ml { margin-right:auto; }
+
+/* ---- ALERT FEED ---- */
+.alert-list { max-height:520px; overflow-y:auto; }
+.alert-item {
+  padding:14px 18px; border-bottom:1px solid var(--border);
+  display:flex; flex-direction:column; gap:6px; transition:background 0.2s;
+}
+.alert-item:hover { background:rgba(255,255,255,0.02); }
+.alert-item.reviewed { opacity:0.4; }
+.alert-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.alert-type {
+  font-size:0.6rem; font-weight:700; padding:2px 8px; border-radius:5px;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.type-profanity { background:rgba(231,76,60,0.15); color:var(--red); border:1px solid rgba(231,76,60,0.3); }
+.type-spam { background:rgba(230,126,22,0.15); color:var(--orange); border:1px solid rgba(230,126,22,0.3); }
+.type-report { background:rgba(52,152,219,0.15); color:var(--blue); border:1px solid rgba(52,152,219,0.3); }
+.alert-name { font-size:0.75rem; font-weight:700; }
+.alert-room { font-size:0.65rem; color:var(--muted); }
+.alert-time { font-size:0.62rem; color:var(--muted); margin-right:auto; }
+.alert-text {
+  font-size:0.8rem; color:var(--text); background:rgba(255,255,255,0.03);
+  border-right:2px solid var(--red); padding:6px 10px; border-radius:0 6px 6px 0;
+  word-break:break-word;
+}
+.alert-text.spam-text { border-right-color:var(--orange); }
+.alert-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.act-btn {
+  border:none; border-radius:6px; padding:5px 11px; font-size:0.68rem;
+  cursor:pointer; font-family:'Tajawal',sans-serif; font-weight:600;
+  display:flex; align-items:center; gap:4px;
+}
+.act-mute { background:rgba(230,126,22,0.15); color:var(--orange); border:1px solid rgba(230,126,22,0.3); }
+.act-ban  { background:rgba(231,76,60,0.15);  color:var(--red);    border:1px solid rgba(231,76,60,0.3); }
+.act-del  { background:rgba(255,255,255,0.06); color:var(--muted);  border:1px solid var(--border); }
+.act-ok   { background:rgba(46,204,113,0.12);  color:var(--green);  border:1px solid rgba(46,204,113,0.3); }
+.act-btn:hover { filter:brightness(1.2); }
+
+.empty-feed { padding:40px; text-align:center; color:var(--muted); font-size:0.82rem; }
+
+/* ---- ROOM STATS ---- */
+.room-stat-item {
+  padding:12px 18px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+}
+.room-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.room-stat-name { font-size:0.8rem; flex:1; }
+.room-stat-count { font-size:0.75rem; color:var(--gold); font-weight:700; }
+.room-bar-wrap { flex:1; height:4px; background:var(--border); border-radius:2px; margin:0 8px; }
+.room-bar { height:100%; border-radius:2px; transition:width 0.5s ease; }
+
+/* ---- SUMMARY BOX ---- */
+#summary-box {
+  background:var(--panel2); border:1px solid rgba(212,175,55,0.2);
+  border-radius:var(--radius); padding:18px; margin-bottom:16px; display:none;
+}
+#summary-box pre {
+  font-family:'Tajawal',sans-serif; font-size:0.82rem; color:var(--text);
+  white-space:pre-wrap; line-height:1.8;
+}
+.summary-header { color:var(--gold); font-weight:700; margin-bottom:10px; font-size:0.9rem; }
+
+/* ---- NOTIF BAR ---- */
+#notif-bar {
+  position:fixed; top:70px; left:50%; transform:translateX(-50%);
+  background:var(--panel); border:1px solid rgba(231,76,60,0.4);
+  border-radius:10px; padding:10px 18px; font-size:0.8rem;
+  display:none; align-items:center; gap:10px; z-index:999;
+  box-shadow:0 4px 20px rgba(231,76,60,0.15); max-width:90vw;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown { from { opacity:0;transform:translateX(-50%) translateY(-10px) } to { opacity:1;transform:translateX(-50%) translateY(0) } }
+#notif-bar .nb-close { cursor:pointer; color:var(--muted); margin-right:auto; }
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div style="font-size:2rem;margin-bottom:12px">🛡️</div>
+    <h1>لوحة المراقبة</h1>
+    <p>للمؤسس فقط</p>
+    <input id="adm-email" class="auth-input" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
+    <input id="adm-pass"  class="auth-input" type="password" placeholder="كلمة المرور">
+    <button class="auth-btn" onclick="adminLogin()"><i class="fas fa-shield-alt"></i> دخول</button>
+    <div id="auth-err" class="auth-err"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+  <!-- NOTIF BAR -->
+  <div id="notif-bar">
+    <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i>
+    <span id="notif-text"></span>
+    <span class="nb-close" onclick="document.getElementById('notif-bar').style.display='none'"><i class="fas fa-times"></i></span>
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>🛡️</div>
+    <h1>GAME ZONE — لوحة المراقبة</h1>
+    <span id="new-alerts-badge" class="topbar-badge" style="display:none">0 تنبيه جديد</span>
+    <button class="topbar-btn" onclick="generateSummary()"><i class="fas fa-robot"></i> ملخص يومي</button>
+    <button class="topbar-btn" onclick="requestNotifPerm()" id="notif-perm-btn" style="display:none"><i class="fas fa-bell"></i> تفعيل الإشعارات</button>
+    <button class="topbar-btn danger" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+  </div>
+
+  <div class="main">
+
+    <!-- SUMMARY -->
+    <div id="summary-box">
+      <div class="summary-header"><i class="fas fa-robot"></i> الملخص اليومي</div>
+      <pre id="summary-text"></pre>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div id="s-msgs" class="stat-val">-</div>
+        <div class="stat-label">رسالة اليوم</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon">👥</div>
+        <div id="s-users" class="stat-val">-</div>
+        <div class="stat-label">مستخدم مسجّل</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-icon">⚠️</div>
+        <div id="s-flags" class="stat-val">0</div>
+        <div class="stat-label">محتوى مُبلَّغ عنه</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-icon">🚫</div>
+        <div id="s-spam" class="stat-val">0</div>
+        <div class="stat-label">محاولة سبام</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">🏆</div>
+        <div id="s-active" class="stat-val">-</div>
+        <div class="stat-label">أكثر غرفة نشاطاً</div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+      <!-- ALERTS FEED -->
+      <div class="panel">
+        <div class="panel-head">
+          <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i>
+          تنبيهات المحتوى
+          <span id="alerts-badge" class="badge">0</span>
+          <div class="ml"></div>
+          <button class="act-btn act-ok" style="font-size:0.65rem" onclick="markAllReviewed()">
+            <i class="fas fa-check-double"></i> تمييز الكل كمراجع
+          </button>
+        </div>
+        <div class="alert-list" id="alert-list">
+          <div class="empty-feed"><i class="fas fa-shield-alt" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.3"></i>لا توجد تنبيهات</div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- ROOM STATS -->
+        <div class="panel">
+          <div class="panel-head"><i class="fas fa-chart-bar" style="color:var(--gold)"></i> نشاط الغرف — اليوم</div>
+          <div id="room-stats-list"></div>
+        </div>
+
+        <!-- BANNED USERS -->
+        <div class="panel">
+          <div class="panel-head">
+            <i class="fas fa-ban" style="color:var(--red)"></i> المحظورون
+            <span id="banned-badge" class="badge green">0</span>
+          </div>
+          <div id="banned-list" style="max-height:200px;overflow-y:auto"></div>
+        </div>
+
+        <!-- MUTED USERS -->
+        <div class="panel">
+          <div class="panel-head">
+            <i class="fas fa-volume-mute" style="color:var(--orange)"></i> المكتومون
+            <span id="muted-badge" class="badge green">0</span>
+          </div>
+          <div id="muted-list" style="max-height:200px;overflow-y:auto"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+const FOUNDER_ID = "abdarahman10555@gmail.com";
+const ROOMS_INFO = [
+  { id:'general', name:'🌐 المجتمع',        color:'#D4AF37' },
+  { id:'gaming',  name:'🎮 قيمرز',           color:'#00d4ff' },
+  { id:'anime',   name:'⛩️ أنمي',            color:'#ff6eb4' },
+  { id:'movies',  name:'🎬 أفلام',           color:'#f39c12' },
+  { id:'random',  name:'🎲 عشوائي',          color:'#a29bfe' },
+  { id:'vip',     name:'👑 VIP',             color:'#ffd700' },
+];
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBqu1IE24FhA-govU_swQ4IcynOj4AB-ao",
+  authDomain: "game-zone-chat1.firebaseapp.com",
+  projectId: "game-zone-chat1",
+  storageBucket: "game-zone-chat1.firebasestorage.app",
+  messagingSenderId: "932733239188",
+  appId: "1:932733239188:web:634fbfc00a396c761a1981"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// ======================== AUTH ========================
+async function adminLogin() {
+  const email = document.getElementById('adm-email').value.trim();
+  const pass  = document.getElementById('adm-pass').value;
+  const err   = document.getElementById('auth-err');
+  err.textContent = '';
+  if (email !== FOUNDER_ID) { err.textContent = 'ليس لديك صلاحية الوصول'; return; }
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) { err.textContent = 'خطأ: ' + e.message; }
+}
+
+function adminLogout() {
+  auth.signOut().then(() => location.reload());
+}
+
+auth.onAuthStateChanged(user => {
+  if (user && user.email === FOUNDER_ID) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    initDashboard();
+  } else if (user) {
+    auth.signOut();
+    document.getElementById('auth-err').textContent = 'ليس لديك صلاحية';
+  }
+});
+
+// ======================== DASHBOARD ========================
+let allAlerts = [];
+let roomMsgCounts = {};
+
+function initDashboard() {
+  loadAlerts();
+  loadRoomStats();
+  loadUserCount();
+  loadBanned();
+  loadMuted();
+  if ('Notification' in window && Notification.permission === 'default') {
+    document.getElementById('notif-perm-btn').style.display = 'flex';
+  }
+}
+
+// ======================== ALERTS ========================
+function loadAlerts() {
+  const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+
+  db.collection('admin_alerts')
+    .orderBy('createdAt', 'desc')
+    .limit(100)
+    .onSnapshot(snap => {
+      allAlerts = [];
+      snap.forEach(doc => allAlerts.push({ id: doc.id, ...doc.data() }));
+      renderAlerts();
+      updateStats();
+    });
+}
+
+function renderAlerts() {
+  const list = document.getElementById('alert-list');
+  const newAlerts = allAlerts.filter(a => a.status === 'new');
+  const badge = document.getElementById('alerts-badge');
+  const topBadge = document.getElementById('new-alerts-badge');
+  badge.textContent = newAlerts.length;
+  badge.style.background = newAlerts.length > 0 ? 'var(--red)' : 'var(--green)';
+  topBadge.textContent = newAlerts.length + ' تنبيه جديد';
+  topBadge.style.display = newAlerts.length > 0 ? 'inline' : 'none';
+
+  if (!allAlerts.length) {
+    list.innerHTML = '<div class="empty-feed"><i class="fas fa-shield-alt" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.3"></i>لا توجد تنبيهات</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  allAlerts.forEach(a => {
+    const isNew = a.status === 'new';
+    const time  = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'}) : '';
+    const date  = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('ar-EG') : '';
+    const typeLabel = a.type === 'profanity' ? 'محتوى مسيء' : a.type === 'spam' ? 'سبام' : 'بلاغ';
+    const typeClass = 'type-' + (a.type || 'report');
+    const roomName  = ROOMS_INFO.find(r => r.id === a.msg?.room)?.name || a.msg?.room || '-';
+
+    const div = document.createElement('div');
+    div.className = 'alert-item' + (isNew ? '' : ' reviewed');
+    div.id = 'alert-' + a.id;
+
+    div.innerHTML = `
+      <div class="alert-meta">
+        <span class="alert-type ${typeClass}">${typeLabel}</span>
+        <span class="alert-name">${a.msg?.name || 'مجهول'}</span>
+        <span class="alert-room">${roomName}</span>
+        <span class="alert-time">${date} ${time}</span>
+      </div>
+      ${a.msg?.text ? `<div class="alert-text ${a.type==='spam'?'spam-text':''}">${escHtml(a.msg.text)}</div>` : '<div class="alert-text spam-text">محاولة سبام (تم إيقافها)</div>'}
+      <div class="alert-actions">
+        ${isNew ? `<button class="act-btn act-ok" onclick="markReviewed('${a.id}')"><i class="fas fa-check"></i> تمييز كمراجع</button>` : ''}
+        ${a.msg?.sender ? `
+          <button class="act-btn act-mute" onclick="muteUser('${a.msg.sender}','${a.id}')"><i class="fas fa-volume-mute"></i> كتم</button>
+          <button class="act-btn act-ban"  onclick="banUser('${a.msg.sender}','${a.id}')"><i class="fas fa-ban"></i> حظر</button>
+        ` : ''}
+        ${a.msg?.msgId ? `<button class="act-btn act-del" onclick="deleteMsg('${a.msg.msgId}','${a.id}')"><i class="fas fa-trash"></i> حذف الرسالة</button>` : ''}
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function updateStats() {
+  const profanity = allAlerts.filter(a => a.type === 'profanity').length;
+  const spam      = allAlerts.filter(a => a.type === 'spam').length;
+  document.getElementById('s-flags').textContent = profanity;
+  document.getElementById('s-spam').textContent  = spam;
+}
+
+function escHtml(t) {
+  return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ======================== ACTIONS ========================
+async function markReviewed(alertId) {
+  await db.collection('admin_alerts').doc(alertId).update({ status: 'reviewed' });
+}
+
+async function markAllReviewed() {
+  const batch = db.batch();
+  allAlerts.filter(a => a.status === 'new').forEach(a => {
+    batch.update(db.collection('admin_alerts').doc(a.id), { status: 'reviewed' });
+  });
+  await batch.commit();
+}
+
+async function muteUser(email, alertId) {
+  await db.collection('mutes').doc(email).set({ muted:true, mutedBy: FOUNDER_ID, mutedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  if (alertId) await markReviewed(alertId);
+  showNotif('تم كتم ' + email);
+}
+
+async function banUser(email, alertId) {
+  if (!confirm('حظر ' + email + ' نهائياً؟')) return;
+  await db.collection('bans').doc(email).set({ banned:true, bannedBy: FOUNDER_ID, bannedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  if (alertId) await markReviewed(alertId);
+  showNotif('تم حظر ' + email);
+}
+
+async function deleteMsg(msgId, alertId) {
+  await db.collection('messages').doc(msgId).update({ deleted:true, text:'' });
+  if (alertId) await markReviewed(alertId);
+  showNotif('تم حذف الرسالة');
+}
+
+// ======================== ROOM STATS ========================
+function loadRoomStats() {
+  const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+  const dayTs = firebase.firestore.Timestamp.fromDate(startOfDay);
+
+  ROOMS_INFO.forEach(r => {
+    db.collection('messages')
+      .where('room', '==', r.id)
+      .where('time', '>=', dayTs)
+      .onSnapshot(snap => {
+        roomMsgCounts[r.id] = snap.size;
+        renderRoomStats();
+        updateMsgTotal();
+      }, () => {
+        db.collection('messages').where('room', '==', r.id).onSnapshot(snap => {
+          roomMsgCounts[r.id] = snap.size;
+          renderRoomStats();
+        }, () => {});
+      });
+  });
+}
+
+function renderRoomStats() {
+  const max = Math.max(1, ...Object.values(roomMsgCounts));
+  const sorted = [...ROOMS_INFO].sort((a,b) => (roomMsgCounts[b.id]||0) - (roomMsgCounts[a.id]||0));
+  const list = document.getElementById('room-stats-list');
+  list.innerHTML = '';
+  sorted.forEach(r => {
+    const count = roomMsgCounts[r.id] || 0;
+    const pct   = Math.round((count / max) * 100);
+    const div   = document.createElement('div');
+    div.className = 'room-stat-item';
+    div.innerHTML = `
+      <div class="room-dot" style="background:${r.color}"></div>
+      <span class="room-stat-name">${r.name}</span>
+      <div class="room-bar-wrap"><div class="room-bar" style="width:${pct}%;background:${r.color}40"></div></div>
+      <span class="room-stat-count">${count}</span>`;
+    list.appendChild(div);
+  });
+  // Most active room
+  if (sorted.length) {
+    document.getElementById('s-active').textContent = sorted[0].name.split(' ')[1] || sorted[0].name;
+  }
+}
+
+function updateMsgTotal() {
+  const total = Object.values(roomMsgCounts).reduce((s,v) => s+v, 0);
+  document.getElementById('s-msgs').textContent = total.toLocaleString('ar');
+}
+
+// ======================== USERS ========================
+function loadUserCount() {
+  db.collection('users').onSnapshot(snap => {
+    document.getElementById('s-users').textContent = snap.size.toLocaleString('ar');
+  });
+}
+
+function loadBanned() {
+  db.collection('bans').onSnapshot(snap => {
+    const list = document.getElementById('banned-list');
+    document.getElementById('banned-badge').textContent = snap.size;
+    list.innerHTML = '';
+    if (!snap.size) { list.innerHTML = '<div style="padding:12px 18px;font-size:0.75rem;color:var(--muted)">لا يوجد محظورون</div>'; return; }
+    snap.forEach(doc => {
+      const d = document.createElement('div');
+      d.style.cssText = 'padding:10px 18px;border-bottom:1px solid var(--border);font-size:0.75rem;display:flex;align-items:center;gap:8px';
+      d.innerHTML = `<i class="fas fa-ban" style="color:var(--red);font-size:0.65rem"></i><span style="flex:1">${doc.id}</span>
+        <button class="act-btn act-ok" style="font-size:0.6rem" onclick="db.collection('bans').doc('${doc.id}').delete()"><i class="fas fa-unlock"></i> رفع الحظر</button>`;
+      list.appendChild(d);
+    });
+  });
+}
+
+function loadMuted() {
+  db.collection('mutes').onSnapshot(snap => {
+    const list = document.getElementById('muted-list');
+    document.getElementById('muted-badge').textContent = snap.size;
+    list.innerHTML = '';
+    if (!snap.size) { list.innerHTML = '<div style="padding:12px 18px;font-size:0.75rem;color:var(--muted)">لا يوجد مكتومون</div>'; return; }
+    snap.forEach(doc => {
+      const d = document.createElement('div');
+      d.style.cssText = 'padding:10px 18px;border-bottom:1px solid var(--border);font-size:0.75rem;display:flex;align-items:center;gap:8px';
+      d.innerHTML = `<i class="fas fa-volume-mute" style="color:var(--orange);font-size:0.65rem"></i><span style="flex:1">${doc.id}</span>
+        <button class="act-btn act-ok" style="font-size:0.6rem" onclick="db.collection('mutes').doc('${doc.id}').delete()"><i class="fas fa-volume-up"></i> رفع الكتم</button>`;
+      list.appendChild(d);
+    });
+  });
+}
+
+// ======================== SUMMARY BOT ========================
+function generateSummary() {
+  const box  = document.getElementById('summary-box');
+  const text = document.getElementById('summary-text');
+  box.style.display = 'block';
+
+  const total   = Object.values(roomMsgCounts).reduce((s,v)=>s+v,0);
+  const flags   = allAlerts.filter(a => a.type==='profanity').length;
+  const spams   = allAlerts.filter(a => a.type==='spam').length;
+  const newAl   = allAlerts.filter(a => a.status==='new').length;
+  const sorted  = [...ROOMS_INFO].sort((a,b)=>(roomMsgCounts[b.id]||0)-(roomMsgCounts[a.id]||0));
+  const topRoom = sorted[0];
+  const today   = new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const spamUsers = {};
+  allAlerts.filter(a=>a.type==='spam').forEach(a => {
+    if (a.msg?.name) spamUsers[a.msg.name] = (spamUsers[a.msg.name]||0)+1;
+  });
+  const spamList = Object.entries(spamUsers).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,c])=>`  • ${n}: ${c} محاولة`).join('\n') || '  لا يوجد';
+
+  const flagUsers = {};
+  allAlerts.filter(a=>a.type==='profanity').forEach(a => {
+    if (a.msg?.name) flagUsers[a.msg.name] = (flagUsers[a.msg.name]||0)+1;
+  });
+  const flagList = Object.entries(flagUsers).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,c])=>`  • ${n}: ${c} رسالة`).join('\n') || '  لا يوجد';
+
+  text.textContent = `📊 الملخص اليومي — ${today}
+${'─'.repeat(40)}
+
+💬 إجمالي الرسائل اليوم:  ${total.toLocaleString('ar')}
+👥 إجمالي المستخدمين:     ${document.getElementById('s-users').textContent}
+
+🏆 أكثر الغرف نشاطاً:
+${sorted.slice(0,3).map(r=>`  • ${r.name}: ${roomMsgCounts[r.id]||0} رسالة`).join('\n')}
+
+⚠️  محتوى مسيء رُصد:      ${flags}
+🚫 محاولات سبام:          ${spams}
+🔴 تنبيهات لم تُراجع:    ${newAl}
+
+👤 أكثر المستخدمين محاولةً للسبام:
+${spamList}
+
+🤬 أكثر مستخدمي المحتوى المسيء:
+${flagList}
+
+${'─'.repeat(40)}
+✅ الوضع العام: ${newAl === 0 ? 'هادئ — لا تنبيهات جديدة' : `يحتاج مراجعة — ${newAl} تنبيه جديد`}`;
+}
+
+// ======================== NOTIFICATIONS ========================
+function requestNotifPerm() {
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      document.getElementById('notif-perm-btn').style.display = 'none';
+      showNotif('✅ الإشعارات مفعّلة');
+    }
+  });
+}
+
+function showNotif(msg) {
+  const bar = document.getElementById('notif-bar');
+  document.getElementById('notif-text').textContent = msg;
+  bar.style.display = 'flex';
+  setTimeout(() => { bar.style.display = 'none'; }, 4000);
+}
+
+function pushNotif(title, body) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body, icon: './icon-192.png', badge: './icon-192.png' });
+  }
+  showNotif(`${title}: ${body}`);
+}
+
+// Watch for NEW alerts and push notification
+let firstLoad = true;
+db.collection('admin_alerts').where('status','==','new').onSnapshot(snap => {
+  if (firstLoad) { firstLoad = false; return; }
+  snap.docChanges().forEach(change => {
+    if (change.type === 'added') {
+      const a = change.doc.data();
+      const typeLabel = a.type === 'profanity' ? '⚠️ محتوى مسيء' : '🚫 محاولة سبام';
+      pushNotif(typeLabel, `${a.msg?.name || '؟'}: ${(a.msg?.text || '').substring(0,60)}`);
+    }
+  });
+});
+</script>
+</body>
+</html>
