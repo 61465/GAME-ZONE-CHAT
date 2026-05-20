@@ -1089,6 +1089,18 @@ body {
 .toast.error { border-color: var(--red); }
 .toast.gold { border-color: var(--gold); }
 
+/* ======================== DESKTOP SIDEBAR TOGGLE ======================== */
+.sidebar {
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), min-width 0.3s, border 0.15s;
+}
+.sidebar.hidden-desk {
+  width: 0 !important;
+  min-width: 0 !important;
+  border: none !important;
+  overflow: hidden;
+  padding: 0;
+}
+
 /* ======================== MOBILE ======================== */
 @media (max-width: 768px) {
   .sidebar {
@@ -1098,8 +1110,10 @@ body {
     z-index: 1001;
     width: 88%;
     max-width: 300px;
+    transition: right 0.3s cubic-bezier(0.4,0,0.2,1) !important;
   }
   .sidebar.open { right: 0; box-shadow: -20px 0 60px rgba(0,0,0,0.8); }
+  .sidebar.hidden-desk { width: 88% !important; right: -100% !important; overflow: hidden !important; border: none; }
   .poll-btn { flex: 1 1 100%; }
   .bubble { max-width: 90%; }
 
@@ -2628,7 +2642,7 @@ kbd {
 
     <!-- Header (MUST BE FIRST) -->
     <header class="header" id="main-header">
-      <button onclick="openSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px">
+      <button onclick="toggleSidebar()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px">
         <i class="fas fa-bars"></i>
       </button>
       <div class="header-center" onclick="toggleRoomPanel()" style="cursor:pointer">
@@ -3574,14 +3588,34 @@ function loadLeaderboard() {
 }
 
 // ======================== SIDEBAR CONTROLS ========================
+function toggleSidebar() {
+  const sb = document.getElementById('mainSidebar');
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    sb.classList.contains('open') ? closeSidebar() : openSidebar();
+  } else {
+    sb.classList.contains('hidden-desk') ? openSidebar() : closeSidebar();
+  }
+}
+
 function openSidebar() {
-  document.getElementById('mainSidebar').classList.add('open');
-  document.getElementById('sidebarBackdrop').classList.add('show');
+  const sb = document.getElementById('mainSidebar');
+  if (window.innerWidth <= 768) {
+    sb.classList.add('open');
+    document.getElementById('sidebarBackdrop').classList.add('show');
+  } else {
+    sb.classList.remove('hidden-desk');
+  }
 }
 
 function closeSidebar() {
-  document.getElementById('mainSidebar').classList.remove('open');
-  document.getElementById('sidebarBackdrop').classList.remove('show');
+  const sb = document.getElementById('mainSidebar');
+  if (window.innerWidth <= 768) {
+    sb.classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+  } else {
+    sb.classList.add('hidden-desk');
+  }
 }
 
 function switchSidebarTab(tab, el) {
@@ -6156,7 +6190,7 @@ async function leaveVoice() {
     localScreenTrack?.close();
     await agoraClient?.leave();
 
-    await db.collection('voiceChannels').doc(currentRoom)
+    await db.collection('voiceChannels').doc(currentVoiceRoom || currentRoom)
       .collection('members').doc(auth.currentUser.email).delete();
 
     db.collection('messages').add({
@@ -6474,9 +6508,18 @@ function watchAllVoiceChannels() {
   if (window._voiceWatchUnsub) window._voiceWatchUnsub();
   window._voiceWatchUnsub = db.collection('voiceChannels').doc(currentRoom)
     .collection('members').onSnapshot(snap => {
-      if (inVoiceChannel) return; // already managing from joinVoice
+      if (inVoiceChannel) return;
       voiceMembers = {};
-      snap.forEach(doc => { voiceMembers[doc.id] = doc.data(); });
+      const staleThreshold = Date.now() - 60000; // 60s without heartbeat = gone
+      snap.forEach(doc => {
+        const m = doc.data();
+        if (m.lastSeen && m.lastSeen < staleThreshold) {
+          // Quietly clean up stale member from Firestore
+          doc.ref.delete().catch(() => {});
+          return;
+        }
+        voiceMembers[doc.id] = m;
+      });
       updateVoiceJoinBar();
     });
 }
