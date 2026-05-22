@@ -103,6 +103,34 @@ body {
   pointer-events: none;
 }
 
+/* ── Auth Tabs ── */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 22px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.auth-tab {
+  flex: 1;
+  padding: 11px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .22s;
+  letter-spacing: .5px;
+}
+.auth-tab.active {
+  background: var(--gold);
+  color: #000;
+}
+.auth-form { animation: fadeIn .25s ease; }
+
 .win-box h2, .win-box h3 {
   color: var(--gold);
   margin-bottom: 6px;
@@ -2311,24 +2339,59 @@ kbd {
 <div id="auth-screen" class="overlay" style="display:none">
   <div class="win-box">
     <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:2rem;margin-bottom:8px">🎮</div>
+      <div style="font-size:2.2rem;margin-bottom:8px">🎮</div>
       <h2 style="font-size:1.5rem">GAME ZONE PRO</h2>
       <p class="subtitle">المجتمع العربي للگیمرز</p>
     </div>
-    <div class="form-group">
-      <label>البريد الإلكتروني</label>
-      <input class="form-input" type="email" id="email" placeholder="example@email.com" autocomplete="email">
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">
+        <i class="fas fa-sign-in-alt"></i> دخول
+      </button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">
+        <i class="fas fa-user-plus"></i> حساب جديد
+      </button>
     </div>
-    <div class="form-group">
-      <label>كلمة المرور</label>
-      <input class="form-input" type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+
+    <!-- ── فورم الدخول ── -->
+    <div id="auth-login-form" class="auth-form">
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <input class="form-input" type="email" id="email" placeholder="example@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <input class="form-input" type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-gold" style="width:100%;margin-top:4px" onclick="login()">
+        <i class="fas fa-sign-in-alt"></i> دخول
+      </button>
+      <p style="font-size:0.68rem;color:var(--text-muted);margin-top:12px;text-align:center">
+        ما عندك حساب؟ <span style="color:var(--gold);cursor:pointer" onclick="switchAuthTab('register')">سجّل الآن</span>
+      </p>
     </div>
-    <button class="btn-gold" style="width:100%" onclick="login()">
-      <i class="fas fa-sign-in-alt"></i> دخول / تسجيل
-    </button>
-    <p style="font-size:0.65rem;color:var(--text-muted);margin-top:14px;text-align:center">
-      حساب جديد؟ سيتم إنشاؤه تلقائياً
-    </p>
+
+    <!-- ── فورم التسجيل ── -->
+    <div id="auth-register-form" class="auth-form" style="display:none">
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="example@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <input class="form-input" type="password" id="reg-pass" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label>تأكيد كلمة المرور</label>
+        <input class="form-input" type="password" id="reg-pass2" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <button class="btn-gold" style="width:100%;margin-top:4px" onclick="register()">
+        <i class="fas fa-user-plus"></i> إنشاء حساب
+      </button>
+      <p style="font-size:0.68rem;color:var(--text-muted);margin-top:12px;text-align:center">
+        عندك حساب بالفعل؟ <span style="color:var(--gold);cursor:pointer" onclick="switchAuthTab('login')">ادخل هنا</span>
+      </p>
+    </div>
   </div>
 </div>
 
@@ -3386,6 +3449,14 @@ function _saveCreds(e, p) {
 }
 function _clearCreds() { localStorage.removeItem('_gz_ses'); }
 
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('auth-login-form').style.display    = isLogin ? 'block' : 'none';
+  document.getElementById('auth-register-form').style.display = isLogin ? 'none'  : 'block';
+  document.getElementById('tab-login').classList.toggle('active',    isLogin);
+  document.getElementById('tab-register').classList.toggle('active', !isLogin);
+}
+
 async function login() {
   const e = document.getElementById('email').value.trim();
   const p = document.getElementById('pass').value;
@@ -3393,11 +3464,11 @@ async function login() {
   try {
     await auth.signInWithEmailAndPassword(e, p);
     _saveCreds(e, p);
-  } catch (signInErr) {
-    const code = signInErr.code;
+  } catch (err) {
+    const code = err.code;
     if (code === 'auth/user-not-found') {
-      try { await auth.createUserWithEmailAndPassword(e, p); _saveCreds(e, p); }
-      catch (createErr) { showToast('خطأ: ' + createErr.message, 'error'); }
+      showToast('لا يوجد حساب بهذا البريد، سجّل حساباً جديداً ❌', 'error');
+      switchAuthTab('register');
     } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
       showToast('كلمة المرور غلط ❌', 'error');
     } else if (code === 'auth/too-many-requests') {
@@ -3405,7 +3476,32 @@ async function login() {
     } else if (code === 'auth/invalid-email') {
       showToast('البريد الإلكتروني غير صحيح ❌', 'error');
     } else {
-      showToast('خطأ: ' + signInErr.message, 'error');
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+}
+
+async function register() {
+  const e  = document.getElementById('reg-email').value.trim();
+  const p  = document.getElementById('reg-pass').value;
+  const p2 = document.getElementById('reg-pass2').value;
+  if (!e || !p || !p2) return showToast('يرجى ملء جميع الحقول', 'error');
+  if (p !== p2) return showToast('كلمتا المرور غير متطابقتان ❌', 'error');
+  if (p.length < 6) return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+  try {
+    await auth.createUserWithEmailAndPassword(e, p);
+    _saveCreds(e, p);
+  } catch (err) {
+    const code = err.code;
+    if (code === 'auth/email-already-in-use') {
+      showToast('البريد مستخدم بالفعل، ادخل من تبويب الدخول ❌', 'error');
+      switchAuthTab('login');
+    } else if (code === 'auth/invalid-email') {
+      showToast('البريد الإلكتروني غير صحيح ❌', 'error');
+    } else if (code === 'auth/weak-password') {
+      showToast('كلمة المرور ضعيفة جداً ❌', 'error');
+    } else {
+      showToast('خطأ: ' + err.message, 'error');
     }
   }
 }
