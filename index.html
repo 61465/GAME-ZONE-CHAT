@@ -3385,9 +3385,23 @@ async function login() {
   const e = document.getElementById('email').value.trim();
   const p = document.getElementById('pass').value;
   if (!e || !p) return showToast('يرجى ملء البيانات', 'error');
-  try { await auth.signInWithEmailAndPassword(e, p); }
-  catch { try { await auth.createUserWithEmailAndPassword(e, p); }
-  catch (err) { showToast('خطأ: ' + err.message, 'error'); } }
+  try {
+    await auth.signInWithEmailAndPassword(e, p);
+  } catch (signInErr) {
+    const code = signInErr.code;
+    if (code === 'auth/user-not-found') {
+      try { await auth.createUserWithEmailAndPassword(e, p); }
+      catch (createErr) { showToast('خطأ: ' + createErr.message, 'error'); }
+    } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      showToast('كلمة المرور غلط ❌', 'error');
+    } else if (code === 'auth/too-many-requests') {
+      showToast('محاولات كثيرة، انتظر قليلاً ⏳', 'error');
+    } else if (code === 'auth/invalid-email') {
+      showToast('البريد الإلكتروني غير صحيح ❌', 'error');
+    } else {
+      showToast('خطأ: ' + signInErr.message, 'error');
+    }
+  }
 }
 
 // ======================== AUTH STATE ========================
