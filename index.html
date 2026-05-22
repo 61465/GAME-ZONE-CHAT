@@ -2308,7 +2308,7 @@ kbd {
 </div>
 
 <!-- ======= AUTH SCREEN ======= -->
-<div id="auth-screen" class="overlay">
+<div id="auth-screen" class="overlay" style="display:none">
   <div class="win-box">
     <div style="text-align:center;margin-bottom:20px">
       <div style="font-size:2rem;margin-bottom:8px">🎮</div>
@@ -3381,16 +3381,22 @@ function switchPanelTab(idx) {
 }
 
 // ======================== LOGIN ========================
+function _saveCreds(e, p) {
+  try { localStorage.setItem('_gz_ses', btoa(unescape(encodeURIComponent(JSON.stringify({e,p}))))); } catch {}
+}
+function _clearCreds() { localStorage.removeItem('_gz_ses'); }
+
 async function login() {
   const e = document.getElementById('email').value.trim();
   const p = document.getElementById('pass').value;
   if (!e || !p) return showToast('يرجى ملء البيانات', 'error');
   try {
     await auth.signInWithEmailAndPassword(e, p);
+    _saveCreds(e, p);
   } catch (signInErr) {
     const code = signInErr.code;
     if (code === 'auth/user-not-found') {
-      try { await auth.createUserWithEmailAndPassword(e, p); }
+      try { await auth.createUserWithEmailAndPassword(e, p); _saveCreds(e, p); }
       catch (createErr) { showToast('خطأ: ' + createErr.message, 'error'); }
     } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
       showToast('كلمة المرور غلط ❌', 'error');
@@ -3403,6 +3409,21 @@ async function login() {
     }
   }
 }
+
+// ======================== AUTO LOGIN ========================
+(function autoLogin() {
+  try {
+    const raw = localStorage.getItem('_gz_ses');
+    if (!raw) { document.getElementById('auth-screen').style.display = 'flex'; return; }
+    const {e, p} = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    auth.signInWithEmailAndPassword(e, p).catch(() => {
+      _clearCreds();
+      document.getElementById('auth-screen').style.display = 'flex';
+    });
+  } catch {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+})();
 
 // ======================== AUTH STATE ========================
 auth.onAuthStateChanged(async user => {
