@@ -2367,6 +2367,8 @@ kbd {
         <i class="fas fa-sign-in-alt"></i> دخول
       </button>
       <p style="font-size:0.68rem;color:var(--text-muted);margin-top:12px;text-align:center">
+        <span style="color:var(--gold);cursor:pointer" onclick="resetPassword()">نسيت كلمة المرور؟</span>
+        &nbsp;·&nbsp;
         ما عندك حساب؟ <span style="color:var(--gold);cursor:pointer" onclick="switchAuthTab('register')">سجّل الآن</span>
       </p>
     </div>
@@ -3478,6 +3480,20 @@ async function login() {
     } else {
       showToast('خطأ: ' + err.message, 'error');
     }
+  }
+}
+
+async function resetPassword() {
+  const e = document.getElementById('email').value.trim();
+  if (!e) return showToast('اكتب بريدك الإلكتروني أولاً', 'error');
+  try {
+    await auth.sendPasswordResetEmail(e);
+    showToast('تم إرسال رابط إعادة التعيين على بريدك 📩', 'success');
+  } catch (err) {
+    const code = err.code;
+    if (code === 'auth/user-not-found') showToast('لا يوجد حساب بهذا البريد ❌', 'error');
+    else if (code === 'auth/invalid-email') showToast('البريد غير صحيح ❌', 'error');
+    else showToast('خطأ: ' + err.message, 'error');
   }
 }
 
